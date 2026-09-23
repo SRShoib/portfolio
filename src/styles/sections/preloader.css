@@ -1,0 +1,46 @@
+/* Preloader: a saffron panel with the SHOIB wordmark that rises in, then wipes away upward.
+   The panel is hidden by default. An inline script in <head> adds `.is-preloading` to <html>
+   before the first paint when (and only when) it should play, so there is no flash and a
+   visitor with JS disabled never sees it. The animation itself lives in
+   src/sections/preloader.js. */
+
+.preloader {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-preloader);
+  place-items: center;
+  background: var(--accent);
+  color: var(--bg);
+  clip-path: inset(0 0 0 0); /* the wipe tweens this to inset(0 0 100% 0) */
+}
+
+.is-preloading .preloader {
+  display: grid;
+}
+
+/* Lock scrolling while it plays (scroll.js also stops Lenis). */
+html.is-preloading {
+  overflow: hidden;
+}
+
+.preloader__word {
+  display: flex;
+  overflow: hidden; /* the mask each letter rises out of */
+  padding-block: 0.06em;
+  font-size: clamp(4rem, 22vw, 14rem);
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.preloader__char {
+  display: inline-block;
+}
+
+/* Letters start invisible so nothing flashes before JS takes over; the timeline sets them
+   to opacity 1 at the same moment it moves them below the mask. */
+.is-preloading .preloader__char {
+  opacity: 0;
+}

@@ -1,0 +1,634 @@
+// Single data module mirroring CONTENT.md. If they ever disagree, CONTENT.md wins: edit it
+// first, then sync this file. Nothing here is invented: every string comes from CONTENT.md.
+//
+// TODOs: anything marked **TODO** in CONTENT.md is a `todo('…')` marker, never a made-up value.
+// Rendering rule (CLAUDE.md rule 1): show a visible TODO placeholder in dev, render nothing in
+// production, e.g. `import.meta.env.DEV && isTodo(x) ? placeholder(x) : null`.
+//
+// Lines marked "(draft)" in CONTENT.md were written from the CV and are used as-is.
+//
+// Deliberately absent (CONTENT.md §11, "Do NOT show"): phone number and street address.
+
+const TODO = Symbol.for('portfolio.todo');
+
+/** Marks a value that CONTENT.md says is still missing. `note` is what has to be provided. */
+export const todo = (note) => ({ [TODO]: true, note });
+export const isTodo = (value) => value != null && value[TODO] === true;
+
+// ---- 1. Identity ---------------------------------------------------------------------
+export const identity = {
+  name: 'Md. Mehedi Hasan Shoib',
+  wordmark: 'SHOIB',
+  title: 'AI/ML Engineer · Generative & Agentic AI',
+  tagline:
+    'I build retrieval and multi-agent AI systems that ship, backed by research in medical and agricultural computer vision.', // (draft)
+  badge: 'Research Assistant @ HIRL · Open to AI/ML roles',
+  location: 'Dhaka, Bangladesh',
+  availability: todo('remote / on-site / relocation / full-time'),
+  portrait: {
+    // Used in: About, hero fallback (reduced motion / no WebGL), OG image, JSON-LD
+    src: '/images/profile/portrait.png',
+    width: 928,
+    height: 1065,
+    alt: 'Portrait of Md. Mehedi Hasan Shoib',
+  },
+  // Same photo, background removed. Used for the face shape of the hero point cloud.
+  portraitCutout: '/images/profile/portrait-cutout.png',
+};
+
+// ---- 2. Hero captions (one per point-cloud shape) -----------------------------------------
+export const heroCaptions = {
+  face: null, // no caption: the name, title and badge introduce me
+  tooth: 'Medical imaging — explainable, privacy-preserving diagnosis', // (draft)
+  leaf: 'Agricultural vision — open datasets for crop disease detection', // (draft)
+  graph: 'Agentic AI — RAG and multi-agent systems in production', // (draft)
+};
+
+// ---- 3. Statement (draft) ------------------------------------------------------------
+export const statement = {
+  text: 'I build Generative and Agentic AI systems — retrieval pipelines, multi-agent workflows and the evaluations that keep them honest — grounded in research on medical and agricultural computer vision.',
+  accentWords: ['Generative', 'Agentic', 'evaluations', 'research'],
+};
+
+// ---- 4. Stats (animated counters) --------------------------------------------------------
+export const stats = [
+  { value: 5, suffix: '', label: 'publications' },
+  { value: 3, suffix: '', label: 'live full-stack AI applications' },
+  { value: 700, suffix: '+', label: 'competitive programming problems solved' },
+  { value: 60, suffix: '+', label: 'programming contests (including onsite)' },
+];
+
+// ---- 5. Research / Engineering split ----------------------------------------------------------
+export const split = {
+  research: {
+    title: 'Research',
+    text: 'Medical and agricultural computer vision at the Health Informatics Research Lab — explainable AI, privacy-preserving split learning, fusion models, and open image datasets.',
+    href: '#publications',
+  },
+  engineering: {
+    title: 'Engineering',
+    text: 'Production RAG and agentic systems — FastAPI backends, LangGraph pipelines, evaluation harnesses, deployed with Docker and CI/CD.',
+    href: '#work',
+  },
+};
+
+// ---- 6. Projects (order = order on the page and in previous/next navigation) -------------------
+export const projects = [
+  {
+    slug: 'enterprise-knowledge-assistant',
+    name: 'Enterprise Knowledge Assistant',
+    oneLiner:
+      'Enterprise RAG assistant for internal documents, with role-aware retrieval, cited answers and quality monitoring.',
+    tags: ['RAG', 'Full-stack', 'Access control'],
+    status: 'Live',
+    links: {
+      live: 'https://enterprise-knowledge-assistant-blond.vercel.app/',
+      apiDocs: 'https://enterprise-knowledge-assistant-production-8283.up.railway.app/docs',
+      github: 'https://github.com/SRShoib/Enterprise-Knowledge-Assistant',
+    },
+    cover: {
+      path: '/images/projects/enterprise-knowledge-assistant/cover.png',
+      todo: todo('add screenshot'),
+    },
+    chips: ['4-role RBAC', 'Citation-aware answers', 'RAGAS-style evals'],
+    problem:
+      'Teams need to search internal documents quickly, but every answer must be traceable to its source, and users must only see content they are authorized to access.', // (draft)
+    built: [
+      'Document upload with automated ingestion',
+      'Citation-aware chat workspace with confidence indicators',
+      'Admin dashboard showing usage metrics and low-confidence queries',
+      'JWT authentication with 4-role RBAC, chat history, feedback capture and audit logging',
+    ],
+    // Diagram source: `flow` is the main pipeline, left to right; `supporting` hangs off it.
+    architecture: {
+      flow: [
+        'Upload (PDF / DOCX / TXT)',
+        'Parsing',
+        'Recursive chunking',
+        'OpenAI embeddings',
+        'Pinecone index',
+        'Role-filtered retrieval',
+        'LLM answer with citations + confidence',
+        'Chat workspace',
+      ],
+      supporting: [
+        'JWT auth + RBAC',
+        'PostgreSQL (history, feedback, audit log)',
+        'LangSmith tracing',
+        'RAGAS-style evaluation endpoint',
+      ],
+    },
+    decisions: [
+      'Role filtering happens at retrieval time, so unauthorized content never reaches the model',
+      'Confidence indicators, plus an admin view of low-confidence queries to find gaps',
+      'Evaluation endpoint and LangSmith tracing to monitor answer quality over time',
+    ],
+    evaluation: {
+      results: [],
+      todo: todo(
+        'add any measured results (answer quality scores, retrieval metrics, latency). Until then, describe the evaluation setup only.',
+      ),
+    },
+    stack: [
+      'FastAPI',
+      'Python',
+      'LangChain',
+      'OpenAI',
+      'Pinecone',
+      'PostgreSQL',
+      'SQLAlchemy',
+      'JWT',
+      'LangSmith',
+      'Docker Compose',
+      'Next.js 14',
+      'React',
+      'TypeScript',
+      'Tailwind CSS',
+    ],
+    deployment: 'API on Railway, frontend on Vercel, Docker Compose',
+    next: todo("What I'd do next"),
+  },
+
+  {
+    slug: 'filing-reconciler',
+    name: 'Filing Reconciler',
+    oneLiner:
+      "Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo.",
+    tags: ['Agents', 'LangGraph', 'Human-in-the-loop'],
+    status: 'Live',
+    links: {
+      live: 'https://multi-document-financial-contradict.vercel.app/',
+      apiDocs: 'https://multidocumentfinancialcontradictionanalyst-production.up.railway.app/docs',
+      github: 'https://github.com/SRShoib/multi-document_financial_contradiction_analyst',
+    },
+    cover: {
+      path: '/images/projects/filing-reconciler/cover.png',
+      todo: todo('add screenshot'),
+    },
+    chips: ['1.00 numeric precision/recall', '2 human approval gates', 'CI-gated evals'],
+    problem:
+      "Contradictions between a company's filings, earnings call and press releases are a risk signal, but finding them means reading hundreds of pages side by side.", // (draft)
+    built: [
+      'Agentic LangGraph pipeline with Postgres checkpointing, two human-in-the-loop approval gates, and cost/iteration circuit breakers',
+      'Reviewer UI: live pipeline stepper, drag-and-drop PDF upload with document tagging, confirm/reject/edit contradiction cards with click-to-expand citations',
+      'CI-gated evaluation harness behind a provider-agnostic LLM interface',
+    ],
+    architecture: {
+      flow: [
+        'Ingest',
+        'Parallel claim extraction',
+        'Reconciliation',
+        'Risk scoring',
+        'Draft memo',
+        'Self-critique',
+      ],
+      supporting: [
+        'Postgres checkpointing',
+        'Circuit breakers (cost / iterations)',
+        'Human approval gates ×2',
+      ],
+      todo: todo(
+        'which stages do the two gates sit after? Until answered, show them as a labeled side element, not placed in the flow.',
+      ),
+    },
+    decisions: [
+      'Numeric contradiction detection is fully deterministic (regex + tolerance comparison); the LLM never generates figures',
+      'Human approval gates before high-stakes steps',
+      'Provider-agnostic LLM interface so models can be swapped without code changes',
+    ],
+    evaluation: {
+      results: [
+        '1.00 precision and recall on numeric contradiction detection',
+        'Exact-span citation match',
+        'Eval harness tracks F0.5, citation faithfulness and expected calibration error (ECE)',
+      ],
+      todo: todo(
+        'what evaluation set were these measured on (number of filings / test cases)?',
+      ),
+    },
+    stack: [
+      'FastAPI',
+      'Python',
+      'LangGraph',
+      'Pydantic v2',
+      'PostgreSQL',
+      'Docker',
+      'OpenAI API',
+      'Next.js 16',
+      'React 19',
+      'TypeScript',
+      'Tailwind CSS',
+      'Framer Motion',
+    ],
+    deployment: 'API on Railway, frontend on Vercel',
+    next: todo("What I'd do next"),
+  },
+
+  {
+    slug: 'supportlens',
+    name: 'SupportLens',
+    oneLiner:
+      'End-to-end NLP platform that turns raw support tickets into structured intelligence: classification, entities, sentiment, topics, search and RAG-drafted replies.',
+    tags: ['NLP', 'Fine-tuning', 'RAG'],
+    status: 'Live',
+    links: {
+      live: 'https://supportlens-pink.vercel.app/',
+      apiDocs: 'https://supportlens-api-7ulp.onrender.com/docs',
+      github: 'https://github.com/SRShoib/Supportlens',
+    },
+    cover: {
+      path: '/images/projects/supportlens/cover.png',
+      todo: todo('add screenshot'),
+    },
+    chips: ['+0.115 macro-F1', 'hit-rate@5 0.920', '< $0.04 LLM spend'],
+    problem:
+      'Support teams sit on thousands of unstructured tickets; finding what is urgent, what customers are asking about, and how to reply takes manual triage.', // (draft)
+    built: [
+      'Intent and urgency classification, entity extraction, sentiment trajectories, summarization, topic discovery, semantic search and RAG-drafted replies',
+      'Next.js metrics dashboard backed by a PostgreSQL-persisted evaluation harness with live drift monitoring',
+    ],
+    architecture: {
+      flow: [
+        'Tickets',
+        'Classification (intent, urgency)',
+        'Entity extraction',
+        'Sentiment',
+        'Summarization',
+        'Topic discovery (BERTopic)',
+        'Hybrid retrieval (dense embeddings + cross-encoder rerank)',
+        'Citation-grounded reply drafts',
+        'Dashboard',
+      ],
+      supporting: ['PostgreSQL eval harness', 'Drift monitoring', 'Budget-capped LLM client'],
+    },
+    decisions: [
+      'Benchmarked classical baselines against fine-tuned transformers for each task and deployed the winner',
+      'Hybrid retrieval with cross-encoder reranking',
+      'Budget-capped LLM client',
+    ],
+    evaluation: {
+      results: [
+        '+0.115 macro-F1 on urgency classification (DeBERTa-v3)',
+        '+0.17 ROUGE-1 on summarization (FLAN-T5)',
+        'Retrieval hit-rate@5: 0.920',
+        'Total LLM spend under $0.04',
+      ],
+      todo: todo('name the dataset and the baseline these gains are measured against'),
+    },
+    stack: [
+      'FastAPI',
+      'PostgreSQL',
+      'Chroma',
+      'Hugging Face Transformers',
+      'BERTopic',
+      'OpenAI',
+      'Next.js 15',
+      'TypeScript',
+      'Tailwind CSS',
+      'Docker Compose',
+      'CI/CD',
+    ],
+    deployment: 'API on Render, frontend on Vercel',
+    next: todo("What I'd do next"),
+  },
+
+  {
+    slug: 'youtube-rag-chatbot',
+    name: 'YouTube Transcript RAG Chatbot',
+    oneLiner: 'Chrome extension that answers questions about any YouTube video using only its transcript.',
+    tags: ['RAG', 'Chrome extension', 'Backend'],
+    status: 'Deployed backend',
+    links: {
+      github: 'https://github.com/SRShoib/YouTube-ChatBot',
+      apiDocs: 'https://youtube-chatbot-tzq1.onrender.com/docs',
+      demo: todo('Chrome Web Store or demo video (optional)'),
+    },
+    cover: {
+      path: '/images/projects/youtube-rag-chatbot/cover.png',
+      todo: todo('add screenshot of the extension'),
+    },
+    chips: ['Manifest V3', 'Rate-limited shared backend', 'Cold-start resilient'],
+    problem:
+      'Long videos are hard to search; viewers want answers from the video itself without scrubbing through it.', // (draft)
+    built: [
+      'Manifest V3 Chrome extension with DOM transcript extraction',
+      'FastAPI backend with LangServe routes for Q&A and a dedicated summarization path',
+    ],
+    architecture: {
+      flow: [
+        'YouTube page',
+        'Transcript extraction (extension)',
+        'FastAPI backend',
+        'Recursive chunking',
+        'OpenAI embeddings',
+        'FAISS search',
+        'Answer / Summary (LangServe routes)',
+        'Extension UI',
+      ],
+      supporting: ['Per-IP rate limiting', 'LRU-capped vector store', 'Automatic re-indexing'],
+    },
+    decisions: [
+      'Per-IP rate limiting to protect a shared backend',
+      'LRU-capped vector store to bound memory',
+      'Automatic re-indexing so the service survives free-tier cold starts on Render',
+    ],
+    evaluation: {
+      results: [],
+      todo: todo('(optional) evaluation & results'),
+    },
+    stack: [
+      'Python',
+      'FastAPI',
+      'LangChain',
+      'LangServe',
+      'FAISS',
+      'OpenAI API',
+      'JavaScript',
+      'Chrome Extension (MV3)',
+    ],
+    deployment: 'Backend on Render',
+    next: todo("What I'd do next"),
+  },
+];
+
+// ---- 7. Publications ---------------------------------------------------------------------
+// `authors`: my name is flagged with me:true so it can be emphasised. A todo() means
+// CONTENT.md has no author list for that paper yet.
+const author = (name, me = false) => ({ name, me });
+
+export const publications = [
+  {
+    title:
+      'SplitX-OralNet: A Privacy-Preserving and Explainable Deep Learning Framework for Multi-class Oral Disease Detection from Intraoral Images',
+    type: 'Conference paper',
+    year: 2026,
+    venue:
+      'Proceedings of the 3rd International Conference on Big Data, IoT and Machine Learning (BIM 2025), Springer, Lecture Notes in Networks and Systems vol. 1800',
+    doi: 'https://doi.org/10.1007/978-3-032-15764-5_22',
+    tags: ['Medical imaging', 'Split learning', 'Explainable AI'],
+    authors: todo('author list'),
+  },
+  {
+    title:
+      'XAI-GIFNet: A Fusion of DenseNet121 and EfficientNetB0 with Gradient-Based Explainability for GI Bleeding Detection from Endoscopic Imagery',
+    type: 'Conference paper',
+    year: 2026,
+    venue: 'BIM 2025, Springer LNNS vol. 1800',
+    doi: 'https://doi.org/10.1007/978-3-032-15764-5_8',
+    tags: ['Medical imaging', 'Fusion models', 'Explainable AI'],
+    authors: todo('author list'),
+  },
+  {
+    title:
+      'CardioLiteNet: A Two-Stage Lightweight Autoencoder-Augmented Framework for Robust ECG Image Classification on Small Datasets',
+    type: 'Conference paper',
+    year: 2026,
+    venue: 'BIM 2025, Springer LNNS vol. 1800',
+    doi: 'https://doi.org/10.1007/978-3-032-15764-5_23',
+    tags: ['Medical imaging', 'Autoencoders', 'Explainable AI (Grad-CAM, TCAV)'],
+    authors: [
+      author('Emon Shikder'),
+      author('Fayazunnesa Chowdhury'),
+      author('Md. Majidul Kabir'),
+      author('Sabbir Hossain Durjoy'),
+      author('Md. Mehedi Hasan Shoib', true),
+      author('Md. Hasan Imam Bijoy'),
+    ],
+  },
+  {
+    title: 'Cauliflower Leaf Diseases: A Computer Vision Dataset for Smart Agriculture',
+    type: 'Dataset article',
+    year: 2025,
+    venue: 'Data in Brief, vol. 60, article 111594 (Elsevier)',
+    doi: 'https://doi.org/10.1016/j.dib.2025.111594',
+    note: '2,661 field images of cauliflower leaves in three classes, collected in Bangladesh',
+    tags: ['Agricultural vision', 'Open dataset'],
+    authors: [
+      author('Sabbir Hossain Durjoy'),
+      author('Md Emon Shikder'),
+      author('Md Mehedi Hasan Shoib', true),
+      author('Md Hasan Imam Bijoy'),
+    ],
+  },
+  {
+    title:
+      'IDBGL: A Unique Image Dataset of Black Gram (Vigna mungo) Leaves for Disease Detection and Classification',
+    type: 'Dataset article',
+    year: 2025,
+    venue: 'Data in Brief (Elsevier)',
+    doi: 'https://doi.org/10.1016/j.dib.2025.111347',
+    tags: ['Agricultural vision', 'Open dataset'],
+    authors: todo('author list'),
+  },
+];
+
+// Images: never show medical images from these papers. Sample leaf images from my own
+// datasets only after the dataset license is confirmed.
+export const publicationImages = todo(
+  'confirm the dataset license allows sample leaf images before using any',
+);
+
+// ---- 8. Journey timeline ----------------------------------------------------------------
+export const timeline = [
+  { when: 'Jan 2022', text: 'Started B.Sc. in Computer Science & Engineering at Daffodil International University' },
+  { when: 'Fall 2022', text: '18th place, DIU Take-Off Programming Contest (Final)' },
+  { when: 'Fall 2023', text: '26th place, Unlock the Algorithm (Preliminary, Slot A)' },
+  { when: 'Jan 2025', text: 'Joined the Health Informatics Research Lab (HIRL) as a Research Assistant' },
+  { when: '2025', text: 'Published two open image datasets in Data in Brief (cauliflower and black gram leaves)' },
+  {
+    when: 'Jan 2026',
+    text: 'Completed B.Sc. in CSE, CGPA 3.80 / 4.00',
+    todo: todo('confirm graduated (not "expected")'),
+  },
+  { when: 'Apr 2026', text: 'Three papers published in the BIM 2025 proceedings (Springer)' },
+];
+export const timelineProjectDates = todo('(optional) month/year for each project launch');
+
+// ---- 9. About ----------------------------------------------------------------------------
+export const about = {
+  experience: {
+    role: 'Research Assistant',
+    org: 'Health Informatics Research Lab (HIRL), Daffodil International University',
+    period: 'Jan 2025 – Present',
+    mode: 'On-site',
+    location: 'Savar, Dhaka',
+    bullets: [
+      'Research on medical imaging in healthcare and agricultural image data in agriculture',
+      'Build custom ML and deep learning models for computer vision and write research papers',
+      'Co-authored five publications: three conference papers and two dataset articles',
+    ],
+  },
+  education: {
+    degree: 'B.Sc. in Computer Science & Engineering',
+    school: 'Daffodil International University',
+    period: 'Jan 2022 – Jan 2026',
+    cgpa: '3.80 / 4.00',
+  },
+  problemSolving: {
+    summary: '700+ problems solved across judges · 60+ contests including onsite',
+    highlight: 'Beecrowd: top 1%, 210+ solved',
+    // Link only, no ratings shown.
+    profiles: [
+      { label: 'Beecrowd', url: 'https://judge.beecrowd.com/en/profile/645784' },
+      { label: 'Codeforces', url: 'https://codeforces.com/profile/shoib15-5511' },
+      { label: 'LeetCode', url: 'https://leetcode.com/u/srshoib/' },
+      { label: 'VJudge', url: 'https://vjudge.net/user/SRShoib' },
+    ],
+  },
+  competitions: [
+    {
+      result: '18th',
+      name: 'DIU Take-Off Programming Contest Fall 2022, Final',
+      url: 'https://toph.co/c/diu-take-off-fall-2022-final/standings',
+    },
+    {
+      result: '26th',
+      name: 'Unlock the Algorithm Fall 2023, Preliminary (Slot A)',
+      url: 'https://toph.co/c/unlock-the-algorithm-fall-23-preliminary-a-slot/standings',
+    },
+    {
+      result: '45th',
+      name: 'DIU Take-Off Programming Contest Fall 2022, Slot B',
+      url: 'https://toph.co/c/diu-take-off-fall-2022-slot-b/standings',
+    },
+    {
+      result: '42nd',
+      name: 'DIU Take-Off Programming Contest Fall 2022, Mock',
+      url: 'https://toph.co/c/diu-take-off-fall-2022-mock/standings',
+    },
+    {
+      result: 'Certificate',
+      name: 'Take-Off Programming Contest Final, Fall 2022',
+      url: 'https://drive.google.com/file/d/15eTkWevgZ4iHAgL4m5nLO3TvoPG-fP_y/view?usp=sharing',
+    },
+  ],
+  skills: [
+    {
+      group: 'Generative & Agentic AI',
+      items: [
+        'LLMs',
+        'fine-tuning (LoRA, QLoRA)',
+        'RAG',
+        'multi-agent orchestration',
+        'LangChain',
+        'LangGraph',
+        'LangServe',
+        'LangSmith',
+        'n8n',
+        'prompt engineering',
+        'tool calling',
+        'structured output',
+        'human-in-the-loop',
+        'embedding models',
+        'semantic and hybrid search',
+        'chunking strategies',
+        'reranking',
+        'metadata filtering',
+      ],
+    },
+    {
+      group: 'NLP',
+      items: [
+        'tokenization',
+        'text classification',
+        'NER',
+        'sentiment analysis',
+        'summarization',
+        'topic modeling',
+        'semantic similarity',
+        'Hugging Face Transformers',
+      ],
+    },
+    {
+      group: 'ML & Deep Learning',
+      items: [
+        'computer vision',
+        'MLOps',
+        'PyTorch',
+        'TensorFlow',
+        'supervised and unsupervised learning',
+        'ANN',
+        'CNN',
+        'LSTM',
+        'Transformers',
+        'graph neural networks',
+        'attention',
+        'fusion models',
+        'explainable AI (Grad-CAM, Grad-CAM++, SHAP, LIME, TCAV)',
+        'federated and split learning',
+      ],
+    },
+    {
+      group: 'Backend & APIs',
+      items: [
+        'FastAPI',
+        'REST API design',
+        'Pydantic',
+        'authentication',
+        'async request handling',
+        'model-serving endpoints',
+      ],
+    },
+    { group: 'Databases', items: ['PostgreSQL', 'MySQL', 'FAISS', 'Chroma', 'Pinecone'] },
+    {
+      group: 'Frontend',
+      items: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'HTML/CSS', 'Streamlit'],
+    },
+    { group: 'DevOps', items: ['Docker', 'Git', 'GitHub Actions', 'CI/CD'] },
+    { group: 'Languages', items: ['Python', 'C', 'C++', 'Java', 'JavaScript', 'SQL'] },
+  ],
+};
+
+// ---- 10. Tech stack marquee -------------------------------------------------------------
+export const marquee = {
+  row1: [
+    'LangGraph',
+    'LangChain',
+    'LangSmith',
+    'LangServe',
+    'OpenAI',
+    'Hugging Face',
+    'Pinecone',
+    'Chroma',
+    'FAISS',
+    'LoRA / QLoRA',
+    'BERTopic',
+    'n8n',
+  ],
+  row2: [
+    'PyTorch',
+    'TensorFlow',
+    'FastAPI',
+    'Pydantic',
+    'PostgreSQL',
+    'Docker',
+    'GitHub Actions',
+    'Next.js',
+    'TypeScript',
+    'Python',
+    'C++',
+  ],
+};
+
+// ---- 11. Contact & links -------------------------------------------------------------------
+export const contact = {
+  tagline: "Let's build AI that ships.", // (draft)
+  // Privacy rule 5: the address is never written out as one string. Keep it in two parts and
+  // assemble it in JS at runtime with getEmail(); static HTML gets a readable fallback instead.
+  email: { user: 'srshoibofficial', domain: 'gmail.com' },
+  github: 'https://github.com/SRShoib',
+  linkedin: 'https://www.linkedin.com/in/md-mehedi-hasan-shoib-1b7b35258',
+  resume: '/resume.pdf',
+  otherProfiles: todo('(optional) Google Scholar / Hugging Face / Kaggle'),
+};
+
+export const getEmail = () => `${contact.email.user}@${contact.email.domain}`;
+
+// ---- 12. SEO --------------------------------------------------------------------------------
+export const seo = {
+  homeTitle: 'Md. Mehedi Hasan Shoib — AI/ML Engineer (Generative & Agentic AI)',
+  homeDescription:
+    'AI/ML engineer building RAG and multi-agent LLM systems, with published research in medical and agricultural computer vision. Based in Dhaka, Bangladesh.',
+  domain: todo('production domain'),
+  caseStudyTitle: (projectName) => `${projectName} — Case study | Md. Mehedi Hasan Shoib`,
+};
