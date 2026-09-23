@@ -1,0 +1,200 @@
+/* Hero: badge, SHOIB wordmark, name, title, tagline, buttons, and the visual slot.
+
+   M2 shows the plain portrait in the visual slot. In M3 the WebGL point cloud takes that slot
+   over, and this same markup (portrait + caption list) stays as the fallback for reduced motion
+   and no-WebGL visitors.
+
+   Layout is one grid whose AREAS change with the screen:
+     small   visual / text / captions   the portrait sits ABOVE the text, as the spec asks, but the
+                                        DOM order stays text-first so the h1 is what a screen
+                                        reader meets first
+     >=48em  text | visual              captions sit under the portrait
+   CLAUDE.md rule 4: name, title, Resume and a route to projects must be inside the first screen.
+   On phones that is a budget of about 100svh, so three things are capped by viewport HEIGHT (svh),
+   not just width: the portrait crop, the wordmark, and the tagline moves below the buttons. */
+
+.hero {
+  display: grid;
+  align-items: center;
+  min-height: calc(100svh - var(--header-h));
+  padding-block: var(--space-m) var(--space-xl);
+}
+
+.hero__grid {
+  display: grid;
+  gap: var(--space-m);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'visual'
+    'text'
+    'captions';
+}
+
+.hero__text {
+  grid-area: text;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ---- Text --------------------------------------------------------------------------- */
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5em 1em;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--muted);
+}
+
+/* Decorative duplicate of the name (aria-hidden in the markup), set as big as the width allows.
+   font-stretch 75% is the condensed cut of the same variable font file. */
+.hero__wordmark {
+  margin-top: var(--space-s);
+  /* min() takes the smaller of the width-based size and 24% of the viewport height, so on a short
+     screen (a laptop, a phone on its side) the wordmark can't push the name off the first screen. */
+  font-size: min(clamp(4.5rem, 3rem + 10vw, 12rem), 24svh);
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: 0.01em;
+  line-height: 0.86;
+  color: var(--text);
+}
+
+.hero__name {
+  margin-top: var(--space-s);
+  font-size: var(--step-3);
+  font-weight: 600;
+  font-stretch: 100%;
+  letter-spacing: -0.01em;
+}
+
+.hero__title {
+  margin-top: var(--space-3xs);
+  color: var(--accent);
+  font-size: var(--step-1);
+  font-weight: 500;
+  line-height: var(--lh-snug);
+}
+
+.hero__tagline {
+  max-width: 34rem;
+  margin-top: var(--space-m);
+  color: var(--muted);
+  order: 2; /* phones: after the buttons, so the buttons stay in the first screen */
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-m);
+}
+
+/* ---- Visual slot -------------------------------------------------------------------- */
+.hero__visual {
+  grid-area: visual;
+  overflow: hidden;
+  aspect-ratio: 16 / 10; /* a short crop on phones so the name stays in the first screen… */
+  max-height: 30svh; /* …and never taller than 30% of the screen (a wider box, cropped more) */
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--raised);
+}
+
+.hero__visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 16%; /* keep the head, drop the suit */
+}
+
+/* One caption per point-cloud shape, each with the shape's tint as a dot. The tints are the same
+   custom properties the shaders will use. */
+.hero__captions {
+  grid-area: captions;
+  display: grid;
+  gap: var(--space-2xs);
+  padding: 0;
+  color: var(--muted);
+  font-size: var(--step-n1);
+  list-style: none;
+}
+.hero__captions li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+.hero__caption-dot {
+  flex: none;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--dot);
+}
+.hero__captions [data-shape='tooth'] {
+  --dot: var(--tint-tooth);
+}
+.hero__captions [data-shape='leaf'] {
+  --dot: var(--tint-leaf);
+}
+.hero__captions [data-shape='graph'] {
+  --dot: var(--tint-graph);
+}
+
+/* ---- Two columns: text left, portrait right ---------------------------------------------
+   Used from tablet width up, and also for a phone on its side. A landscape phone is wider than
+   48em but only ~300px tall once the header is out, so stacking the portrait above the text would
+   push the name off the first screen. The comma in a media query list means "or". */
+@media (min-width: 48em), (orientation: landscape) and (max-height: 32em) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+    grid-template-areas:
+      'text visual'
+      'text captions';
+    align-items: center;
+    column-gap: var(--space-2xl);
+  }
+
+  .hero__visual {
+    justify-self: end;
+    width: 100%;
+    max-width: 28rem;
+    max-height: none;
+    aspect-ratio: 928 / 1065; /* the photo's own shape: no crop */
+  }
+  .hero__visual img {
+    object-position: 50% 50%;
+  }
+
+  .hero__captions {
+    justify-self: end;
+    width: 100%;
+    max-width: 28rem;
+  }
+}
+
+@media (min-width: 48em) {
+  .hero__tagline {
+    order: 0; /* beside the portrait there is room for it above the buttons */
+  }
+  .hero__name {
+    font-size: var(--step-4);
+  }
+}
+
+/* Very short viewport (landscape phone, or a split-screen window): drop the decorative wordmark
+   and keep the tagline under the buttons, so name, title and both buttons fit. */
+@media (max-height: 32em) {
+  .hero {
+    min-height: 0;
+    padding-block: var(--space-s);
+  }
+  .hero__wordmark {
+    display: none;
+  }
+  .hero__tagline {
+    order: 2;
+  }
+}

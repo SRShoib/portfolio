@@ -3,17 +3,146 @@
   <head>
     <!--include:head.html title="Filing Reconciler — Case study | Md. Mehedi Hasan Shoib" description="Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo."-->
   </head>
-  <body>
+  <body id="top">
     <!--include:header.html-->
 
     <main id="main" tabindex="-1">
-      <article class="shell-section" aria-labelledby="page-title">
+      <article aria-labelledby="page-title">
+        <header class="cs-hero container">
+          <a class="cs-back label" href="/#work"><span aria-hidden="true">←</span> All projects</a>
+          <p class="cs-meta label">
+            <span class="cs-meta__status"><span class="status-dot" aria-hidden="true"></span>Live</span>
+            <span>Agents · LangGraph · Human-in-the-loop</span>
+          </p>
+          <h1 id="page-title" class="cs-title">Filing Reconciler</h1>
+          <p class="cs-lead">Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo.</p>
+          <ul class="cs-links" role="list" aria-label="Links">
+            <li><a class="btn btn--primary" href="https://multi-document-financial-contradict.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://multidocumentfinancialcontradictionanalyst-production.up.railway.app/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://github.com/SRShoib/multi-document_financial_contradiction_analyst" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+          </ul>
+        </header>
+
         <div class="container">
-          <h1 id="page-title">Filing Reconciler</h1>
-          <p>Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo.</p>
-          <!--todo--><p class="shell-note">M1 scaffold: the case-study template is built in M2.</p><!--/todo-->
+          <figure class="cs-cover">
+            <div class="cs-cover__frame">
+              <!--picture src="/images/projects/filing-reconciler/cover.png" alt="Screenshot of Filing Reconciler" sizes="(min-width: 90em) 1440px, 92vw" loading="eager" fetchpriority="high" todo="add screenshot"-->
+            </div>
+          </figure>
+
+          <section class="cs-section" aria-labelledby="problem-title">
+            <h2 id="problem-title" class="cs-section__title">Problem</h2>
+            <div class="cs-section__body">
+              <p>Contradictions between a company's filings, earnings call and press releases are a risk signal, but finding them means reading hundreds of pages side by side.</p>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="built-title">
+            <h2 id="built-title" class="cs-section__title">What I built</h2>
+            <div class="cs-section__body">
+              <ul class="cs-list" role="list">
+                <li>Agentic LangGraph pipeline with Postgres checkpointing, two human-in-the-loop approval gates, and cost/iteration circuit breakers</li>
+                <li>Reviewer UI: live pipeline stepper, drag-and-drop PDF upload with document tagging, confirm/reject/edit contradiction cards with click-to-expand citations</li>
+                <li>CI-gated evaluation harness behind a provider-agnostic LLM interface</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="architecture-title">
+            <h2 id="architecture-title" class="cs-section__title">Architecture</h2>
+            <div class="cs-section__body">
+              <div class="cs-architecture" data-diagram="filing-reconciler" role="group" aria-label="Filing Reconciler architecture">
+                <div class="cs-architecture__diagram" data-diagram-mount></div>
+                <!--todo--><p class="todo">TODO (M5): the architecture diagram is drawn here. Until then the pipeline below is the whole section.</p><!--/todo-->
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Pipeline</p>
+                  <ol class="cs-pipeline" role="list">
+                    <li>Ingest</li>
+                    <li>Parallel claim extraction</li>
+                    <li>Reconciliation</li>
+                    <li>Risk scoring</li>
+                    <li>Draft memo</li>
+                    <li>Self-critique</li>
+                  </ol>
+                </div>
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Supporting</p>
+                  <ul class="cs-list" role="list">
+                    <li>Postgres checkpointing</li>
+                    <li>Circuit breakers (cost / iterations)</li>
+                    <li>Human approval gates ×2</li>
+                  </ul>
+                </div>
+                <!--todo--><p class="todo">TODO: which stages do the two gates sit after? Until answered, show them as a labeled side element, not placed in the flow.</p><!--/todo-->
+              </div>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="decisions-title">
+            <h2 id="decisions-title" class="cs-section__title">Key engineering decisions</h2>
+            <div class="cs-section__body">
+              <ol class="cs-decisions" role="list">
+                <li><span>Numeric contradiction detection is fully deterministic (regex + tolerance comparison); the LLM never generates figures</span></li>
+                <li><span>Human approval gates before high-stakes steps</span></li>
+                <li><span>Provider-agnostic LLM interface so models can be swapped without code changes</span></li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="evaluation-title">
+            <h2 id="evaluation-title" class="cs-section__title">Evaluation &amp; results</h2>
+            <div class="cs-section__body">
+              <ul class="cs-results" role="list">
+                <li>1.00 precision and recall on numeric contradiction detection</li>
+                <li>Exact-span citation match</li>
+                <li>Eval harness tracks F0.5, citation faithfulness and expected calibration error (ECE)</li>
+              </ul>
+              <!--todo--><p class="todo">TODO: what evaluation set were these measured on (number of filings / test cases)?</p><!--/todo-->
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="stack-title">
+            <h2 id="stack-title" class="cs-section__title">Stack</h2>
+            <div class="cs-section__body">
+              <ul class="chips" role="list">
+                <li class="chip">FastAPI</li>
+                <li class="chip">Python</li>
+                <li class="chip">LangGraph</li>
+                <li class="chip">Pydantic v2</li>
+                <li class="chip">PostgreSQL</li>
+                <li class="chip">Docker</li>
+                <li class="chip">OpenAI API</li>
+                <li class="chip">Next.js 16</li>
+                <li class="chip">React 19</li>
+                <li class="chip">TypeScript</li>
+                <li class="chip">Tailwind CSS</li>
+                <li class="chip">Framer Motion</li>
+              </ul>
+              <p class="cs-deploy"><strong>Deployment:</strong> API on Railway, frontend on Vercel</p>
+            </div>
+          </section>
+
+          <!--todo-->
+          <section class="cs-section" aria-labelledby="next-title">
+            <h2 id="next-title" class="cs-section__title">What I'd do next</h2>
+            <div class="cs-section__body">
+              <p class="todo">TODO: What I'd do next</p>
+            </div>
+          </section>
+          <!--/todo-->
         </div>
       </article>
+
+      <nav class="container cs-pager" aria-label="More case studies">
+        <a class="cs-pager__link cs-pager__link--prev" href="/projects/enterprise-knowledge-assistant.html" rel="prev">
+          <span class="cs-pager__label label">← Previous project</span>
+          <span class="cs-pager__title">Enterprise Knowledge Assistant</span>
+        </a>
+        <a class="cs-pager__link cs-pager__link--next" href="/projects/supportlens.html" rel="next">
+          <span class="cs-pager__label label">Next project →</span>
+          <span class="cs-pager__title">SupportLens</span>
+        </a>
+      </nav>
     </main>
 
     <!--include:footer.html-->

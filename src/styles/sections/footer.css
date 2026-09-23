@@ -1,0 +1,88 @@
+/* Contact footer (#contact). Shared by every page through partials/footer.html.
+   The email address is assembled by src/sections/contact.js; until then (and with JS off) the
+   readable "name [at] domain [dot] com" fallback from the HTML is what shows. */
+
+.site-footer {
+  padding-block: var(--section-space) var(--space-l);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.site-footer__tagline {
+  max-width: 12em;
+  font-size: var(--step-8);
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 0.95;
+}
+
+.site-footer__contact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-m);
+  margin-top: var(--space-xl);
+}
+
+.site-footer__email {
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  overflow-wrap: anywhere;
+}
+.site-footer__email a {
+  color: var(--text);
+}
+.site-footer__email a:hover {
+  color: var(--accent);
+}
+
+.site-footer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* The copy button only makes sense with JavaScript, so it stays hidden until contact.js removes
+   the [hidden] attribute. (`display` on .btn would otherwise override the attribute.) */
+.site-footer [hidden] {
+  display: none;
+}
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+  margin-top: var(--space-l);
+  padding: 0;
+  list-style: none;
+}
+.site-footer__links a {
+  display: inline-block;
+  padding-block: 0.6rem;
+}
+
+.site-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-m);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+.site-footer__bottom a {
+  display: inline-block;
+  padding-block: 0.6rem;
+  color: var(--muted);
+}
+.site-footer__bottom a:hover {
+  color: var(--text);
+}
+
+@media (min-width: 64em) {
+  .site-footer__contact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}

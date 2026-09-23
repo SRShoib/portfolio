@@ -1,0 +1,80 @@
+/* Publications: five paper cards as a plain grid. M6 turns this into a fanned stack that spreads
+   as you scroll (desktop only); this ordinary layout stays as the mobile and reduced-motion
+   version. The 01-05 index is a CSS counter, so it can never disagree with the order. */
+
+.pubs__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-m);
+  padding: 0;
+  list-style: none;
+  counter-reset: pub;
+}
+
+.pub-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  height: 100%;
+  padding: var(--space-m);
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  background: var(--surface);
+  counter-increment: pub;
+}
+
+.pub-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs) var(--space-s);
+  color: var(--muted);
+}
+/* The index is decoration: the second `content` declaration gives it empty alt text where the
+   `content: x / ''` syntax is supported (older browsers ignore it and use the first). */
+.pub-card__meta::before {
+  content: counter(pub, decimal-leading-zero);
+  content: counter(pub, decimal-leading-zero) / '';
+  margin-right: auto;
+  color: var(--accent);
+}
+
+.pub-card__title {
+  font-size: var(--step-1);
+  font-weight: 600;
+  font-stretch: 95%;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+}
+
+.pub-card__venue,
+.pub-card__note,
+.pub-card__authors {
+  color: var(--muted);
+  font-size: var(--step-n1);
+  line-height: 1.5;
+}
+
+.pub-card__authors strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pub-card__doi {
+  margin-top: auto;
+  padding-top: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--step-n2);
+  overflow-wrap: anywhere; /* DOIs are long unbroken strings; never let one widen the page */
+}
+
+@media (min-width: 48em) {
+  .pubs__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 64em) {
+  .pubs__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-l);
+  }
+}

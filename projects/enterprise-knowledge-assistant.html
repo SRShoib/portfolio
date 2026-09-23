@@ -3,17 +3,151 @@
   <head>
     <!--include:head.html title="Enterprise Knowledge Assistant — Case study | Md. Mehedi Hasan Shoib" description="Enterprise RAG assistant for internal documents, with role-aware retrieval, cited answers and quality monitoring."-->
   </head>
-  <body>
+  <body id="top">
     <!--include:header.html-->
 
     <main id="main" tabindex="-1">
-      <article class="shell-section" aria-labelledby="page-title">
+      <article aria-labelledby="page-title">
+        <header class="cs-hero container">
+          <a class="cs-back label" href="/#work"><span aria-hidden="true">←</span> All projects</a>
+          <p class="cs-meta label">
+            <span class="cs-meta__status"><span class="status-dot" aria-hidden="true"></span>Live</span>
+            <span>RAG · Full-stack · Access control</span>
+          </p>
+          <h1 id="page-title" class="cs-title">Enterprise Knowledge Assistant</h1>
+          <p class="cs-lead">Enterprise RAG assistant for internal documents, with role-aware retrieval, cited answers and quality monitoring.</p>
+          <ul class="cs-links" role="list" aria-label="Links">
+            <li><a class="btn btn--primary" href="https://enterprise-knowledge-assistant-blond.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Enterprise Knowledge Assistant (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://enterprise-knowledge-assistant-production-8283.up.railway.app/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Enterprise Knowledge Assistant (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://github.com/SRShoib/Enterprise-Knowledge-Assistant" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Enterprise Knowledge Assistant (opens in a new tab)</span></a></li>
+          </ul>
+        </header>
+
         <div class="container">
-          <h1 id="page-title">Enterprise Knowledge Assistant</h1>
-          <p>Enterprise RAG assistant for internal documents, with role-aware retrieval, cited answers and quality monitoring.</p>
-          <!--todo--><p class="shell-note">M1 scaffold: the case-study template is built in M2.</p><!--/todo-->
+          <figure class="cs-cover">
+            <div class="cs-cover__frame">
+              <!--picture src="/images/projects/enterprise-knowledge-assistant/cover.png" alt="Screenshot of Enterprise Knowledge Assistant" sizes="(min-width: 90em) 1440px, 92vw" loading="eager" fetchpriority="high" todo="add screenshot"-->
+            </div>
+          </figure>
+
+          <section class="cs-section" aria-labelledby="problem-title">
+            <h2 id="problem-title" class="cs-section__title">Problem</h2>
+            <div class="cs-section__body">
+              <p>Teams need to search internal documents quickly, but every answer must be traceable to its source, and users must only see content they are authorized to access.</p>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="built-title">
+            <h2 id="built-title" class="cs-section__title">What I built</h2>
+            <div class="cs-section__body">
+              <ul class="cs-list" role="list">
+                <li>Document upload with automated ingestion</li>
+                <li>Citation-aware chat workspace with confidence indicators</li>
+                <li>Admin dashboard showing usage metrics and low-confidence queries</li>
+                <li>JWT authentication with 4-role RBAC, chat history, feedback capture and audit logging</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="architecture-title">
+            <h2 id="architecture-title" class="cs-section__title">Architecture</h2>
+            <div class="cs-section__body">
+              <div class="cs-architecture" data-diagram="enterprise-knowledge-assistant" role="group" aria-label="Enterprise Knowledge Assistant architecture">
+                <div class="cs-architecture__diagram" data-diagram-mount></div>
+                <!--todo--><p class="todo">TODO (M5): the architecture diagram is drawn here. Until then the pipeline below is the whole section.</p><!--/todo-->
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Pipeline</p>
+                  <ol class="cs-pipeline" role="list">
+                    <li>Upload (PDF / DOCX / TXT)</li>
+                    <li>Parsing</li>
+                    <li>Recursive chunking</li>
+                    <li>OpenAI embeddings</li>
+                    <li>Pinecone index</li>
+                    <li>Role-filtered retrieval</li>
+                    <li>LLM answer with citations + confidence</li>
+                    <li>Chat workspace</li>
+                  </ol>
+                </div>
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Supporting</p>
+                  <ul class="cs-list" role="list">
+                    <li>JWT auth + RBAC</li>
+                    <li>PostgreSQL (history, feedback, audit log)</li>
+                    <li>LangSmith tracing</li>
+                    <li>RAGAS-style evaluation endpoint</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="decisions-title">
+            <h2 id="decisions-title" class="cs-section__title">Key engineering decisions</h2>
+            <div class="cs-section__body">
+              <ol class="cs-decisions" role="list">
+                <li><span>Role filtering happens at retrieval time, so unauthorized content never reaches the model</span></li>
+                <li><span>Confidence indicators, plus an admin view of low-confidence queries to find gaps</span></li>
+                <li><span>Evaluation endpoint and LangSmith tracing to monitor answer quality over time</span></li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="evaluation-title">
+            <h2 id="evaluation-title" class="cs-section__title">Evaluation &amp; results</h2>
+            <div class="cs-section__body">
+              <ul class="cs-list" role="list">
+                <li>RAGAS-style evaluation endpoint</li>
+                <li>LangSmith tracing</li>
+                <li>Admin dashboard showing usage metrics and low-confidence queries</li>
+              </ul>
+              <!--todo--><p class="todo">TODO: add any measured results (answer quality scores, retrieval metrics, latency). Until then, describe the evaluation setup only.</p><!--/todo-->
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="stack-title">
+            <h2 id="stack-title" class="cs-section__title">Stack</h2>
+            <div class="cs-section__body">
+              <ul class="chips" role="list">
+                <li class="chip">FastAPI</li>
+                <li class="chip">Python</li>
+                <li class="chip">LangChain</li>
+                <li class="chip">OpenAI</li>
+                <li class="chip">Pinecone</li>
+                <li class="chip">PostgreSQL</li>
+                <li class="chip">SQLAlchemy</li>
+                <li class="chip">JWT</li>
+                <li class="chip">LangSmith</li>
+                <li class="chip">Docker Compose</li>
+                <li class="chip">Next.js 14</li>
+                <li class="chip">React</li>
+                <li class="chip">TypeScript</li>
+                <li class="chip">Tailwind CSS</li>
+              </ul>
+              <p class="cs-deploy"><strong>Deployment:</strong> API on Railway, frontend on Vercel, Docker Compose</p>
+            </div>
+          </section>
+
+          <!--todo-->
+          <section class="cs-section" aria-labelledby="next-title">
+            <h2 id="next-title" class="cs-section__title">What I'd do next</h2>
+            <div class="cs-section__body">
+              <p class="todo">TODO: What I'd do next</p>
+            </div>
+          </section>
+          <!--/todo-->
         </div>
       </article>
+
+      <nav class="container cs-pager" aria-label="More case studies">
+        <a class="cs-pager__link cs-pager__link--prev" href="/projects/youtube-rag-chatbot.html" rel="prev">
+          <span class="cs-pager__label label">← Previous project</span>
+          <span class="cs-pager__title">YouTube Transcript RAG Chatbot</span>
+        </a>
+        <a class="cs-pager__link cs-pager__link--next" href="/projects/filing-reconciler.html" rel="next">
+          <span class="cs-pager__label label">Next project →</span>
+          <span class="cs-pager__title">Filing Reconciler</span>
+        </a>
+      </nav>
     </main>
 
     <!--include:footer.html-->

@@ -1,0 +1,60 @@
+/* Research / Engineering: two large cards. M4 makes the hovered one expand and the other
+   compress on fine pointers; on touch they stay stacked, as here. Each card has one stretched
+   link (see base.css), so the whole card is the click target. */
+
+.split__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-m);
+}
+
+.split__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-l);
+  min-height: clamp(18rem, 44vw, 28rem);
+  padding: var(--space-l);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  transition:
+    background-color var(--dur-xs) var(--ease-out),
+    border-color var(--dur-xs) var(--ease-out);
+}
+.split__card:hover {
+  border-color: var(--muted);
+  background: var(--raised);
+}
+
+.split__title {
+  font-size: var(--step-6);
+  font-stretch: 80%;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.split__text {
+  max-width: 30em;
+  margin-top: var(--space-s);
+  color: var(--muted);
+}
+
+.split__link {
+  align-self: flex-start;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.split__card:hover .split__link {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+@media (min-width: 48em) {
+  .split__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-l);
+  }
+}

@@ -1,0 +1,43 @@
+/* Tech stack: two rows of text wordmarks in the mono face. M7 makes them move in opposite
+   directions (speed reacting to scroll velocity, pausing on hover). Static, they simply wrap. */
+
+.marquee__title {
+  margin-bottom: var(--space-m);
+  color: var(--muted);
+}
+
+.marquee__rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-s);
+}
+
+.marquee__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  font-weight: 500;
+  list-style: none;
+}
+.marquee__row:first-child {
+  color: var(--text);
+}
+.marquee__row:last-child {
+  color: var(--muted);
+}
+
+/* A slash between words, drawn by CSS so it is not read out. */
+.marquee__row li:not(:last-child)::after {
+  content: '/';
+  margin-left: var(--space-m);
+  color: var(--line);
+}
+
+@media (min-width: 64em) {
+  .marquee__row {
+    font-size: var(--step-3);
+  }
+}

@@ -125,6 +125,13 @@ export const projects = [
     ],
     evaluation: {
       results: [],
+      // CONTENT.md: "Until then, describe the evaluation setup only." Each line is a phrase that
+      // already appears above (architecture.supporting / built); nothing is reworded or added.
+      setup: [
+        'RAGAS-style evaluation endpoint',
+        'LangSmith tracing',
+        'Admin dashboard showing usage metrics and low-confidence queries',
+      ],
       todo: todo(
         'add any measured results (answer quality scores, retrieval metrics, latency). Until then, describe the evaluation setup only.',
       ),

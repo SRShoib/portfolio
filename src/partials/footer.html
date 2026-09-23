@@ -1,6 +1,31 @@
 <footer class="site-footer" id="contact">
-  <div class="container shell-section">
-    <h2 class="label">Contact</h2>
-    <!--todo--><p class="shell-note">M1 scaffold: the contact footer (tagline, copy-email button, links) is built in M2 and M7.</p><!--/todo-->
+  <div class="container">
+    <p class="label site-footer__eyebrow" aria-hidden="true">Contact</p>
+    <h2 class="site-footer__tagline">Let's build AI that ships.</h2>
+
+    <div class="site-footer__contact">
+      <div>
+        <p class="label">Email</p>
+        <!-- The real address is never written in this file (scraper protection). contact.js
+             assembles it from two parts and swaps it in; this is what a no-JS visitor reads. -->
+        <p class="site-footer__email" data-email>srshoibofficial [at] gmail [dot] com</p>
+      </div>
+      <div class="site-footer__actions">
+        <button class="btn btn--primary" type="button" data-copy-email hidden>Copy email</button>
+        <a class="btn btn--ghost" href="/resume.pdf" download>Download resume<span class="sr-only"> (PDF)</span></a>
+      </div>
+    </div>
+    <!-- Screen readers announce changes to this region, so "Copied" is heard as well as seen. -->
+    <p class="sr-only" role="status" data-copy-status></p>
+
+    <ul class="site-footer__links label" role="list">
+      <li><a href="https://github.com/SRShoib" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+      <li><a href="https://www.linkedin.com/in/md-mehedi-hasan-shoib-1b7b35258" target="_blank" rel="noopener">LinkedIn <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+    </ul>
+
+    <div class="site-footer__bottom label">
+      <p>Md. Mehedi Hasan Shoib · Dhaka, Bangladesh</p>
+      <a href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    </div>
   </div>
 </footer>

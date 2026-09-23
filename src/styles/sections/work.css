@@ -1,0 +1,106 @@
+/* Selected work: four project cards. M5 swaps the cover for the architecture diagram on
+   hover/focus with a clip-path mask. Here: cover, meta, title, one-liner, metric chips, stack
+   chips, links, and one stretched "Case study" link. A card with no cover (screenshot still a
+   TODO) simply has no media block in production. */
+
+.work__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* not `auto`: a long unbreakable word must not widen the track */
+  gap: var(--space-m);
+  padding: 0;
+  list-style: none;
+}
+
+.project-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  transition: border-color var(--dur-xs) var(--ease-out);
+}
+.project-card:hover {
+  border-color: var(--muted);
+}
+
+.project-card__media {
+  aspect-ratio: 16 / 10;
+  border-bottom: 1px solid var(--line);
+  background: var(--raised);
+}
+/* No cover image and no dev placeholder (i.e. a production build with the screenshot missing):
+   drop the empty frame instead of showing a blank box. */
+.project-card__media:not(:has(picture, .todo)) {
+  display: none;
+}
+.project-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.project-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-s);
+  padding: var(--space-m);
+}
+
+.project-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3xs) var(--space-s);
+  color: var(--muted);
+}
+.project-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+
+.project-card__title {
+  font-size: var(--step-3);
+}
+
+.project-card__lead {
+  color: var(--muted);
+}
+
+.project-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+  padding: 0;
+  font-size: var(--step-n1);
+  font-weight: 500;
+  list-style: none;
+}
+
+.project-card__case {
+  align-self: flex-start;
+  margin-top: auto; /* pins the link to the bottom, so cards of unequal height line up */
+  padding-top: var(--space-2xs);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+.project-card:hover .project-card__case {
+  color: var(--accent);
+}
+
+@media (min-width: 64em) {
+  .work__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-l);
+  }
+  .project-card__body {
+    padding: var(--space-l);
+  }
+}
