@@ -6,6 +6,13 @@ dist/
 public/images/**/*.avif
 public/images/**/*.webp
 
+# project brief and planning docs: kept on disk, never committed
+/CLAUDE.md
+/CONTENT.md
+/KICKOFF_PROMPT.md
+/BUILD_GUIDE.md
+/LEARNING.md
+
 # local / deploy tooling
 .vercel/
 .env
