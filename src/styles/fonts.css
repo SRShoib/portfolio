@@ -1,0 +1,55 @@
+/* Self-hosted fonts (Fontsource packages, Latin subset only, no network requests to
+   Google). We write the @font-face rules ourselves instead of importing Fontsource's CSS
+   because we want (a) only the Latin file, (b) only the wght + wdth axes, and (c) our own
+   size-adjusted fallback faces.
+
+   Paths point into node_modules; Vite hashes and copies the files into dist/assets.
+   The Latin Bricolage file is also <link rel="preload">ed in partials/head.html. */
+
+/* Bricolage Grotesque: weight 200-800 and WIDTH 75-100% (the `wdth` axis is what lets the
+   wordmark be `font-stretch: 75%` and headings 85-90% from one file). */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wdth-normal.woff2')
+    format('woff2-variations');
+}
+
+/* JetBrains Mono: weight axis only (we use 400 and 500). */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+/* Size-adjusted fallbacks. While the web font loads (font-display: swap) the browser shows
+   a local font; these overrides reshape that local font to have the web font's average
+   character width and vertical metrics, so the swap causes almost no layout shift (CLS).
+   The numbers were measured in Chromium with canvas measureText on a sample sentence:
+     Bricolage 400 vs Arial:        width 65875 / 61700 = 106.77%; ascent .930 / 1.0677 = 87.1%;
+                                    descent .270 / 1.0677 = 25.29%
+     JetBrains Mono vs Courier New: width 85200 / 85214 = 99.98%;  ascent 102%; descent 30%
+   Re-measure if you ever change the font files. */
+@font-face {
+  font-family: 'Bricolage Fallback';
+  src: local('Arial'), local('Liberation Sans');
+  size-adjust: 106.77%;
+  ascent-override: 87.1%;
+  descent-override: 25.29%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Fallback';
+  src: local('Courier New'), local('Liberation Mono');
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+}

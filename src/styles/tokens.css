@@ -1,0 +1,121 @@
+/* Design tokens. Palette B, "Graphite & Saffron" (see CLAUDE.md > Design direction).
+   Contrast ratios are measured against --bg. Anything the JS also needs (motion values,
+   point-cloud tints) is mirrored in src/lib/motion.js; checkTokenSync() warns in dev if
+   the two ever drift apart. */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Colour ------------------------------------------------------------------ */
+  --bg: #0f0e0c; /* page background */
+  --surface: #181613; /* cards, tiles */
+  --raised: #221f1b; /* raised or hovered surfaces, placeholders */
+  --line: #33302a; /* borders, dividers */
+  --text: #f3efe6; /* 16.8:1, primary text */
+  --muted: #aba598; /* 7.9:1, secondary text and labels */
+  --accent: #f0b429; /* 10.4:1, buttons, links, stat numerals, metric chips */
+  --accent-2: #7fb5ff; /* 9.1:1, focus ring, status dot */
+
+  /* Point-cloud tints, one per hero shape (also exported to JS from motion.js) */
+  --tint-face: #f2d6bc;
+  --tint-tooth: #f4f1e8;
+  --tint-leaf: #8fcfa3;
+  --tint-graph: #7fb5ff;
+
+  /* Derived: metric chip = accent border at 50% + accent fill at 12% */
+  --accent-50: color-mix(in srgb, var(--accent) 50%, transparent);
+  --accent-12: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-hover: color-mix(in srgb, var(--accent) 86%, white);
+
+  /* ---- Type -------------------------------------------------------------------- */
+  /* Families. The *Fallback faces (fonts.css) are size-adjusted so text barely moves
+     when the web font swaps in. */
+  --font-display: 'Bricolage Grotesque', 'Bricolage Fallback', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'JetBrains Mono Fallback', ui-monospace, monospace;
+
+  /* Fluid scale (Utopia-style): each step interpolates between 360px and 1600px
+     viewports; base 16px -> 18px, ratio 1.2 -> 1.25. Below 360 / above 1600 it clamps. */
+  --step-n2: clamp(0.6944rem, 0.687rem + 0.033vw, 0.72rem);
+  --step-n1: clamp(0.8333rem, 0.814rem + 0.086vw, 0.9rem);
+  --step-0: clamp(1rem, 0.9637rem + 0.1613vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.1401rem + 0.2661vw, 1.4063rem);
+  --step-2: clamp(1.44rem, 1.3477rem + 0.4101vw, 1.7578rem);
+  --step-3: clamp(1.728rem, 1.5918rem + 0.6055vw, 2.1973rem);
+  --step-4: clamp(2.0736rem, 1.8782rem + 0.8684vw, 2.7466rem);
+  --step-5: clamp(2.4883rem, 2.214rem + 1.2192vw, 3.4332rem);
+  --step-6: clamp(2.986rem, 2.607rem + 1.6846vw, 4.2915rem);
+  --step-7: clamp(3.5832rem, 3.066rem + 2.2984vw, 5.3644rem);
+  --step-8: clamp(4.2998rem, 3.6014rem + 3.1041vw, 6.7055rem);
+
+  /* Uppercase mono labels are a fixed 11px on purpose (CLAUDE.md), written in rem so
+     browser zoom and font-size settings still scale them. */
+  --label-size: 0.6875rem;
+  --label-tracking: 0.08em;
+
+  --lh-tight: 1.02;
+  --lh-snug: 1.2;
+  --lh-body: 1.6;
+  --track-tight: -0.02em;
+
+  /* ---- Space ------------------------------------------------------------------- */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.5rem;
+  --space-3xl: 7rem;
+
+  --gutter: clamp(1rem, 0.5rem + 2vw, 2.5rem); /* 16px at 360px wide */
+  --section-space: clamp(4rem, 2.5rem + 6vw, 9rem);
+  --max-w: 90rem; /* 1440px content cap; the page itself still fills 1920px */
+  --measure: 65ch;
+
+  --header-h: 4.5rem;
+
+  /* ---- Shape ------------------------------------------------------------------- */
+  --r-xs: 4px;
+  --r-s: 8px;
+  --r-m: 14px;
+  --r-l: 24px;
+  --r-pill: 999px;
+
+  /* ---- Stacking ---------------------------------------------------------------- */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 50;
+  --z-header: 100;
+  --z-cursor: 300;
+  --z-preloader: 400;
+  --z-skip: 500;
+
+  /* ---- Motion (mirrors src/lib/motion.js) ------------------------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* reveals */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* wipes, pin transitions */
+  --dur-xs: 0.2s; /* also the reduced-motion cap */
+  --dur-s: 0.4s;
+  --dur-m: 0.7s;
+  --dur-l: 1.1s;
+  --dur-xl: 1.6s;
+}
+
+/* Reduced motion: every CSS transition built on the duration tokens collapses to
+   the xs (200ms) cap, so "reveals become fades of 200ms or less" needs no per-component rule. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-s: var(--dur-xs);
+    --dur-m: var(--dur-xs);
+    --dur-l: var(--dur-xs);
+    --dur-xl: var(--dur-xs);
+  }
+}
+
+/* Small screens with JS off: the nav has no menu button, so it wraps to a second header
+   row (see sections/header.css). Reserve that extra height so it never covers content. */
+@media (max-width: 47.99em) {
+  html:not(.js) {
+    --header-h: 6rem;
+  }
+}

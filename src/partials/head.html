@@ -1,0 +1,40 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<meta name="theme-color" content="#0F0E0C">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<!-- Runs before first paint, so it must be inline and tiny.
+     1. Adds `.js` so CSS can show JS-only controls (the Menu button) and never show a dead one.
+     2. Decides whether the preloader plays: only on pages whose <html> has data-preloader,
+        only once per session, never with reduced motion. If yes it adds `.is-preloading`,
+        which makes the CSS show the panel from the very first frame. -->
+<script>
+  (function () {
+    var root = document.documentElement;
+    root.classList.add('js');
+    try {
+      if (
+        root.hasAttribute('data-preloader') &&
+        !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        !sessionStorage.getItem('preloader-seen')
+      ) {
+        root.classList.add('is-preloading');
+        // Failsafe: if the module script is blocked or never arrives, don't trap the visitor
+        // behind the panel.
+        setTimeout(function () {
+          root.classList.remove('is-preloading');
+        }, 4000);
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<!-- Preload the one font every page needs at first paint (Latin subset). `crossorigin` is
+     required for font preloads even though the file is same-origin; without it the browser
+     fetches the font twice. Vite rewrites this href to the hashed file in production. -->
+<link rel="preload" href="/node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+<!-- Linked (not imported from JS) so pages are styled with JavaScript disabled. -->
+<link rel="stylesheet" href="/src/styles/main.css">

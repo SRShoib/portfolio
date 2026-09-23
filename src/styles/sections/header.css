@@ -1,0 +1,216 @@
+/* Header: monogram, anchor nav, always-visible Resume button.
+
+   Layout is built mobile-first and JS-optional:
+   - Base (also what a no-JS visitor gets): a flex bar; the nav wraps onto a second row.
+   - `.js` + narrow screens: the nav becomes a fullscreen menu opened by the Menu button
+     (sections/header.js toggles [data-menu-open]). The stagger, image crossfade and focus
+     trap for that menu arrive in M4.
+   - >= 48em (768px): monogram | centred nav | Resume, no Menu button.
+   48em is written out in the media queries because CSS custom properties can't be used there. */
+
+.site-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: var(--z-header);
+  height: var(--header-h);
+}
+
+/* The blurred translucent backdrop lives on a pseudo-element, NOT on .site-header.
+   backdrop-filter (like transform or filter) makes an element the containing block for
+   its position:fixed descendants, which would squash the fullscreen menu into a header-sized
+   box. */
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+}
+
+.site-header__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  column-gap: var(--space-m);
+  width: min(100% - 2 * var(--gutter), var(--max-w));
+  height: 100%;
+  margin-inline: auto;
+}
+
+/* ---- Monogram ----------------------------------------------------------------------- */
+.monogram {
+  order: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--text);
+  font-size: 1.625rem;
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-decoration: none;
+  transition: color var(--dur-xs) var(--ease-out);
+}
+.monogram:hover {
+  color: var(--accent);
+}
+
+/* ---- Nav (base: a row of mono labels) ------------------------------------------------ */
+.site-nav {
+  order: 3;
+  flex: 1 0 100%;
+}
+
+.site-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--space-2xs); /* tight on purpose: all five labels must fit one row at 360px */
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__link {
+  display: inline-block;
+  padding-block: 0.6rem; /* grows the hit area without changing the 11px text */
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--dur-xs) var(--ease-out);
+}
+.site-nav__link:hover {
+  color: var(--text);
+}
+
+/* ---- Actions: Resume + Menu ---------------------------------------------------------- */
+.site-header__actions {
+  order: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin-left: auto;
+}
+
+.site-header .btn {
+  font-size: var(--step-n1);
+  padding-inline: 1.1em;
+}
+
+.menu-toggle {
+  display: none; /* shown only when JS is present and the screen is narrow */
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text);
+  transition: border-color var(--dur-xs) var(--ease-out);
+}
+.menu-toggle:hover {
+  border-color: var(--muted);
+}
+
+/* Two bars that cross into an X when open. Only transform is animated. */
+.menu-toggle__icon {
+  position: relative;
+  width: 14px;
+  height: 8px;
+}
+.menu-toggle__icon span {
+  position: absolute;
+  inset-inline: 0;
+  height: 1.5px;
+  background: currentColor;
+  transition: transform var(--dur-s) var(--ease-out);
+}
+.menu-toggle__icon span:first-child {
+  top: 0;
+}
+.menu-toggle__icon span:last-child {
+  bottom: 0;
+}
+/* Bars are 6.5px apart centre-to-centre, so each moves 3.25px to meet in the middle. */
+.menu-toggle[aria-expanded='true'] .menu-toggle__icon span:first-child {
+  transform: translateY(3.25px) rotate(45deg);
+}
+.menu-toggle[aria-expanded='true'] .menu-toggle__icon span:last-child {
+  transform: translateY(-3.25px) rotate(-45deg);
+}
+
+/* ---- Narrow + JS: fullscreen menu ----------------------------------------------------- */
+@media (max-width: 47.99em) {
+  .js .menu-toggle {
+    display: inline-flex;
+  }
+
+  .js .site-nav {
+    position: fixed;
+    inset: 0;
+    z-index: -1; /* above the ::before backdrop (earlier in DOM), below the bar's own controls */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: calc(var(--header-h) + var(--space-l)) var(--gutter) var(--space-xl);
+    background: var(--bg);
+    visibility: hidden; /* removes closed-menu links from the tab order */
+    opacity: 0;
+    /* On close, wait for the fade before hiding; on open (rule below) hide-delay is 0. */
+    transition:
+      opacity var(--dur-s) var(--ease-out),
+      visibility 0s linear var(--dur-s);
+  }
+  .js .site-header[data-menu-open] .site-nav {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+  }
+
+  .js .site-nav__list {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: var(--space-2xs);
+  }
+
+  .js .site-nav__link {
+    padding-block: 0.15em;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: var(--step-5);
+    font-weight: 700;
+    font-stretch: 85%;
+    letter-spacing: var(--track-tight);
+    line-height: var(--lh-snug);
+    text-transform: none;
+  }
+  .js .site-nav__link:hover {
+    color: var(--accent);
+  }
+}
+
+/* While the menu is open the page behind it must not scroll (scroll.js also stops Lenis). */
+html.is-menu-open {
+  overflow: hidden;
+}
+
+/* ---- Wide: monogram | centred nav | Resume ------------------------------------------- */
+@media (min-width: 48em) {
+  .site-nav {
+    order: 2;
+    flex: 1 1 auto;
+  }
+  .site-nav__list {
+    justify-content: center;
+    gap: 0 var(--space-l);
+  }
+  .site-header__actions {
+    order: 3;
+    margin-left: 0;
+  }
+}

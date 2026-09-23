@@ -1,0 +1,9 @@
+/* Single stylesheet entry. It is linked from partials/head.html (not imported from JS) so
+   every page is fully styled before any script runs, and stays styled with JS disabled. */
+@import './tokens.css';
+@import './fonts.css';
+@import './base.css';
+@import './sections/header.css';
+@import './sections/preloader.css';
+/* Lenis's required helper rules (.lenis-stopped, .lenis-smooth, [data-lenis-prevent]…) */
+@import 'lenis/dist/lenis.css';
