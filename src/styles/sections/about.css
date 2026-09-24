@@ -10,17 +10,11 @@
 }
 
 .about__portrait {
-  overflow: hidden;
-  aspect-ratio: 928 / 1065; /* the photo's own shape */
+  aspect-ratio: 928 / 1065; /* the photo's own shape (image cropping: "Image frames" in base.css) */
   width: min(100%, 26rem);
   border: 1px solid var(--line);
   border-radius: var(--r-l);
   background: var(--raised);
-}
-.about__portrait img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .about__meta {
@@ -29,6 +23,14 @@
   gap: var(--space-3xs) var(--space-s);
   margin-top: var(--space-xs);
   color: var(--muted);
+}
+
+/* Availability: one plain sentence with the same status dot the hero badge uses. */
+.about__availability {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-top: var(--space-s);
 }
 
 /* ---- Blocks: experience, education, problem solving, competitions, skills ------------------ */

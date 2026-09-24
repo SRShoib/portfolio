@@ -257,6 +257,56 @@ main {
   font-weight: 500;
 }
 
+/* ---- Image frames -----------------------------------------------------------------------
+   A fixed-shape window onto a picture: the hero portrait, project-card covers, the case-study
+   cover, the About portrait. Each frame sets its own aspect-ratio; the picture is cropped to fit.
+
+   The <img> is positioned absolutely INSIDE the frame on purpose. A percentage height does not
+   resolve against a height that comes from `aspect-ratio`, so `height: 100%` on a normal-flow
+   image silently becomes `auto`: the image keeps its own shape, the frame just clips it, and
+   `object-fit` / `object-position` have nothing to work on. Absolute positioning resolves
+   `inset: 0` and `100%` against the frame's padding box, so they do exactly what they say.
+   (Also `overflow: hidden`: an aspect-ratio box otherwise grows to fit its content.) */
+.hero__visual,
+.project-card__media,
+.cs-cover__frame,
+.about__portrait,
+.pub-card__sample > picture {
+  position: relative;
+  overflow: hidden;
+}
+.hero__visual img,
+.project-card__media img,
+.cs-cover__frame img,
+.about__portrait img,
+.pub-card__sample > picture img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top; /* full-page screenshots: show the app's header, not its middle */
+}
+/* A small source (narrower than SMALL_SOURCE_PX in scripts/vite-partials.mjs, e.g. a Chrome
+   extension popup) is shown whole instead of being cropped and blown up past 1:1. */
+.project-card__media img[data-small],
+.cs-cover__frame img[data-small] {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* A project's stack: two labelled groups, Backend then Frontend (CONTENT.md "Stack"). Used on the
+   home cards and in the case-study Stack section. */
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xs);
+}
+.stack__label {
+  margin-bottom: var(--space-2xs);
+  color: var(--muted);
+}
+
 .status-dot {
   display: inline-block;
   flex: none;

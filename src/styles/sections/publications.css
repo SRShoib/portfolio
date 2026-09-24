@@ -1,6 +1,17 @@
-/* Publications: five paper cards as a plain grid. M6 turns this into a fanned stack that spreads
-   as you scroll (desktop only); this ordinary layout stays as the mobile and reduced-motion
-   version. The 01-05 index is a CSS counter, so it can never disagree with the order. */
+/* Publications: the five papers in two groups by type, conference papers and dataset articles. M6
+   turns this into a fanned stack that spreads as you scroll (desktop only); this ordinary layout stays
+   as the mobile and reduced-motion version. The 01-05 index is a CSS counter reset on the SECTION, so it
+   keeps counting across both lists and can never disagree with the order.
+
+   Each group is its own grid, so every card in a group is the same width AND height at every multi-column
+   width (see the media queries at the bottom). Equal heights mean a shorter card has spare room; the
+   card spreads that room across all its gaps (`justify-content: space-between`) instead of pinning
+   the DOI to the bottom, which is what made one big empty hole. The sample-photo sizes are chosen so the
+   two dataset cards need very little spreading. */
+
+.publications {
+  counter-reset: pub;
+}
 
 .pubs__list {
   display: grid;
@@ -8,12 +19,15 @@
   gap: var(--space-m);
   padding: 0;
   list-style: none;
-  counter-reset: pub;
+}
+.pubs__list + .pubs__list {
+  margin-top: var(--space-m);
 }
 
 .pub-card {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: var(--space-s);
   height: 100%;
   padding: var(--space-m);
@@ -21,6 +35,14 @@
   border-radius: var(--r-m);
   background: var(--surface);
   counter-increment: pub;
+}
+
+/* The meta line and the title travel as ONE block. The card spreads its spare height between its
+   blocks, and if the meta line and the title were separate blocks that space would open up between
+   them, so titles in a row would start at different heights. As one block they stay together and line up. */
+.pub-card__head {
+  display: grid;
+  gap: var(--space-s);
 }
 
 .pub-card__meta {
@@ -59,22 +81,95 @@
   font-weight: 600;
 }
 
+/* Sample leaf images (dataset articles only) with a credit line. Thumbnails sit in rows of
+   `--sample-cols` (set on the figure from the data; 3 by default), and a row that is not full is
+   CENTRED (5 photos in 3 columns = 3 + 2 centred; 3 photos in 2.5 columns = 2 + 1 centred). A thumbnail is
+   always one column wide however many files exist, so a lone image stays a thumbnail instead of
+   stretching across the card. Making one card's columns fewer makes its thumbnails bigger, and vice
+   versa: that is the knob that keeps the two dataset cards the same height. A missing file leaves
+   nothing in the page (its label goes with it), and with none at all the partials plugin
+   (<!--if-image-->) drops the whole figure, credit line included, from the HTML.
+   The thumbnail shape is `--sample-aspect` (square by default), and cropping comes from "Image frames"
+   in base.css. */
+.pub-card__sample-grid {
+  --gap: var(--space-2xs);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs) var(--gap);
+}
+.pub-card__sample {
+  /* n equal columns: (100% - the n-1 gaps between them) / n */
+  flex: 0 0 calc((100% - (var(--sample-cols, 3) - 1) * var(--gap)) / var(--sample-cols, 3));
+  display: grid;
+  align-content: start;
+  gap: var(--space-3xs);
+  min-width: 0;
+  container-type: inline-size; /* lets the label size itself from THIS cell's width (cqw below) */
+}
+.pub-card__sample > picture {
+  aspect-ratio: var(--sample-aspect, 1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  background: var(--raised);
+}
+.pub-card__sample-label {
+  color: var(--muted);
+  font-size: var(--step-n2);
+  /* Never wider than the thumbnail allows: the longest word ("Cercospora", ~5.2 x the font size) must fit
+     its cell, or it would break mid-word. 18cqw is 18% of the cell's width (a supporting browser uses
+     whichever is smaller; an older one keeps the line above). */
+  font-size: min(var(--step-n2), 18cqw);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-align: center; /* the class name sits centred under its picture (each line, if it wraps) */
+}
+/* Dev-only: a missing file shows as a small clipped box the same shape as a thumbnail. */
+.pub-card__sample-grid > .todo {
+  flex: 0 0 calc((100% - (var(--sample-cols, 3) - 1) * var(--gap)) / var(--sample-cols, 3));
+  aspect-ratio: var(--sample-aspect, 1);
+  padding: var(--space-3xs);
+  overflow: hidden;
+  border-radius: var(--r-s);
+  font-size: 0.5625rem;
+  overflow-wrap: anywhere;
+}
+.pub-card__credit {
+  margin-top: var(--space-2xs);
+  color: var(--muted);
+  font-size: var(--step-n2);
+}
+
 .pub-card__doi {
-  margin-top: auto;
   padding-top: var(--space-2xs);
   font-family: var(--font-mono);
   font-size: var(--step-n2);
   overflow-wrap: anywhere; /* DOIs are long unbroken strings; never let one widen the page */
 }
 
+/* Two or three columns: every row of a group gets the SAME height (`1fr` implicit rows: all rows are
+   as tall as the tallest), and cards stretch to fill it. So all the conference cards match, and both
+   dataset cards match, whatever the column count (with two columns, the third conference card sits
+   alone on a second row and is still exactly as tall). On a phone there is one column, cards are
+   stacked, and each simply keeps its own height. */
 @media (min-width: 48em) {
   .pubs__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    align-items: stretch;
+  }
+  /* From here the cards sit side by side, so the thumbnail size is the tuned one from the data
+     (`--sample-cols-wide`, set on the figure). On a phone every figure keeps the default 3 per row. */
+  .pub-card__samples {
+    --sample-cols: var(--sample-cols-wide, 3);
   }
 }
 @media (min-width: 64em) {
   .pubs__list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-l);
+  }
+  .pubs__list + .pubs__list {
+    margin-top: var(--space-l);
   }
 }

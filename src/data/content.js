@@ -24,7 +24,7 @@ export const identity = {
     'I build retrieval and multi-agent AI systems that ship, backed by research in medical and agricultural computer vision.', // (draft)
   badge: 'Research Assistant @ HIRL · Open to AI/ML roles',
   location: 'Dhaka, Bangladesh',
-  availability: todo('remote / on-site / relocation / full-time'),
+  availability: 'Open to full-time roles, on-site Dhaka or remote.',
   portrait: {
     // Used in: About, hero fallback (reduced motion / no WebGL), OG image, JSON-LD
     src: '/images/profile/portrait.png',
@@ -72,6 +72,12 @@ export const split = {
   },
 };
 
+// Architecture stages (`architecture.flow` and `.supporting`). A stage is either a plain string (just
+// a label) or an object:
+//   { label, detail?, kind?: 'gate', conditional?: true, loopsBackTo?: '<label of an earlier stage>' }
+// `stage()` turns either into an object, so the pages (and later the M5 diagram) handle one shape.
+export const stage = (s) => (typeof s === 'string' ? { label: s } : s);
+
 // ---- 6. Projects (order = order on the page and in previous/next navigation) -------------------
 export const projects = [
   {
@@ -86,10 +92,7 @@ export const projects = [
       apiDocs: 'https://enterprise-knowledge-assistant-production-8283.up.railway.app/docs',
       github: 'https://github.com/SRShoib/Enterprise-Knowledge-Assistant',
     },
-    cover: {
-      path: '/images/projects/enterprise-knowledge-assistant/cover.png',
-      todo: todo('add screenshot'),
-    },
+    cover: { path: '/images/projects/enterprise-knowledge-assistant/cover.png' },
     chips: ['4-role RBAC', 'Citation-aware answers', 'RAGAS-style evals'],
     problem:
       'Teams need to search internal documents quickly, but every answer must be traceable to its source, and users must only see content they are authorized to access.', // (draft)
@@ -136,24 +139,25 @@ export const projects = [
         'add any measured results (answer quality scores, retrieval metrics, latency). Until then, describe the evaluation setup only.',
       ),
     },
-    stack: [
-      'FastAPI',
-      'Python',
-      'LangChain',
-      'OpenAI',
-      'Pinecone',
-      'PostgreSQL',
-      'SQLAlchemy',
-      'JWT',
-      'LangSmith',
-      'Docker Compose',
-      'Next.js 14',
-      'React',
-      'TypeScript',
-      'Tailwind CSS',
-    ],
+    stack: {
+      backend: [
+        'FastAPI',
+        'Python',
+        'LangChain',
+        'OpenAI',
+        'Pinecone',
+        'PostgreSQL',
+        'SQLAlchemy',
+        'JWT',
+        'LangSmith',
+        'Docker Compose',
+      ],
+      frontend: ['Next.js 14', 'React', 'TypeScript', 'Tailwind CSS'],
+    },
     deployment: 'API on Railway, frontend on Vercel, Docker Compose',
-    next: todo("What I'd do next"),
+    // "What I'd do next": null = none, on purpose (CONTENT.md). A string or an array of strings would
+    // make the case study render the section; null makes it leave the section out entirely.
+    next: null,
   },
 
   {
@@ -168,11 +172,8 @@ export const projects = [
       apiDocs: 'https://multidocumentfinancialcontradictionanalyst-production.up.railway.app/docs',
       github: 'https://github.com/SRShoib/multi-document_financial_contradiction_analyst',
     },
-    cover: {
-      path: '/images/projects/filing-reconciler/cover.png',
-      todo: todo('add screenshot'),
-    },
-    chips: ['1.00 numeric precision/recall', '2 human approval gates', 'CI-gated evals'],
+    cover: { path: '/images/projects/filing-reconciler/cover.png' },
+    chips: ['1.00 numeric precision/recall on 3 sample sets', '2 human approval gates', 'CI-gated evals'],
     problem:
       "Contradictions between a company's filings, earnings call and press releases are a risk signal, but finding them means reading hundreds of pages side by side.", // (draft)
     built: [
@@ -181,22 +182,41 @@ export const projects = [
       'CI-gated evaluation harness behind a provider-agnostic LLM interface',
     ],
     architecture: {
+      // Ingest → Parallel claim extraction → Reconciliation → Risk scoring → [Gate 1, conditional] →
+      // Draft memo ⇄ Critique → [Gate 2] → Finalize   (CONTENT.md)
       flow: [
         'Ingest',
-        'Parallel claim extraction',
+        { label: 'Parallel claim extraction', detail: 'one branch per document' },
         'Reconciliation',
         'Risk scoring',
+        {
+          label: 'Gate 1: contradiction review',
+          kind: 'gate',
+          conditional: true,
+          detail:
+            'A run only stops here if a contradiction is high severity or has confidence below 0.75; otherwise it goes straight to the memo. The reviewer confirms, rejects or edits each contradiction.',
+        },
         'Draft memo',
-        'Self-critique',
+        {
+          label: 'Critique',
+          loopsBackTo: 'Draft memo', // Draft memo ⇄ Critique
+          detail: 'Reflection loop, capped by iterations and cost',
+        },
+        {
+          label: 'Gate 2: memo sign-off',
+          kind: 'gate',
+          detail: 'Every run passes through it. The reviewer approves the memo or requests changes.',
+        },
+        'Finalize',
       ],
       supporting: [
-        'Postgres checkpointing',
+        {
+          label: 'Postgres checkpointing',
+          detail:
+            "Each gate pauses once with all pending items, and the graph's checkpointer (Postgres for durable runs) lets a run pause and resume later",
+        },
         'Circuit breakers (cost / iterations)',
-        'Human approval gates ×2',
       ],
-      todo: todo(
-        'which stages do the two gates sit after? Until answered, show them as a labeled side element, not placed in the flow.',
-      ),
     },
     decisions: [
       'Numeric contradiction detection is fully deterministic (regex + tolerance comparison); the LLM never generates figures',
@@ -204,31 +224,55 @@ export const projects = [
       'Provider-agnostic LLM interface so models can be swapped without code changes',
     ],
     evaluation: {
+      // WORDING RULE (CONTENT.md): wherever the 1.00 result appears (this line and the card chip) it
+      // says it was measured on these three sample sets, so it is not read as a large-scale benchmark.
       results: [
-        '1.00 precision and recall on numeric contradiction detection',
+        '1.00 precision and recall on numeric contradiction detection, measured on three labeled sample sets (6 gold contradictions plus a clean control)',
         'Exact-span citation match',
         'Eval harness tracks F0.5, citation faithfulness and expected calibration error (ECE)',
       ],
-      todo: todo(
-        'what evaluation set were these measured on (number of filings / test cases)?',
-      ),
+      evalSet: {
+        intro: 'Three labeled sample sets, each with filings, a manifest and gold labels',
+        sets: [
+          {
+            name: 'set_a',
+            text: 'ACME FY2023 (10-K, 10-Q, earnings call, press release), 3 gold contradictions: revenue mismatch, FY2024 guidance revision, litigation narrative conflict',
+          },
+          { name: 'set_b', text: 'Globex Q2 FY2024, 3 gold contradictions of the same three types' },
+          {
+            name: 'set_c',
+            text: 'Initech FY2025, a clean control with no contradictions, so any flag counts against precision',
+          },
+        ],
+      },
+      metrics: [
+        'F0.5 (weighted toward precision)',
+        'Numeric-mismatch accuracy',
+        'Exact citation-span match',
+        'LLM-judge faithfulness',
+        'Memo citation coverage',
+        'ECE (calibration error)',
+      ],
+      ciGate: {
+        intro: 'A separate "Evaluation gate" step',
+        checks: [
+          'Precision = 1.0',
+          'Recall >= 0.95',
+          'Numeric accuracy = 1.0',
+          'Exact-span match = 1.0',
+          'ECE <= 0.35',
+          'Zero predictions on the clean control set',
+        ],
+      },
+      feedbackLoop:
+        'Contradictions a reviewer confirms are copied back into the gold labels, so reviewer decisions become regression tests',
     },
-    stack: [
-      'FastAPI',
-      'Python',
-      'LangGraph',
-      'Pydantic v2',
-      'PostgreSQL',
-      'Docker',
-      'OpenAI API',
-      'Next.js 16',
-      'React 19',
-      'TypeScript',
-      'Tailwind CSS',
-      'Framer Motion',
-    ],
+    stack: {
+      backend: ['FastAPI', 'Python', 'LangGraph', 'Pydantic v2', 'PostgreSQL', 'Docker', 'OpenAI API'],
+      frontend: ['Next.js 16', 'React 19', 'TypeScript', 'Tailwind CSS', 'Framer Motion'],
+    },
     deployment: 'API on Railway, frontend on Vercel',
-    next: todo("What I'd do next"),
+    next: null,
   },
 
   {
@@ -243,10 +287,7 @@ export const projects = [
       apiDocs: 'https://supportlens-api-7ulp.onrender.com/docs',
       github: 'https://github.com/SRShoib/Supportlens',
     },
-    cover: {
-      path: '/images/projects/supportlens/cover.png',
-      todo: todo('add screenshot'),
-    },
+    cover: { path: '/images/projects/supportlens/cover.png' },
     chips: ['+0.115 macro-F1', 'hit-rate@5 0.920', '< $0.04 LLM spend'],
     problem:
       'Support teams sit on thousands of unstructured tickets; finding what is urgent, what customers are asking about, and how to reply takes manual triage.', // (draft)
@@ -269,34 +310,112 @@ export const projects = [
       supporting: ['PostgreSQL eval harness', 'Drift monitoring', 'Budget-capped LLM client'],
     },
     decisions: [
-      'Benchmarked classical baselines against fine-tuned transformers for each task and deployed the winner',
+      'Benchmarked classical baselines against fine-tuned transformers for each task and deployed the winner. It was not a uniform transformer win: the baseline won intent classification (0.9990 vs. 0.9975 macro-F1) and rules won NER overall (0.585 vs. 0.447)',
       'Hybrid retrieval with cross-encoder reranking',
       'Budget-capped LLM client',
     ],
     evaluation: {
       results: [
-        '+0.115 macro-F1 on urgency classification (DeBERTa-v3)',
+        '+0.115 macro-F1 on urgency classification (0.794 → 0.910; TF-IDF + LinearSVC baseline → DeBERTa-v3-small)',
         '+0.17 ROUGE-1 on summarization (FLAN-T5)',
         'Retrieval hit-rate@5: 0.920',
         'Total LLM spend under $0.04',
       ],
-      todo: todo('name the dataset and the baseline these gains are measured against'),
+      // Per task: the classical baseline vs. the model it was compared with, who won, and by how much.
+      // WORDING RULE (CONTENT.md): never present this as transformers winning every task. The intent
+      // baseline beat the transformer, and NER's overall winner is rules. `winner` and `margin` are the
+      // strings shown on the page; `note` is optional.
+      baselines: [
+        {
+          task: 'Intent',
+          baseline: 'TF-IDF + LinearSVC',
+          compared: 'DistilBERT',
+          winner: 'Baseline wins',
+          margin: '0.9990 vs. 0.9975 macro-F1',
+        },
+        {
+          task: 'Urgency',
+          baseline: 'TF-IDF + LinearSVC',
+          compared: 'DeBERTa-v3-small',
+          winner: 'Transformer wins',
+          margin: '0.794 → 0.910',
+        },
+        {
+          task: 'NER',
+          baseline: 'Regex/rules',
+          compared: 'BERT-base-cased',
+          winner: 'Rules win overall',
+          margin: '0.585 vs. 0.447',
+          note: 'Each entity type goes to whichever does better',
+        },
+        {
+          task: 'Sentiment/emotion',
+          baseline: 'TF-IDF + LinearSVC',
+          compared: 'DistilBERT',
+          winner: 'Transformer wins',
+          margin: '+0.064 / +0.106',
+        },
+        {
+          task: 'Summarization',
+          baseline: 'Lead-k extractive',
+          compared: 'FLAN-T5-small',
+          winner: 'Transformer wins',
+          margin: '+0.16-0.17 ROUGE-1',
+        },
+        {
+          task: 'Topics',
+          baseline: 'TF-IDF/KMeans',
+          compared: 'BERTopic',
+          winner: 'BERTopic wins',
+          margin: '0.226 vs. 0.143 NPMI',
+        },
+        {
+          task: 'Search',
+          baseline: 'Dense retrieval only',
+          compared: '+ cross-encoder rerank',
+          winner: 'Rerank wins',
+          margin: '0.900 → 0.920 hit-rate@5',
+        },
+      ],
+      // `name` is the text before the colon in CONTENT.md, `text` the text after it.
+      datasets: [
+        {
+          name: 'Bitext Customer Support (Hugging Face)',
+          text: '27 intents, about 27k utterances — used to train intent classification',
+        },
+        {
+          name: 'Customer Support on Twitter (Kaggle, about 3M tweets)',
+          text: 'unlabeled real-world text, used for cleaning, clustering, search and drift analysis',
+        },
+        { name: 'tweet_eval (sentiment/emotion)', text: 'transfer learning for sentiment and emotion models' },
+        { name: 'samsum / dialogsum', text: 'transfer learning for thread summarization' },
+        {
+          name: 'Synthetic NER set (generated) plus a 200-example hand-checked gold set',
+          text: 'entity extraction for ORDER_ID, PRODUCT, DATE, AMOUNT and ACCOUNT_REF',
+        },
+        {
+          name: 'Urgency labels',
+          text: 'no existing dataset has these; rule-based labels plus up to 2,000 LLM-generated labels',
+        },
+      ],
     },
-    stack: [
-      'FastAPI',
-      'PostgreSQL',
-      'Chroma',
-      'Hugging Face Transformers',
-      'BERTopic',
-      'OpenAI',
-      'Next.js 15',
-      'TypeScript',
-      'Tailwind CSS',
-      'Docker Compose',
-      'CI/CD',
-    ],
+    // Docker Compose and CI/CD come after the frontend items in CONTENT.md's original list but are
+    // grouped under Backend; each group keeps its own original order.
+    stack: {
+      backend: [
+        'FastAPI',
+        'PostgreSQL',
+        'Chroma',
+        'Hugging Face Transformers',
+        'BERTopic',
+        'OpenAI',
+        'Docker Compose',
+        'CI/CD',
+      ],
+      frontend: ['Next.js 15', 'TypeScript', 'Tailwind CSS'],
+    },
     deployment: 'API on Render, frontend on Vercel',
-    next: todo("What I'd do next"),
+    next: null,
   },
 
   {
@@ -310,10 +429,7 @@ export const projects = [
       apiDocs: 'https://youtube-chatbot-tzq1.onrender.com/docs',
       demo: todo('Chrome Web Store or demo video (optional)'),
     },
-    cover: {
-      path: '/images/projects/youtube-rag-chatbot/cover.png',
-      todo: todo('add screenshot of the extension'),
-    },
+    cover: { path: '/images/projects/youtube-rag-chatbot/cover.png' },
     chips: ['Manifest V3', 'Rate-limited shared backend', 'Cold-start resilient'],
     problem:
       'Long videos are hard to search; viewers want answers from the video itself without scrubbing through it.', // (draft)
@@ -343,18 +459,12 @@ export const projects = [
       results: [],
       todo: todo('(optional) evaluation & results'),
     },
-    stack: [
-      'Python',
-      'FastAPI',
-      'LangChain',
-      'LangServe',
-      'FAISS',
-      'OpenAI API',
-      'JavaScript',
-      'Chrome Extension (MV3)',
-    ],
+    stack: {
+      backend: ['Python', 'FastAPI', 'LangChain', 'LangServe', 'FAISS', 'OpenAI API'],
+      frontend: ['JavaScript', 'Chrome Extension (MV3)'],
+    },
     deployment: 'Backend on Render',
-    next: todo("What I'd do next"),
+    next: null,
   },
 ];
 
@@ -373,7 +483,13 @@ export const publications = [
       'Proceedings of the 3rd International Conference on Big Data, IoT and Machine Learning (BIM 2025), Springer, Lecture Notes in Networks and Systems vol. 1800',
     doi: 'https://doi.org/10.1007/978-3-032-15764-5_22',
     tags: ['Medical imaging', 'Split learning', 'Explainable AI'],
-    authors: todo('author list'),
+    authors: [
+      author('Md. Mehedi Hasan Shoib', true),
+      author('Fayazunnesa Chowdhury'),
+      author('Emon Shikder'),
+      author('Sabbir Hossain Durjoy'),
+      author('Md. Hasan Imam Bijoy'),
+    ],
   },
   {
     title:
@@ -383,7 +499,13 @@ export const publications = [
     venue: 'BIM 2025, Springer LNNS vol. 1800',
     doi: 'https://doi.org/10.1007/978-3-032-15764-5_8',
     tags: ['Medical imaging', 'Fusion models', 'Explainable AI'],
-    authors: todo('author list'),
+    authors: [
+      author('Sabbir Hossain Durjoy'),
+      author('Fayazunnesa Chowdhury'),
+      author('Md. Mehedi Hasan Shoib', true),
+      author('Md. Emon Shikder'),
+      author('Md. Hasan Imam Bijoy'),
+    ],
   },
   {
     title:
@@ -409,6 +531,32 @@ export const publications = [
     venue: 'Data in Brief, vol. 60, article 111594 (Elsevier)',
     doi: 'https://doi.org/10.1016/j.dib.2025.111594',
     note: '2,661 field images of cauliflower leaves in three classes, collected in Bangladesh',
+    // `samples`: the images shown on this card, under public/<dir>/. Each `file` is shown only if it
+    // exists. A `label` (a class name) is shown under its thumbnail and named in its alt text; without
+    // one the alt text is "Sample <subject> image N". `aspect` is the thumbnail shape (default: square)
+    // and `columns` how many fit across from tablet width up (default 3; always 3 on a phone).
+    // One photo per class (the dataset has three); the file name IS the class name. Order is the folder's
+    // alphabetical order.
+    // SIZES (`columns`, `aspect`) are tuned so this card and the IDBGL card come out the same height (see
+    // the comment on IDBGL's samples). The photos are 3000x3000 squares and are shown whole (no crop), 2.5
+    // columns wide: two per row, the third centred below. With IDBGL at three per row this keeps the two
+    // cards within 40px of each other at every width from 768 to 1920px (Cauliflower at 3 columns and 3:4
+    // left IDBGL 77-174px taller).
+    samples: {
+      dir: '/images/publications/cauliflower',
+      subject: 'cauliflower leaf',
+      columns: 2.5,
+      aspect: '1 / 1',
+      images: [
+        { file: 'Black Rot.jpg', label: 'Black Rot' },
+        { file: 'Healthy.jpg', label: 'Healthy' },
+        { file: 'Insect Hole.jpg', label: 'Insect Hole' },
+      ],
+      credit: {
+        label: 'Cauliflower Leaf Diseases dataset (Mendeley Data)',
+        url: 'https://data.mendeley.com/datasets/x995snz7p3',
+      },
+    },
     tags: ['Agricultural vision', 'Open dataset'],
     authors: [
       author('Sabbir Hossain Durjoy'),
@@ -424,16 +572,47 @@ export const publications = [
     year: 2025,
     venue: 'Data in Brief (Elsevier)',
     doi: 'https://doi.org/10.1016/j.dib.2025.111347',
+    // One photo per class (the dataset has five classes); the file name IS the class name, so the same
+    // string is the label. The photos are 3000x4000 (3:4), and the leaves are tall (up to 9%-93% of the
+    // height), so they are shown uncropped at 3:4: a square crop would cut into several leaves.
+    // Order is the folder's alphabetical order.
+    // SIZES: `columns` is how many thumbnails fit across the card from tablet width up (fewer = bigger
+    // photos; on a phone it is always three). Three per row, then the last two centred below. This is the
+    // size the site owner asked for, and it keeps every label comfortably readable. Because it makes this
+    // card tall, Cauliflower's photos were enlarged to match (see its comment); measured over eight widths
+    // (768-1920px) the two cards then differ by +7 to -40px, and any leftover is spread across the shorter
+    // card's gaps.
+    samples: {
+      dir: '/images/publications/black-gram',
+      subject: 'black gram leaf',
+      columns: 3,
+      aspect: '3 / 4',
+      images: [
+        { file: 'Cercospora leaf spot.jpg', label: 'Cercospora leaf spot' },
+        { file: 'Healthy.jpg', label: 'Healthy' },
+        { file: 'Insect.jpg', label: 'Insect' },
+        { file: 'Leaf Crinkle.jpg', label: 'Leaf Crinkle' },
+        { file: 'Yellow Mosaic.jpg', label: 'Yellow Mosaic' },
+      ],
+      credit: {
+        label: 'IDBGL dataset (Mendeley Data)',
+        url: 'https://data.mendeley.com/datasets/z55yrbmn2d',
+      },
+    },
     tags: ['Agricultural vision', 'Open dataset'],
-    authors: todo('author list'),
+    authors: [
+      author('Md. Mehedi Hasan Shoib', true),
+      author('Shahnewaz Saeem'),
+      author('Afia Benta Aziz Tonima'),
+      author('Mayen Uddin Mojumdar'),
+    ],
   },
 ];
 
-// Images: never show medical images from these papers. Sample leaf images from my own
-// datasets only after the dataset license is confirmed.
-export const publicationImages = todo(
-  'confirm the dataset license allows sample leaf images before using any',
-);
+// Publication images (CONTENT.md §7). RESOLVED: both leaf datasets allow sample images with credit,
+// so the two dataset articles carry `samples` (2-3 images each, plus a credit line linking to the
+// dataset). Medical images from the three medical papers are NEVER shown, so those entries must not
+// get a `samples` field. A missing image file is simply not shown (see the `picture` directive).
 
 // ---- 8. Journey timeline ----------------------------------------------------------------
 export const timeline = [
@@ -442,11 +621,7 @@ export const timeline = [
   { when: 'Fall 2023', text: '26th place, Unlock the Algorithm (Preliminary, Slot A)' },
   { when: 'Jan 2025', text: 'Joined the Health Informatics Research Lab (HIRL) as a Research Assistant' },
   { when: '2025', text: 'Published two open image datasets in Data in Brief (cauliflower and black gram leaves)' },
-  {
-    when: 'Jan 2026',
-    text: 'Completed B.Sc. in CSE, CGPA 3.80 / 4.00',
-    todo: todo('confirm graduated (not "expected")'),
-  },
+  { when: 'Jan 2026', text: 'Completed B.Sc. in CSE, CGPA 3.80 / 4.00' }, // graduation confirmed
   { when: 'Apr 2026', text: 'Three papers published in the BIM 2025 proceedings (Springer)' },
 ];
 export const timelineProjectDates = todo('(optional) month/year for each project launch');
@@ -469,6 +644,7 @@ export const about = {
     degree: 'B.Sc. in Computer Science & Engineering',
     school: 'Daffodil International University',
     period: 'Jan 2022 – Jan 2026',
+    status: 'Completed',
     cgpa: '3.80 / 4.00',
   },
   problemSolving: {

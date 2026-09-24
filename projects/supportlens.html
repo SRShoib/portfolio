@@ -83,7 +83,7 @@
             <h2 id="decisions-title" class="cs-section__title">Key engineering decisions</h2>
             <div class="cs-section__body">
               <ol class="cs-decisions" role="list">
-                <li><span>Benchmarked classical baselines against fine-tuned transformers for each task and deployed the winner</span></li>
+                <li><span>Benchmarked classical baselines against fine-tuned transformers for each task and deployed the winner. It was not a uniform transformer win: the baseline won intent classification (0.9990 vs. 0.9975 macro-F1) and rules won NER overall (0.585 vs. 0.447)</span></li>
                 <li><span>Hybrid retrieval with cross-encoder reranking</span></li>
                 <li><span>Budget-capped LLM client</span></li>
               </ol>
@@ -94,43 +94,124 @@
             <h2 id="evaluation-title" class="cs-section__title">Evaluation &amp; results</h2>
             <div class="cs-section__body">
               <ul class="cs-results" role="list">
-                <li>+0.115 macro-F1 on urgency classification (DeBERTa-v3)</li>
+                <li>+0.115 macro-F1 on urgency classification (0.794 → 0.910; TF-IDF + LinearSVC baseline → DeBERTa-v3-small)</li>
                 <li>+0.17 ROUGE-1 on summarization (FLAN-T5)</li>
                 <li>Retrieval hit-rate@5: 0.920</li>
                 <li>Total LLM spend under $0.04</li>
               </ul>
-              <!--todo--><p class="todo">TODO: name the dataset and the baseline these gains are measured against</p><!--/todo-->
+              <h3 class="cs-subtitle" id="baselines-title">Baselines per task</h3>
+              <p class="cs-note">Each row is a classical baseline vs. the model it was compared with, then the winner and margin.</p>
+              <ul class="baselines" role="list" aria-labelledby="baselines-title">
+                <li class="baseline">
+                  <p class="baseline__task">Intent</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF + LinearSVC <span class="baseline__vs">vs.</span> DistilBERT</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Baseline wins</strong> <span class="baseline__margin">0.9990 vs. 0.9975 macro-F1</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Urgency</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF + LinearSVC <span class="baseline__vs">vs.</span> DeBERTa-v3-small</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Transformer wins</strong> <span class="baseline__margin">0.794 → 0.910</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">NER</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">Regex/rules <span class="baseline__vs">vs.</span> BERT-base-cased</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Rules win overall</strong> <span class="baseline__margin">0.585 vs. 0.447</span></p>
+                    <p class="baseline__note">Each entity type goes to whichever does better</p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Sentiment/emotion</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF + LinearSVC <span class="baseline__vs">vs.</span> DistilBERT</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Transformer wins</strong> <span class="baseline__margin">+0.064 / +0.106</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Summarization</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">Lead-k extractive <span class="baseline__vs">vs.</span> FLAN-T5-small</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Transformer wins</strong> <span class="baseline__margin">+0.16-0.17 ROUGE-1</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Topics</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF/KMeans <span class="baseline__vs">vs.</span> BERTopic</p>
+                    <p class="baseline__result"><strong class="baseline__winner">BERTopic wins</strong> <span class="baseline__margin">0.226 vs. 0.143 NPMI</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Search</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">Dense retrieval only <span class="baseline__vs">vs.</span> + cross-encoder rerank</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Rerank wins</strong> <span class="baseline__margin">0.900 → 0.920 hit-rate@5</span></p>
+                  </div>
+                </li>
+              </ul>
+              <h3 class="cs-subtitle" id="datasets-title">Datasets used</h3>
+              <dl class="datasets" aria-labelledby="datasets-title">
+                <div class="datasets__item">
+                  <dt>Bitext Customer Support (Hugging Face)</dt>
+                  <dd>27 intents, about 27k utterances — used to train intent classification</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>Customer Support on Twitter (Kaggle, about 3M tweets)</dt>
+                  <dd>unlabeled real-world text, used for cleaning, clustering, search and drift analysis</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>tweet_eval (sentiment/emotion)</dt>
+                  <dd>transfer learning for sentiment and emotion models</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>samsum / dialogsum</dt>
+                  <dd>transfer learning for thread summarization</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>Synthetic NER set (generated) plus a 200-example hand-checked gold set</dt>
+                  <dd>entity extraction for ORDER_ID, PRODUCT, DATE, AMOUNT and ACCOUNT_REF</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>Urgency labels</dt>
+                  <dd>no existing dataset has these; rule-based labels plus up to 2,000 LLM-generated labels</dd>
+                </div>
+              </dl>
             </div>
           </section>
 
           <section class="cs-section" aria-labelledby="stack-title">
             <h2 id="stack-title" class="cs-section__title">Stack</h2>
             <div class="cs-section__body">
-              <ul class="chips" role="list">
-                <li class="chip">FastAPI</li>
-                <li class="chip">PostgreSQL</li>
-                <li class="chip">Chroma</li>
-                <li class="chip">Hugging Face Transformers</li>
-                <li class="chip">BERTopic</li>
-                <li class="chip">OpenAI</li>
-                <li class="chip">Next.js 15</li>
-                <li class="chip">TypeScript</li>
-                <li class="chip">Tailwind CSS</li>
-                <li class="chip">Docker Compose</li>
-                <li class="chip">CI/CD</li>
-              </ul>
+              <div class="stack">
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-backend">Backend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-backend">
+                    <li class="chip">FastAPI</li>
+                    <li class="chip">PostgreSQL</li>
+                    <li class="chip">Chroma</li>
+                    <li class="chip">Hugging Face Transformers</li>
+                    <li class="chip">BERTopic</li>
+                    <li class="chip">OpenAI</li>
+                    <li class="chip">Docker Compose</li>
+                    <li class="chip">CI/CD</li>
+                  </ul>
+                </div>
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-frontend">Frontend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-frontend">
+                    <li class="chip">Next.js 15</li>
+                    <li class="chip">TypeScript</li>
+                    <li class="chip">Tailwind CSS</li>
+                  </ul>
+                </div>
+              </div>
               <p class="cs-deploy"><strong>Deployment:</strong> API on Render, frontend on Vercel</p>
             </div>
           </section>
-
-          <!--todo-->
-          <section class="cs-section" aria-labelledby="next-title">
-            <h2 id="next-title" class="cs-section__title">What I'd do next</h2>
-            <div class="cs-section__body">
-              <p class="todo">TODO: What I'd do next</p>
-            </div>
-          </section>
-          <!--/todo-->
         </div>
       </article>
 

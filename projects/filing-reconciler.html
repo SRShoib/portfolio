@@ -58,22 +58,46 @@
                   <p class="label cs-architecture__label">Pipeline</p>
                   <ol class="cs-pipeline" role="list">
                     <li>Ingest</li>
-                    <li>Parallel claim extraction</li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Parallel claim extraction</p>
+                        <p class="cs-detail">one branch per document</p>
+                      </div>
+                    </li>
                     <li>Reconciliation</li>
                     <li>Risk scoring</li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Gate 1: contradiction review</p>
+                        <p class="cs-stage__tags"><span class="chip">Human approval</span> <span class="chip">Conditional</span></p>
+                        <p class="cs-detail">A run only stops here if a contradiction is high severity or has confidence below 0.75; otherwise it goes straight to the memo. The reviewer confirms, rejects or edits each contradiction.</p>
+                      </div>
+                    </li>
                     <li>Draft memo</li>
-                    <li>Self-critique</li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Critique</p>
+                        <p class="cs-stage__tags"><span class="chip">Loops back to Draft memo</span></p>
+                        <p class="cs-detail">Reflection loop, capped by iterations and cost</p>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Gate 2: memo sign-off</p>
+                        <p class="cs-stage__tags"><span class="chip">Human approval</span></p>
+                        <p class="cs-detail">Every run passes through it. The reviewer approves the memo or requests changes.</p>
+                      </div>
+                    </li>
+                    <li>Finalize</li>
                   </ol>
                 </div>
                 <div class="cs-architecture__group">
                   <p class="label cs-architecture__label">Supporting</p>
                   <ul class="cs-list" role="list">
-                    <li>Postgres checkpointing</li>
+                    <li>Postgres checkpointing<span class="cs-detail">Each gate pauses once with all pending items, and the graph's checkpointer (Postgres for durable runs) lets a run pause and resume later</span></li>
                     <li>Circuit breakers (cost / iterations)</li>
-                    <li>Human approval gates ×2</li>
                   </ul>
                 </div>
-                <!--todo--><p class="todo">TODO: which stages do the two gates sit after? Until answered, show them as a labeled side element, not placed in the flow.</p><!--/todo-->
               </div>
             </div>
           </section>
@@ -93,43 +117,80 @@
             <h2 id="evaluation-title" class="cs-section__title">Evaluation &amp; results</h2>
             <div class="cs-section__body">
               <ul class="cs-results" role="list">
-                <li>1.00 precision and recall on numeric contradiction detection</li>
+                <li>1.00 precision and recall on numeric contradiction detection, measured on three labeled sample sets (6 gold contradictions plus a clean control)</li>
                 <li>Exact-span citation match</li>
                 <li>Eval harness tracks F0.5, citation faithfulness and expected calibration error (ECE)</li>
               </ul>
-              <!--todo--><p class="todo">TODO: what evaluation set were these measured on (number of filings / test cases)?</p><!--/todo-->
+              <h3 class="cs-subtitle" id="evalset-title">Evaluation set</h3>
+              <p>Three labeled sample sets, each with filings, a manifest and gold labels</p>
+              <dl class="datasets datasets--code" aria-labelledby="evalset-title">
+                <div class="datasets__item">
+                  <dt>set_a</dt>
+                  <dd>ACME FY2023 (10-K, 10-Q, earnings call, press release), 3 gold contradictions: revenue mismatch, FY2024 guidance revision, litigation narrative conflict</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>set_b</dt>
+                  <dd>Globex Q2 FY2024, 3 gold contradictions of the same three types</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>set_c</dt>
+                  <dd>Initech FY2025, a clean control with no contradictions, so any flag counts against precision</dd>
+                </div>
+              </dl>
+              <h3 class="cs-subtitle" id="metrics-title">Metrics</h3>
+              <ul class="cs-list" role="list" aria-labelledby="metrics-title">
+                <li>F0.5 (weighted toward precision)</li>
+                <li>Numeric-mismatch accuracy</li>
+                <li>Exact citation-span match</li>
+                <li>LLM-judge faithfulness</li>
+                <li>Memo citation coverage</li>
+                <li>ECE (calibration error)</li>
+              </ul>
+              <h3 class="cs-subtitle" id="cigate-title">CI gate</h3>
+              <p>A separate &quot;Evaluation gate&quot; step:</p>
+              <ul class="cs-list" role="list" aria-labelledby="cigate-title">
+                <li>Precision = 1.0</li>
+                <li>Recall &gt;= 0.95</li>
+                <li>Numeric accuracy = 1.0</li>
+                <li>Exact-span match = 1.0</li>
+                <li>ECE &lt;= 0.35</li>
+                <li>Zero predictions on the clean control set</li>
+              </ul>
+              <h3 class="cs-subtitle" id="feedback-title">Human feedback loop</h3>
+              <p>Contradictions a reviewer confirms are copied back into the gold labels, so reviewer decisions become regression tests</p>
             </div>
           </section>
 
           <section class="cs-section" aria-labelledby="stack-title">
             <h2 id="stack-title" class="cs-section__title">Stack</h2>
             <div class="cs-section__body">
-              <ul class="chips" role="list">
-                <li class="chip">FastAPI</li>
-                <li class="chip">Python</li>
-                <li class="chip">LangGraph</li>
-                <li class="chip">Pydantic v2</li>
-                <li class="chip">PostgreSQL</li>
-                <li class="chip">Docker</li>
-                <li class="chip">OpenAI API</li>
-                <li class="chip">Next.js 16</li>
-                <li class="chip">React 19</li>
-                <li class="chip">TypeScript</li>
-                <li class="chip">Tailwind CSS</li>
-                <li class="chip">Framer Motion</li>
-              </ul>
+              <div class="stack">
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-backend">Backend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-backend">
+                    <li class="chip">FastAPI</li>
+                    <li class="chip">Python</li>
+                    <li class="chip">LangGraph</li>
+                    <li class="chip">Pydantic v2</li>
+                    <li class="chip">PostgreSQL</li>
+                    <li class="chip">Docker</li>
+                    <li class="chip">OpenAI API</li>
+                  </ul>
+                </div>
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-frontend">Frontend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-frontend">
+                    <li class="chip">Next.js 16</li>
+                    <li class="chip">React 19</li>
+                    <li class="chip">TypeScript</li>
+                    <li class="chip">Tailwind CSS</li>
+                    <li class="chip">Framer Motion</li>
+                  </ul>
+                </div>
+              </div>
               <p class="cs-deploy"><strong>Deployment:</strong> API on Railway, frontend on Vercel</p>
             </div>
           </section>
-
-          <!--todo-->
-          <section class="cs-section" aria-labelledby="next-title">
-            <h2 id="next-title" class="cs-section__title">What I'd do next</h2>
-            <div class="cs-section__body">
-              <p class="todo">TODO: What I'd do next</p>
-            </div>
-          </section>
-          <!--/todo-->
         </div>
       </article>
 

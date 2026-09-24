@@ -1,12 +1,12 @@
-// Turns every PNG under public/images/ into AVIF and WebP files at 2-3 widths, saved next to
-// the original:  portrait.png  ->  portrait-480.avif, portrait-480.webp, portrait-928.avif, ...
+// Turns every PNG and JPEG under public/images/ into AVIF and WebP files at 2-3 widths, saved next
+// to the original:  portrait.png  ->  portrait-480.avif, portrait-480.webp, portrait-928.avif, ...
 //
 // Why a script and not a Vite plugin: Vite does not process files in public/ (they are copied
 // as-is), and the pages reference these files by plain URL. Run automatically by the `predev`
-// and `prebuild` npm scripts. The outputs are git-ignored; the PNGs are the source of truth.
+// and `prebuild` npm scripts. The outputs are git-ignored; the originals are the source of truth.
 //
-// The PNG stays as the final <picture> fallback, so nothing here is ever required for a page to
-// work: a missing AVIF/WebP only means the browser falls through to the next <source>.
+// The original (PNG or JPEG) stays as the final <picture> fallback, so nothing here is ever required
+// for a page to work: a missing AVIF/WebP only means the browser falls through to the next <source>.
 import { readdir, stat } from 'node:fs/promises';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import sharp from 'sharp';
@@ -22,11 +22,14 @@ const MAX_WIDTH = TARGET_WIDTHS.at(-1);
 const AVIF = { quality: 55, effort: 4 };
 const WEBP = { quality: 78, effort: 4 };
 
+// Keep in step with IMAGE_EXTENSIONS in vite-partials.mjs (the plugin must accept what this converts).
+const SOURCE_EXTENSIONS = ['.png', '.jpg', '.jpeg'];
+
 async function* walk(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) yield* walk(path);
-    else if (extname(entry.name).toLowerCase() === '.png') yield path;
+    else if (SOURCE_EXTENSIONS.includes(extname(entry.name).toLowerCase())) yield path;
   }
 }
 
@@ -50,7 +53,9 @@ async function isFresh(output, sourceMtimeMs) {
 
 async function optimize(file) {
   const sourceMtimeMs = (await stat(file)).mtimeMs;
-  const { width: sourceWidth } = await sharp(file).metadata();
+  const { width: rawWidth, height: rawHeight, orientation = 1 } = await sharp(file).metadata();
+  // EXIF orientation 5-8 means the photo is stored sideways: what people SEE is width and height swapped.
+  const sourceWidth = orientation >= 5 ? rawHeight : rawWidth;
   const stem = join(dirname(file), basename(file, extname(file)));
 
   let made = 0;
@@ -62,7 +67,10 @@ async function optimize(file) {
       const output = `${stem}-${width}.${format}`;
       if (await isFresh(output, sourceMtimeMs)) continue;
       // withoutEnlargement is belt and braces: widthsFor already never asks for more than the source.
-      await sharp(file).resize({ width, withoutEnlargement: true })[format](options).toFile(output);
+      // .rotate() with no argument applies the EXIF orientation. sharp drops the tag from its output, so
+      // without it a phone photo taken sideways would come out sideways in AVIF/WebP while the original
+      // JPEG fallback (which browsers do rotate) looked right: two different pictures in one <picture>.
+      await sharp(file).rotate().resize({ width, withoutEnlargement: true })[format](options).toFile(output);
       made += 1;
     }
   }
@@ -89,7 +97,7 @@ async function main() {
     made += count;
     if (count) console.log(`[images] ${relative(IMAGES_DIR, file)}: wrote ${count} file(s)`);
   }
-  console.log(`[images] ${sources} PNG(s) checked, ${made} file(s) written, ${sources ? 'rest up to date' : 'nothing to convert'}`);
+  console.log(`[images] ${sources} image(s) checked, ${made} file(s) written, ${sources ? 'rest up to date' : 'nothing to convert'}`);
 }
 
 main().catch((error) => {

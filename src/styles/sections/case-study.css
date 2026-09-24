@@ -65,15 +65,16 @@
 .cs-cover:not(:has(picture, .todo)) {
   display: none; /* no screenshot yet, production build: no empty frame */
 }
+/* Same idea as the home cards: a fixed window (16:9, never taller than 80% of the screen) that
+   crops the screenshot from the top, instead of letting a 2880x4058 full-page capture run 1900px
+   down the page. */
 .cs-cover__frame {
-  overflow: hidden;
+  width: 100%; /* explicit: with max-height an aspect-ratio box would otherwise shrink its WIDTH */
+  aspect-ratio: 16 / 9;
+  max-height: 80svh;
   border: 1px solid var(--line);
   border-radius: var(--r-l);
   background: var(--raised);
-}
-.cs-cover img {
-  width: 100%;
-  height: auto;
 }
 
 /* ---- Sections ---------------------------------------------------------------------------- */
@@ -152,6 +153,102 @@
   background: var(--accent-12);
 }
 
+/* ---- Evaluation extras: baselines per task, datasets ---------------------------------------
+   A sub-heading inside a section body (h3, under the section's h2). */
+.cs-subtitle {
+  font-size: var(--step-1);
+  line-height: var(--lh-snug);
+}
+.cs-section__body > .cs-subtitle {
+  margin-top: var(--space-xl); /* more air than the default sibling gap */
+}
+.cs-note {
+  color: var(--muted);
+  font-size: var(--step-n1);
+}
+
+/* One row per task: the task name, then "baseline vs. model", then the winner and margin. A list of
+   rows rather than a five-column table: seven rows of dense text would need sideways scrolling on a
+   phone, while these reflow. */
+.baselines {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xs);
+  padding: 0;
+  list-style: none;
+}
+.baseline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3xs) var(--space-m);
+  padding: var(--space-s) var(--space-m);
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  background: var(--surface);
+}
+.baseline__task {
+  font-weight: 600;
+}
+.baseline__body {
+  display: grid;
+  gap: var(--space-3xs);
+  min-width: 0;
+}
+.baseline__matchup {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--step-n1);
+  overflow-wrap: anywhere;
+}
+.baseline__vs {
+  color: var(--text);
+}
+/* The winner is the result, so it gets the accent (the same "this is a number worth reading"
+   colour as the metric chips). */
+.baseline__winner {
+  margin-right: 0.5em;
+  color: var(--accent);
+  font-weight: 600;
+}
+.baseline__margin {
+  font-family: var(--font-mono);
+  font-size: var(--step-n1);
+}
+.baseline__note {
+  color: var(--muted);
+  font-size: var(--step-n1);
+}
+
+.datasets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-s);
+}
+.datasets__item {
+  padding-top: var(--space-s);
+  border-top: 1px solid var(--line);
+}
+.datasets dt {
+  font-weight: 600;
+}
+.datasets dd {
+  margin-top: var(--space-3xs);
+  color: var(--muted);
+}
+/* Names that are identifiers (set_a, set_b, set_c) read better in the mono face. */
+.datasets--code dt {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+@media (min-width: 40em) {
+  .baseline {
+    /* 11rem fits the longest task name ("Sentiment/emotion") on one line with room to spare */
+    grid-template-columns: 11rem minmax(0, 1fr);
+    align-items: baseline;
+  }
+}
+
 /* ---- Architecture ------------------------------------------------------------------------
    The labelled mount point for the M5 diagram, plus the same pipeline written out as a list.
    Once the SVG exists the list stays as its text alternative. */
@@ -183,6 +280,7 @@
   grid-template-columns: 2.5rem minmax(0, 1fr);
   align-items: baseline;
   counter-increment: stage;
+  font-weight: 600; /* every stage name, plain or with a note, is the same weight; notes go back to 400 */
 }
 .cs-pipeline li::before {
   content: counter(stage, decimal-leading-zero);
@@ -190,7 +288,32 @@
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: var(--label-size);
+  font-weight: 500;
   letter-spacing: var(--label-tracking);
+}
+
+/* A stage with more than a label (a human gate, the reflection loop, a note): name, tags, detail.
+   It is ONE grid item of the li, so the number stays in its own column. */
+.cs-stage {
+  display: grid;
+  gap: var(--space-3xs);
+  min-width: 0;
+}
+.cs-stage__name {
+  font-weight: inherit; /* same as a plain stage */
+}
+.cs-stage__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs) var(--space-2xs);
+}
+/* Small explanatory text under a stage or a supporting item. */
+.cs-detail {
+  display: block;
+  color: var(--muted);
+  font-size: var(--step-n1);
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 /* ---- Stack ------------------------------------------------------------------------------- */

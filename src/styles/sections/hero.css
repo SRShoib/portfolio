@@ -95,7 +95,7 @@
 /* ---- Visual slot -------------------------------------------------------------------- */
 .hero__visual {
   grid-area: visual;
-  overflow: hidden;
+  width: 100%; /* explicit, or max-height below would narrow the box instead of cropping it */
   aspect-ratio: 16 / 10; /* a short crop on phones so the name stays in the first screen… */
   max-height: 30svh; /* …and never taller than 30% of the screen (a wider box, cropped more) */
   border: 1px solid var(--line);
@@ -103,11 +103,10 @@
   background: var(--raised);
 }
 
+/* Cropping is set in base.css ("Image frames"). On a phone the frame is a short, wide window, so
+   this picks which slice of the portrait shows: 10% of the way down keeps the hair, drops the suit. */
 .hero__visual img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 16%; /* keep the head, drop the suit */
+  object-position: 50% 10%;
 }
 
 /* One caption per point-cloud shape, each with the shape's tint as a dot. The tints are the same
