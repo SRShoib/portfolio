@@ -1,15 +1,22 @@
-// Size budget for the built site. Run automatically after every `npm run build` (the `postbuild`
+// Size budgets for the built site. Run automatically after every `npm run build` (the `postbuild`
 // npm script) and FAILS the build, with a non-zero exit code, if the home page's JavaScript is
-// over budget:
+// over either of two independent budgets:
 //
-//     home-page JS <= 300 KB gzipped, INCLUDING the lazy-loaded three.js chunk   (CLAUDE.md, "Performance budget")
+//     total    home-page JS <= 300 KB gzipped, INCLUDING the lazy-loaded three.js chunk (CLAUDE.md, "Performance budget")
+//     initial  home-page JS <= 100 KB gzipped, EXCLUDING lazy chunks: what must download before the page works
+//
+// Why two? The total stops the site growing without limit; the initial limit protects load time. They
+// catch different mistakes: importing three.js statically instead of lazily moves ~134 KB from "lazy" to
+// "initial" and barely changes the total (it passes the 300 KB budget), so only the initial limit sees it.
 //
 // Read it as a checklist of decisions, because each one changes what the number means:
 //
 //  * "Home-page JS" = every JS chunk the built dist/index.html can reach: the entry scripts, the
 //    chunks they import statically, and the chunks they only import() lazily (three.js), plus any
-//    inline <script> in the HTML. The lazy chunk is counted on purpose: it is not on the critical
-//    path, but it is still a download the visitor pays for, and the budget says "including three.js".
+//    inline <script> in the HTML. The lazy chunk is counted in the total on purpose: it is not on the
+//    critical path, but it is still a download the visitor pays for, and the budget says "including three.js".
+//  * "Initial" = the entry scripts, everything they import statically, and inline scripts (all of which
+//    run before the page is interactive). Anything reached only through import() is lazy.
 //  * Chunks are found by the file names the built pages and chunks mention, never by hard-coded names
 //    (the hashes change on every build). A chunk name is unique, so if any file loads a chunk,
 //    however Vite chooses to write the import, its name appears in that file's text.
@@ -25,25 +32,36 @@
 //
 // Only runs through `npm run build` (npm runs the `postbuild` hook); a bare `vite build` skips it.
 //
-// Testing the check itself: `node scripts/size-report.mjs --budget=100` runs it against the current
-// dist/ with a different limit, so you can watch it fail without touching the code.
+// Testing the checks themselves: `node scripts/size-report.mjs --budget=150 --initial-budget=50` runs
+// them against the current dist/ with different limits, so you can watch each one fail without
+// touching the code. (Both flags are optional; npm's postbuild passes neither.)
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
-const BUDGET_KB = 300;
+const TOTAL_BUDGET_KB = 300;
+const INITIAL_BUDGET_KB = 100;
 const KB = 1000;
 const DIST = join(import.meta.dirname, '..', 'dist');
 const HOME = 'index.html';
 
-const budgetArg = process.argv.find((arg) => arg.startsWith('--budget='));
-const budgetKb = budgetArg ? Number(budgetArg.slice('--budget='.length)) : BUDGET_KB;
-if (!Number.isFinite(budgetKb) || budgetKb <= 0) {
-  console.error(`[size] invalid ${budgetArg}: expected a positive number of KB, e.g. --budget=300`);
-  process.exit(1);
+/** The limit in KB from a `--flag=N` argument, or `fallback`. Exits with a message on a bad value. */
+function readLimit(flag, fallback) {
+  const arg = process.argv.find((a) => a.startsWith(`${flag}=`));
+  if (!arg) return fallback;
+  const value = Number(arg.slice(flag.length + 1));
+  if (!Number.isFinite(value) || value <= 0) {
+    console.error(`[size] invalid ${arg}: expected a positive number of KB, e.g. ${flag}=${fallback}`);
+    process.exit(1);
+  }
+  return value;
 }
-const budgetBytes = budgetKb * KB;
+const totalKb = readLimit('--budget', TOTAL_BUDGET_KB);
+const initialKb = readLimit('--initial-budget', INITIAL_BUDGET_KB);
+// Rounded because a decimal limit can pick up floating-point noise (1.005 * 1000 is 1004.9999999999999).
+const totalBytes = Math.round(totalKb * KB);
+const initialBytes = Math.round(initialKb * KB);
 
 const kb = (bytes) => `${(bytes / KB).toFixed(2)} KB`;
 const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -125,9 +143,24 @@ function analysePage(page) {
     ...lazy.map((name) => ({ name, kind: 'lazy' })),
   ].map((file) => ({ ...file, ...chunks.get(file.name) }));
   if (inline.length) {
-    files.push({ name: `${inline.length} inline script${inline.length > 1 ? 's' : ''}`, kind: 'inline', gzip: inlineGzip, raw: inline.join('').length });
+    files.push({
+      name: `${inline.length} inline script${inline.length > 1 ? 's' : ''}`,
+      kind: 'inline',
+      gzip: inlineGzip,
+      raw: inline.join('').length,
+    });
   }
-  return { page, files, total: files.reduce((sum, file) => sum + file.gzip, 0), reached };
+
+  // Inline scripts run before anything else, so they belong to the "initial" figure.
+  const sizeOf = (...kinds) => files.filter((file) => kinds.includes(file.kind)).reduce((sum, file) => sum + file.gzip, 0);
+  return {
+    page,
+    files,
+    initialTotal: sizeOf('initial', 'inline'),
+    lazyTotal: sizeOf('lazy'),
+    total: sizeOf('initial', 'inline', 'lazy'),
+    reached,
+  };
 }
 
 const pages = findPages();
@@ -143,16 +176,19 @@ if (!home.files.some((file) => file.kind !== 'inline')) {
 // ---- Report -----------------------------------------------------------------------------
 const pad = (text, width) => String(text).padEnd(width);
 const nameWidth = Math.max(...home.files.map((file) => file.name.length));
+const percent = (bytes, limit) => Math.round((bytes / limit) * 100);
 
 console.log(`\n[size] JavaScript, gzip -6 (1 KB = 1000 bytes; Vite's log above reads ~1% higher, this is the budgeted figure)\n`);
 console.log(`  Home page (${HOME})`);
 for (const file of home.files) {
   console.log(`    ${pad(file.kind, 8)} ${pad(file.name, nameWidth)}  ${kb(file.gzip).padStart(10)}   (${kb(file.raw)} minified)`);
 }
-const percent = Math.round((home.total / budgetBytes) * 100);
-const headroom = budgetBytes - home.total;
 console.log(`    ${'-'.repeat(8 + 1 + nameWidth + 2 + 10)}`);
-console.log(`    ${pad('total', 8)} ${pad('', nameWidth)}  ${kb(home.total).padStart(10)}   ${percent}% of the ${budgetKb} KB budget`);
+const summary = (label, bytes, note = '') =>
+  console.log(`    ${pad(label, 8)} ${pad('', nameWidth)}  ${kb(bytes).padStart(10)}   ${note}`);
+summary('initial', home.initialTotal, `${percent(home.initialTotal, initialBytes)}% of the ${initialKb} KB initial budget (no lazy chunks)`);
+summary('lazy', home.lazyTotal, 'loaded on demand, after first paint');
+summary('total', home.total, `${percent(home.total, totalBytes)}% of the ${totalKb} KB total budget`);
 
 const others = analysed.filter((result) => result !== home);
 if (others.length) {
@@ -162,20 +198,42 @@ if (others.length) {
 }
 
 // ---- Checks -----------------------------------------------------------------------------
+// Every check adds to `problems` instead of exiting, so one run reports everything that is wrong.
+const problems = [];
+
 // 1. Every chunk must be reachable from some page (see the header comment for why).
 const reachable = new Set(analysed.flatMap((result) => [...result.reached]));
 const orphans = [...chunks.keys()].filter((name) => !reachable.has(name));
 if (orphans.length) {
-  fail(`these chunks in dist/assets are not reachable from any page, so their size is not being counted: ${orphans.join(', ')}`);
+  problems.push(`these chunks in dist/assets are not reachable from any page, so their size is not being counted: ${orphans.join(', ')}`);
 }
 
-// 2. The budget itself. Compared in bytes, so 300.004 KB does not slip through as "300.00".
-if (home.total > budgetBytes) {
-  const biggest = home.files.filter((file) => file.kind !== 'inline').sort((a, b) => b.gzip - a.gzip)[0];
-  fail(
-    `home-page JS is ${kb(home.total)} gzipped (${home.total} bytes), over the ${budgetKb} KB budget ` +
-      `(${budgetBytes} bytes) by ${kb(home.total - budgetBytes)}. Biggest chunk: ${biggest.name} at ${kb(biggest.gzip)}.`,
+// 2. Initial JS. Compared in bytes, so 100.004 KB does not slip through as "100.00".
+if (home.initialTotal > initialBytes) {
+  const biggest = home.files.filter((file) => file.kind === 'initial').sort((a, b) => b.gzip - a.gzip)[0];
+  problems.push(
+    `initial (non-lazy) home-page JS is ${kb(home.initialTotal)} gzipped (${home.initialTotal} bytes), over the ${initialKb} KB initial budget ` +
+      `(${initialBytes} bytes) by ${kb(home.initialTotal - initialBytes)}. Biggest initial chunk: ${biggest.name} at ${kb(biggest.gzip)}. ` +
+      `Move code behind a dynamic import() or drop it.`,
   );
 }
 
-console.log(`\n[size] OK: home-page JS is within budget, ${kb(headroom)} to spare.\n`);
+// 3. Total JS, lazy chunks included.
+if (home.total > totalBytes) {
+  const biggest = home.files.filter((file) => file.kind !== 'inline').sort((a, b) => b.gzip - a.gzip)[0];
+  problems.push(
+    `total home-page JS is ${kb(home.total)} gzipped (${home.total} bytes), over the ${totalKb} KB total budget ` +
+      `(${totalBytes} bytes) by ${kb(home.total - totalBytes)}. Biggest chunk: ${biggest.name} at ${kb(biggest.gzip)}.`,
+  );
+}
+
+if (problems.length) {
+  console.error(`\n[size] FAIL: ${problems.length} problem${problems.length > 1 ? 's' : ''}`);
+  for (const problem of problems) console.error(`  - ${problem}`);
+  console.error('');
+  process.exit(1);
+}
+
+console.log(
+  `\n[size] OK: within both budgets. Initial ${kb(initialBytes - home.initialTotal)} to spare, total ${kb(totalBytes - home.total)} to spare.\n`,
+);
