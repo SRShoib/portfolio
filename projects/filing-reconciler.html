@@ -3,17 +3,207 @@
   <head>
     <!--include:head.html title="Filing Reconciler — Case study | Md. Mehedi Hasan Shoib" description="Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo."-->
   </head>
-  <body>
+  <body id="top">
     <!--include:header.html-->
 
     <main id="main" tabindex="-1">
-      <article class="shell-section" aria-labelledby="page-title">
+      <article aria-labelledby="page-title">
+        <header class="cs-hero container">
+          <a class="cs-back label" href="/#work"><span aria-hidden="true">←</span> All projects</a>
+          <p class="cs-meta label">
+            <span class="cs-meta__status"><span class="status-dot" aria-hidden="true"></span>Live</span>
+            <span>Agents · LangGraph · Human-in-the-loop</span>
+          </p>
+          <h1 id="page-title" class="cs-title">Filing Reconciler</h1>
+          <p class="cs-lead">Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo.</p>
+          <ul class="cs-links" role="list" aria-label="Links">
+            <li><a class="btn btn--primary" href="https://multi-document-financial-contradict.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://multidocumentfinancialcontradictionanalyst-production.up.railway.app/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://github.com/SRShoib/multi-document_financial_contradiction_analyst" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+          </ul>
+        </header>
+
         <div class="container">
-          <h1 id="page-title">Filing Reconciler</h1>
-          <p>Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo.</p>
-          <!--todo--><p class="shell-note">M1 scaffold: the case-study template is built in M2.</p><!--/todo-->
+          <figure class="cs-cover">
+            <div class="cs-cover__frame">
+              <!--picture src="/images/projects/filing-reconciler/cover.png" alt="Screenshot of Filing Reconciler" sizes="(min-width: 90em) 1440px, 92vw" loading="eager" fetchpriority="high" todo="add screenshot"-->
+            </div>
+          </figure>
+
+          <section class="cs-section" aria-labelledby="problem-title">
+            <h2 id="problem-title" class="cs-section__title">Problem</h2>
+            <div class="cs-section__body">
+              <p>Contradictions between a company's filings, earnings call and press releases are a risk signal, but finding them means reading hundreds of pages side by side.</p>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="built-title">
+            <h2 id="built-title" class="cs-section__title">What I built</h2>
+            <div class="cs-section__body">
+              <ul class="cs-list" role="list">
+                <li>Agentic LangGraph pipeline with Postgres checkpointing, two human-in-the-loop approval gates, and cost/iteration circuit breakers</li>
+                <li>Reviewer UI: live pipeline stepper, drag-and-drop PDF upload with document tagging, confirm/reject/edit contradiction cards with click-to-expand citations</li>
+                <li>CI-gated evaluation harness behind a provider-agnostic LLM interface</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="architecture-title">
+            <h2 id="architecture-title" class="cs-section__title">Architecture</h2>
+            <div class="cs-section__body">
+              <div class="cs-architecture" data-diagram="filing-reconciler" role="group" aria-label="Filing Reconciler architecture">
+                <div class="cs-architecture__diagram" data-diagram-mount></div>
+                <!--todo--><p class="todo">TODO (M5): the architecture diagram is drawn here. Until then the pipeline below is the whole section.</p><!--/todo-->
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Pipeline</p>
+                  <ol class="cs-pipeline" role="list">
+                    <li>Ingest</li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Parallel claim extraction</p>
+                        <p class="cs-detail">one branch per document</p>
+                      </div>
+                    </li>
+                    <li>Reconciliation</li>
+                    <li>Risk scoring</li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Gate 1: contradiction review</p>
+                        <p class="cs-stage__tags"><span class="chip">Human approval</span> <span class="chip">Conditional</span></p>
+                        <p class="cs-detail">A run only stops here if a contradiction is high severity or has confidence below 0.75; otherwise it goes straight to the memo. The reviewer confirms, rejects or edits each contradiction.</p>
+                      </div>
+                    </li>
+                    <li>Draft memo</li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Critique</p>
+                        <p class="cs-stage__tags"><span class="chip">Loops back to Draft memo</span></p>
+                        <p class="cs-detail">Reflection loop, capped by iterations and cost</p>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="cs-stage">
+                        <p class="cs-stage__name">Gate 2: memo sign-off</p>
+                        <p class="cs-stage__tags"><span class="chip">Human approval</span></p>
+                        <p class="cs-detail">Every run passes through it. The reviewer approves the memo or requests changes.</p>
+                      </div>
+                    </li>
+                    <li>Finalize</li>
+                  </ol>
+                </div>
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Supporting</p>
+                  <ul class="cs-list" role="list">
+                    <li>Postgres checkpointing<span class="cs-detail">Each gate pauses once with all pending items, and the graph's checkpointer (Postgres for durable runs) lets a run pause and resume later</span></li>
+                    <li>Circuit breakers (cost / iterations)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="decisions-title">
+            <h2 id="decisions-title" class="cs-section__title">Key engineering decisions</h2>
+            <div class="cs-section__body">
+              <ol class="cs-decisions" role="list">
+                <li><span>Numeric contradiction detection is fully deterministic (regex + tolerance comparison); the LLM never generates figures</span></li>
+                <li><span>Human approval gates before high-stakes steps</span></li>
+                <li><span>Provider-agnostic LLM interface so models can be swapped without code changes</span></li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="evaluation-title">
+            <h2 id="evaluation-title" class="cs-section__title">Evaluation &amp; results</h2>
+            <div class="cs-section__body">
+              <ul class="cs-results" role="list">
+                <li>1.00 precision and recall on numeric contradiction detection, measured on three labeled sample sets (6 gold contradictions plus a clean control)</li>
+                <li>Exact-span citation match</li>
+                <li>Eval harness tracks F0.5, citation faithfulness and expected calibration error (ECE)</li>
+              </ul>
+              <h3 class="cs-subtitle" id="evalset-title">Evaluation set</h3>
+              <p>Three labeled sample sets, each with filings, a manifest and gold labels</p>
+              <dl class="datasets datasets--code" aria-labelledby="evalset-title">
+                <div class="datasets__item">
+                  <dt>set_a</dt>
+                  <dd>ACME FY2023 (10-K, 10-Q, earnings call, press release), 3 gold contradictions: revenue mismatch, FY2024 guidance revision, litigation narrative conflict</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>set_b</dt>
+                  <dd>Globex Q2 FY2024, 3 gold contradictions of the same three types</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>set_c</dt>
+                  <dd>Initech FY2025, a clean control with no contradictions, so any flag counts against precision</dd>
+                </div>
+              </dl>
+              <h3 class="cs-subtitle" id="metrics-title">Metrics</h3>
+              <ul class="cs-list" role="list" aria-labelledby="metrics-title">
+                <li>F0.5 (weighted toward precision)</li>
+                <li>Numeric-mismatch accuracy</li>
+                <li>Exact citation-span match</li>
+                <li>LLM-judge faithfulness</li>
+                <li>Memo citation coverage</li>
+                <li>ECE (calibration error)</li>
+              </ul>
+              <h3 class="cs-subtitle" id="cigate-title">CI gate</h3>
+              <p>A separate &quot;Evaluation gate&quot; step:</p>
+              <ul class="cs-list" role="list" aria-labelledby="cigate-title">
+                <li>Precision = 1.0</li>
+                <li>Recall &gt;= 0.95</li>
+                <li>Numeric accuracy = 1.0</li>
+                <li>Exact-span match = 1.0</li>
+                <li>ECE &lt;= 0.35</li>
+                <li>Zero predictions on the clean control set</li>
+              </ul>
+              <h3 class="cs-subtitle" id="feedback-title">Human feedback loop</h3>
+              <p>Contradictions a reviewer confirms are copied back into the gold labels, so reviewer decisions become regression tests</p>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="stack-title">
+            <h2 id="stack-title" class="cs-section__title">Stack</h2>
+            <div class="cs-section__body">
+              <div class="stack">
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-backend">Backend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-backend">
+                    <li class="chip">FastAPI</li>
+                    <li class="chip">Python</li>
+                    <li class="chip">LangGraph</li>
+                    <li class="chip">Pydantic v2</li>
+                    <li class="chip">PostgreSQL</li>
+                    <li class="chip">Docker</li>
+                    <li class="chip">OpenAI API</li>
+                  </ul>
+                </div>
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-frontend">Frontend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-frontend">
+                    <li class="chip">Next.js 16</li>
+                    <li class="chip">React 19</li>
+                    <li class="chip">TypeScript</li>
+                    <li class="chip">Tailwind CSS</li>
+                    <li class="chip">Framer Motion</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="cs-deploy"><strong>Deployment:</strong> API on Railway, frontend on Vercel</p>
+            </div>
+          </section>
         </div>
       </article>
+
+      <nav class="container cs-pager" aria-label="More case studies">
+        <a class="cs-pager__link cs-pager__link--prev" href="/projects/enterprise-knowledge-assistant.html" rel="prev">
+          <span class="cs-pager__label label">← Previous project</span>
+          <span class="cs-pager__title">Enterprise Knowledge Assistant</span>
+        </a>
+        <a class="cs-pager__link cs-pager__link--next" href="/projects/supportlens.html" rel="next">
+          <span class="cs-pager__label label">Next project →</span>
+          <span class="cs-pager__title">SupportLens</span>
+        </a>
+      </nav>
     </main>
 
     <!--include:footer.html-->

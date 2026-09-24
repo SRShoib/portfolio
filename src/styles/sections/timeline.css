@@ -1,0 +1,62 @@
+/* Journey timeline: a vertical list. In M6 desktop (>=1024px, motion allowed) turns this into a
+   pinned horizontal scroll; this vertical version stays for mobile and reduced motion. */
+
+.timeline__list {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-l);
+  padding: 0;
+  list-style: none;
+}
+
+/* The rail: one line down the left, and a dot on each item that sits on it. */
+.timeline__list::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: 0.3125rem; /* centre of the 0.625rem dots */
+  width: 1px;
+  background: var(--line);
+}
+
+.timeline__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3xs);
+  padding-left: var(--space-l);
+}
+.timeline__item::before {
+  content: '';
+  position: absolute;
+  top: 0.35rem;
+  left: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--bg); /* punches the rail out around the dot */
+}
+
+.timeline__when {
+  color: var(--accent);
+}
+
+.timeline__text {
+  max-width: 40em;
+  font-size: var(--step-1);
+  line-height: 1.35;
+}
+
+@media (min-width: 48em) {
+  .timeline__item {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    gap: var(--space-m);
+    padding-left: calc(var(--space-l) + 0.5rem);
+  }
+  .timeline__when {
+    padding-top: 0.35em;
+  }
+}

@@ -207,12 +207,143 @@ a {
   border-color: var(--muted);
 }
 
-/* ---- Development scaffolding ---------------------------------------------------------
-   Content inside <!--todo-->…<!--/todo--> is stripped from production HTML by
+/* ---- Sections ------------------------------------------------------------------------ */
+main {
+  /* Pages start below the fixed header. */
+  padding-top: var(--header-h);
+}
+
+.section {
+  padding-block: var(--section-space);
+  border-top: 1px solid var(--line);
+}
+
+.section__head {
+  margin-bottom: var(--space-xl);
+}
+
+.section__title {
+  font-size: var(--step-5);
+}
+
+/* ---- Chips ---------------------------------------------------------------------------- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28em 0.75em;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: var(--step-n2);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Metric chip: --accent border at 50%, --accent fill at 12%, --text on top (CLAUDE.md). */
+.chip--metric {
+  border-color: var(--accent-50);
+  background: var(--accent-12);
+  color: var(--text);
+  font-size: var(--step-n1);
+  font-weight: 500;
+}
+
+/* ---- Image frames -----------------------------------------------------------------------
+   A fixed-shape window onto a picture: the hero portrait, project-card covers, the case-study
+   cover, the About portrait. Each frame sets its own aspect-ratio; the picture is cropped to fit.
+
+   The <img> is positioned absolutely INSIDE the frame on purpose. A percentage height does not
+   resolve against a height that comes from `aspect-ratio`, so `height: 100%` on a normal-flow
+   image silently becomes `auto`: the image keeps its own shape, the frame just clips it, and
+   `object-fit` / `object-position` have nothing to work on. Absolute positioning resolves
+   `inset: 0` and `100%` against the frame's padding box, so they do exactly what they say.
+   (Also `overflow: hidden`: an aspect-ratio box otherwise grows to fit its content.) */
+.hero__visual,
+.project-card__media,
+.cs-cover__frame,
+.about__portrait,
+.pub-card__sample > picture {
+  position: relative;
+  overflow: hidden;
+}
+.hero__visual img,
+.project-card__media img,
+.cs-cover__frame img,
+.about__portrait img,
+.pub-card__sample > picture img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top; /* full-page screenshots: show the app's header, not its middle */
+}
+/* A small source (narrower than SMALL_SOURCE_PX in scripts/vite-partials.mjs, e.g. a Chrome
+   extension popup) is shown whole instead of being cropped and blown up past 1:1. */
+.project-card__media img[data-small],
+.cs-cover__frame img[data-small] {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* A project's stack: two labelled groups, Backend then Frontend (CONTENT.md "Stack"). Used on the
+   home cards and in the case-study Stack section. */
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-xs);
+}
+.stack__label {
+  margin-bottom: var(--space-2xs);
+  color: var(--muted);
+}
+
+.status-dot {
+  display: inline-block;
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent-2);
+}
+
+/* ---- Stretched links ------------------------------------------------------------------
+   A card with one main destination: the link's ::after covers the whole card, so the card is
+   clickable, while the card stays ONE tab stop with a real link inside it (no duplicate links,
+   no click handlers). Other links inside the card sit above with position: relative; z-index: 1.
+   The ring is drawn on the card, because the link's own box is tiny. */
+.stretched::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.stretched:focus-visible {
+  outline: none;
+}
+.has-stretched:has(.stretched:focus-visible) {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 3px;
+}
+.above-stretched {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Development placeholders ------------------------------------------------------------
+   Anything inside <!--todo-->…<!--/todo--> is deleted from production HTML by
    scripts/vite-partials.mjs, so these styles only ever show in `npm run dev`. */
-.shell-note {
-  margin-top: var(--space-m);
-  padding: var(--space-s);
+.todo {
+  padding: var(--space-xs) var(--space-s);
   border: 1px dashed var(--accent-50);
   border-radius: var(--r-s);
   background: var(--accent-12);
@@ -220,26 +351,16 @@ a {
   font-family: var(--font-mono);
   font-size: var(--label-size);
   letter-spacing: var(--label-tracking);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
 }
 
-.shell-fill {
-  min-height: 70svh;
-  margin-top: var(--space-m);
-  border: 1px dashed var(--line);
-  border-radius: var(--r-m);
-  background: repeating-linear-gradient(
-    135deg,
-    transparent 0 14px,
-    color-mix(in srgb, var(--line) 45%, transparent) 14px 15px
-  );
-}
-
-.shell-section {
-  padding-block: var(--section-space);
-}
-
-main {
-  /* Pages start below the fixed header; the M2 hero will position itself instead. */
-  padding-top: var(--header-h);
+.todo--media {
+  display: grid;
+  height: 100%;
+  min-height: 10rem;
+  place-items: center;
+  border-radius: 0;
+  text-align: center;
 }

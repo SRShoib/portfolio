@@ -3,44 +3,690 @@
   <head>
     <!--include:head.html title="Md. Mehedi Hasan Shoib — AI/ML Engineer (Generative &amp; Agentic AI)" description="AI/ML engineer building RAG and multi-agent LLM systems, with published research in medical and agricultural computer vision. Based in Dhaka, Bangladesh."-->
   </head>
-  <body>
+  <body id="top">
     <!--include:preloader.html-->
     <!--include:header.html-->
 
     <main id="main" tabindex="-1">
-      <section class="shell-section" aria-labelledby="hero-title">
-        <div class="container">
-          <h1 id="hero-title">Md. Mehedi Hasan Shoib</h1>
-          <p>AI/ML Engineer · Generative &amp; Agentic AI</p>
-          <!--todo--><p class="shell-note">M1 scaffold: the hero, point cloud and every section below are built in M2 and M3.</p><!--/todo-->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="container hero__grid">
+          <div class="hero__text">
+            <p class="hero__badge label"><span class="status-dot" aria-hidden="true"></span>Research Assistant @ HIRL · Open to AI/ML roles</p>
+            <p class="hero__wordmark" aria-hidden="true">SHOIB</p>
+            <h1 id="hero-title" class="hero__name">Md. Mehedi Hasan Shoib</h1>
+            <p class="hero__title">AI/ML Engineer · Generative &amp; Agentic AI</p>
+            <p class="hero__tagline">I build retrieval and multi-agent AI systems that ship, backed by research in medical and agricultural computer vision.</p>
+            <div class="hero__actions">
+              <a class="btn btn--primary" href="/resume.pdf" target="_blank" rel="noopener">Resume<span class="sr-only"> (PDF, opens in a new tab)</span></a>
+              <a class="btn btn--ghost" href="#work">View projects</a>
+            </div>
+          </div>
+
+          <div class="hero__visual">
+            <!--picture src="/images/profile/portrait.png" alt="Portrait of Md. Mehedi Hasan Shoib" sizes="(min-width: 64em) 28rem, (min-width: 40em) 90vw, 92vw" loading="eager" fetchpriority="high"-->
+          </div>
+
+          <ul class="hero__captions" role="list" aria-label="What I work on">
+            <li data-shape="tooth"><span class="hero__caption-dot" aria-hidden="true"></span><span>Medical imaging — explainable, privacy-preserving diagnosis</span></li>
+            <li data-shape="leaf"><span class="hero__caption-dot" aria-hidden="true"></span><span>Agricultural vision — open datasets for crop disease detection</span></li>
+            <li data-shape="graph"><span class="hero__caption-dot" aria-hidden="true"></span><span>Agentic AI — RAG and multi-agent systems in production</span></li>
+          </ul>
         </div>
       </section>
 
-      <section id="work" class="shell-section" aria-labelledby="work-title">
+      <section class="statement section" aria-labelledby="statement-title">
         <div class="container">
-          <h2 id="work-title">Selected work</h2>
-          <!--todo--><div class="shell-fill"></div><!--/todo-->
+          <h2 id="statement-title" class="sr-only">What I do</h2>
+          <p class="statement__text">I build <span class="accent">Generative</span> and <span class="accent">Agentic</span> AI systems — retrieval pipelines, multi-agent workflows and the <span class="accent">evaluations</span> that keep them honest — grounded in <span class="accent">research</span> on medical and agricultural computer vision.</p>
         </div>
       </section>
 
-      <section id="research" class="shell-section" aria-labelledby="research-title">
+      <section class="stats section" aria-labelledby="stats-title">
         <div class="container">
-          <h2 id="research-title">Research</h2>
-          <!--todo--><div class="shell-fill"></div><!--/todo-->
+          <h2 id="stats-title" class="sr-only">In numbers</h2>
+          <ul class="stats__list" role="list">
+            <li class="stat">
+              <p class="stat__number"><span data-count="5">5</span></p>
+              <p class="stat__label">publications</p>
+            </li>
+            <li class="stat">
+              <p class="stat__number"><span data-count="3">3</span></p>
+              <p class="stat__label">live full-stack AI applications</p>
+            </li>
+            <li class="stat">
+              <p class="stat__number"><span data-count="700">700</span><span class="stat__suffix">+</span></p>
+              <p class="stat__label">competitive programming problems solved</p>
+            </li>
+            <li class="stat">
+              <p class="stat__number"><span data-count="60">60</span><span class="stat__suffix">+</span></p>
+              <p class="stat__label">programming contests (including onsite)</p>
+            </li>
+          </ul>
         </div>
       </section>
 
-      <section id="publications" class="shell-section" aria-labelledby="publications-title">
+      <section id="research" class="split section" aria-labelledby="split-title">
         <div class="container">
-          <h2 id="publications-title">Publications</h2>
-          <!--todo--><div class="shell-fill"></div><!--/todo-->
+          <h2 id="split-title" class="sr-only">Research and engineering</h2>
+          <div class="split__grid">
+            <article class="split__card has-stretched split__card--research">
+              <div>
+                <h3 class="split__title">Research</h3>
+                <p class="split__text">Medical and agricultural computer vision at the Health Informatics Research Lab — explainable AI, privacy-preserving split learning, fusion models, and open image datasets.</p>
+              </div>
+              <a class="split__link stretched" href="#publications">See publications <span aria-hidden="true">→</span></a>
+            </article>
+            <article class="split__card has-stretched split__card--engineering">
+              <div>
+                <h3 class="split__title">Engineering</h3>
+                <p class="split__text">Production RAG and agentic systems — FastAPI backends, LangGraph pipelines, evaluation harnesses, deployed with Docker and CI/CD.</p>
+              </div>
+              <a class="split__link stretched" href="#work">See selected work <span aria-hidden="true">→</span></a>
+            </article>
+          </div>
         </div>
       </section>
 
-      <section id="about" class="shell-section" aria-labelledby="about-title">
+      <section id="work" class="work section" aria-labelledby="work-title">
         <div class="container">
-          <h2 id="about-title">About</h2>
-          <!--todo--><div class="shell-fill"></div><!--/todo-->
+          <header class="section__head">
+            <h2 id="work-title" class="section__title">Selected work</h2>
+          </header>
+          <ul class="work__grid" role="list">
+            <li>
+              <article class="project-card has-stretched" data-project="enterprise-knowledge-assistant">
+                <div class="project-card__media">
+                  <!--picture src="/images/projects/enterprise-knowledge-assistant/cover.png" alt="Screenshot of Enterprise Knowledge Assistant" sizes="(min-width: 64em) 46vw, 92vw" todo="add screenshot"-->
+                </div>
+                <div class="project-card__body">
+                  <p class="project-card__meta label">
+                    <span class="project-card__status"><span class="status-dot" aria-hidden="true"></span>Live</span>
+                    <span>RAG · Full-stack · Access control</span>
+                  </p>
+                  <h3 class="project-card__title">Enterprise Knowledge Assistant</h3>
+                  <p class="project-card__lead">Enterprise RAG assistant for internal documents, with role-aware retrieval, cited answers and quality monitoring.</p>
+                  <ul class="chips" role="list" aria-label="Key metrics">
+                    <li class="chip chip--metric">4-role RBAC</li>
+                    <li class="chip chip--metric">Citation-aware answers</li>
+                    <li class="chip chip--metric">RAGAS-style evals</li>
+                  </ul>
+                  <div class="stack">
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-enterprise-knowledge-assistant-backend">Backend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-enterprise-knowledge-assistant-backend">
+                        <li class="chip">FastAPI</li>
+                        <li class="chip">Python</li>
+                        <li class="chip">LangChain</li>
+                        <li class="chip">OpenAI</li>
+                        <li class="chip">Pinecone</li>
+                        <li class="chip">PostgreSQL</li>
+                        <li class="chip">SQLAlchemy</li>
+                        <li class="chip">JWT</li>
+                        <li class="chip">LangSmith</li>
+                        <li class="chip">Docker Compose</li>
+                      </ul>
+                    </div>
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-enterprise-knowledge-assistant-frontend">Frontend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-enterprise-knowledge-assistant-frontend">
+                        <li class="chip">Next.js 14</li>
+                        <li class="chip">React</li>
+                        <li class="chip">TypeScript</li>
+                        <li class="chip">Tailwind CSS</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <ul class="project-card__links" role="list" aria-label="Links">
+                    <li><a class="ext above-stretched" href="https://enterprise-knowledge-assistant-blond.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Enterprise Knowledge Assistant (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://enterprise-knowledge-assistant-production-8283.up.railway.app/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Enterprise Knowledge Assistant (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://github.com/SRShoib/Enterprise-Knowledge-Assistant" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Enterprise Knowledge Assistant (opens in a new tab)</span></a></li>
+                  </ul>
+                  <a class="project-card__case stretched" href="/projects/enterprise-knowledge-assistant.html">Case study <span aria-hidden="true">→</span><span class="sr-only">: Enterprise Knowledge Assistant</span></a>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="project-card has-stretched" data-project="filing-reconciler">
+                <div class="project-card__media">
+                  <!--picture src="/images/projects/filing-reconciler/cover.png" alt="Screenshot of Filing Reconciler" sizes="(min-width: 64em) 46vw, 92vw" todo="add screenshot"-->
+                </div>
+                <div class="project-card__body">
+                  <p class="project-card__meta label">
+                    <span class="project-card__status"><span class="status-dot" aria-hidden="true"></span>Live</span>
+                    <span>Agents · LangGraph · Human-in-the-loop</span>
+                  </p>
+                  <h3 class="project-card__title">Filing Reconciler</h3>
+                  <p class="project-card__lead">Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo.</p>
+                  <ul class="chips" role="list" aria-label="Key metrics">
+                    <li class="chip chip--metric">1.00 numeric precision/recall on 3 sample sets</li>
+                    <li class="chip chip--metric">2 human approval gates</li>
+                    <li class="chip chip--metric">CI-gated evals</li>
+                  </ul>
+                  <div class="stack">
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-filing-reconciler-backend">Backend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-filing-reconciler-backend">
+                        <li class="chip">FastAPI</li>
+                        <li class="chip">Python</li>
+                        <li class="chip">LangGraph</li>
+                        <li class="chip">Pydantic v2</li>
+                        <li class="chip">PostgreSQL</li>
+                        <li class="chip">Docker</li>
+                        <li class="chip">OpenAI API</li>
+                      </ul>
+                    </div>
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-filing-reconciler-frontend">Frontend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-filing-reconciler-frontend">
+                        <li class="chip">Next.js 16</li>
+                        <li class="chip">React 19</li>
+                        <li class="chip">TypeScript</li>
+                        <li class="chip">Tailwind CSS</li>
+                        <li class="chip">Framer Motion</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <ul class="project-card__links" role="list" aria-label="Links">
+                    <li><a class="ext above-stretched" href="https://multi-document-financial-contradict.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://multidocumentfinancialcontradictionanalyst-production.up.railway.app/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://github.com/SRShoib/multi-document_financial_contradiction_analyst" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+                  </ul>
+                  <a class="project-card__case stretched" href="/projects/filing-reconciler.html">Case study <span aria-hidden="true">→</span><span class="sr-only">: Filing Reconciler</span></a>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="project-card has-stretched" data-project="supportlens">
+                <div class="project-card__media">
+                  <!--picture src="/images/projects/supportlens/cover.png" alt="Screenshot of SupportLens" sizes="(min-width: 64em) 46vw, 92vw" todo="add screenshot"-->
+                </div>
+                <div class="project-card__body">
+                  <p class="project-card__meta label">
+                    <span class="project-card__status"><span class="status-dot" aria-hidden="true"></span>Live</span>
+                    <span>NLP · Fine-tuning · RAG</span>
+                  </p>
+                  <h3 class="project-card__title">SupportLens</h3>
+                  <p class="project-card__lead">End-to-end NLP platform that turns raw support tickets into structured intelligence: classification, entities, sentiment, topics, search and RAG-drafted replies.</p>
+                  <ul class="chips" role="list" aria-label="Key metrics">
+                    <li class="chip chip--metric">+0.115 macro-F1</li>
+                    <li class="chip chip--metric">hit-rate@5 0.920</li>
+                    <li class="chip chip--metric">&lt; $0.04 LLM spend</li>
+                  </ul>
+                  <div class="stack">
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-supportlens-backend">Backend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-supportlens-backend">
+                        <li class="chip">FastAPI</li>
+                        <li class="chip">PostgreSQL</li>
+                        <li class="chip">Chroma</li>
+                        <li class="chip">Hugging Face Transformers</li>
+                        <li class="chip">BERTopic</li>
+                        <li class="chip">OpenAI</li>
+                        <li class="chip">Docker Compose</li>
+                        <li class="chip">CI/CD</li>
+                      </ul>
+                    </div>
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-supportlens-frontend">Frontend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-supportlens-frontend">
+                        <li class="chip">Next.js 15</li>
+                        <li class="chip">TypeScript</li>
+                        <li class="chip">Tailwind CSS</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <ul class="project-card__links" role="list" aria-label="Links">
+                    <li><a class="ext above-stretched" href="https://supportlens-pink.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — SupportLens (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://supportlens-api-7ulp.onrender.com/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — SupportLens (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://github.com/SRShoib/Supportlens" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — SupportLens (opens in a new tab)</span></a></li>
+                  </ul>
+                  <a class="project-card__case stretched" href="/projects/supportlens.html">Case study <span aria-hidden="true">→</span><span class="sr-only">: SupportLens</span></a>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="project-card has-stretched" data-project="youtube-rag-chatbot">
+                <div class="project-card__media">
+                  <!--picture src="/images/projects/youtube-rag-chatbot/cover.png" alt="Screenshot of YouTube Transcript RAG Chatbot" sizes="(min-width: 64em) 46vw, 92vw" todo="add screenshot"-->
+                </div>
+                <div class="project-card__body">
+                  <p class="project-card__meta label">
+                    <span class="project-card__status"><span class="status-dot" aria-hidden="true"></span>Deployed backend</span>
+                    <span>RAG · Chrome extension · Backend</span>
+                  </p>
+                  <h3 class="project-card__title">YouTube Transcript RAG Chatbot</h3>
+                  <p class="project-card__lead">Chrome extension that answers questions about any YouTube video using only its transcript.</p>
+                  <ul class="chips" role="list" aria-label="Key metrics">
+                    <li class="chip chip--metric">Manifest V3</li>
+                    <li class="chip chip--metric">Rate-limited shared backend</li>
+                    <li class="chip chip--metric">Cold-start resilient</li>
+                  </ul>
+                  <div class="stack">
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-youtube-rag-chatbot-backend">Backend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-youtube-rag-chatbot-backend">
+                        <li class="chip">Python</li>
+                        <li class="chip">FastAPI</li>
+                        <li class="chip">LangChain</li>
+                        <li class="chip">LangServe</li>
+                        <li class="chip">FAISS</li>
+                        <li class="chip">OpenAI API</li>
+                      </ul>
+                    </div>
+                    <div class="stack__group">
+                      <p class="stack__label label" id="stack-youtube-rag-chatbot-frontend">Frontend</p>
+                      <ul class="chips" role="list" aria-labelledby="stack-youtube-rag-chatbot-frontend">
+                        <li class="chip">JavaScript</li>
+                        <li class="chip">Chrome Extension (MV3)</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <ul class="project-card__links" role="list" aria-label="Links">
+                    <li><a class="ext above-stretched" href="https://youtube-chatbot-tzq1.onrender.com/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — YouTube Transcript RAG Chatbot (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://github.com/SRShoib/YouTube-ChatBot" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — YouTube Transcript RAG Chatbot (opens in a new tab)</span></a></li>
+                    <!--todo--><li class="todo">TODO: Chrome Web Store or demo video (optional)</li><!--/todo-->
+                  </ul>
+                  <a class="project-card__case stretched" href="/projects/youtube-rag-chatbot.html">Case study <span aria-hidden="true">→</span><span class="sr-only">: YouTube Transcript RAG Chatbot</span></a>
+                </div>
+              </article>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="publications" class="publications section" aria-labelledby="pubs-title">
+        <div class="container">
+          <header class="section__head">
+            <h2 id="pubs-title" class="section__title">Publications</h2>
+          </header>
+          <ol class="pubs__list pubs__list--conference" role="list" aria-label="Conference papers">
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Conference paper</span><span>2026</span></p>
+                  <h3 class="pub-card__title">SplitX-OralNet: A Privacy-Preserving and Explainable Deep Learning Framework for Multi-class Oral Disease Detection from Intraoral Images</h3>
+                </div>
+                <p class="pub-card__venue">Proceedings of the 3rd International Conference on Big Data, IoT and Machine Learning (BIM 2025), Springer, Lecture Notes in Networks and Systems vol. 1800</p>
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Medical imaging</li>
+                  <li class="chip">Split learning</li>
+                  <li class="chip">Explainable AI</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span><strong>Md. Mehedi Hasan Shoib</strong>, Fayazunnesa Chowdhury, Emon Shikder, Sabbir Hossain Durjoy, Md. Hasan Imam Bijoy</p>
+                <a class="pub-card__doi" href="https://doi.org/10.1007/978-3-032-15764-5_22" target="_blank" rel="noopener">DOI 10.1007/978-3-032-15764-5_22 <span aria-hidden="true">↗</span><span class="sr-only"> — SplitX-OralNet: A Privacy-Preserving and Explainable Deep Learning Framework for Multi-class Oral Disease Detection from Intraoral Images (opens in a new tab)</span></a>
+              </article>
+            </li>
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Conference paper</span><span>2026</span></p>
+                  <h3 class="pub-card__title">XAI-GIFNet: A Fusion of DenseNet121 and EfficientNetB0 with Gradient-Based Explainability for GI Bleeding Detection from Endoscopic Imagery</h3>
+                </div>
+                <p class="pub-card__venue">BIM 2025, Springer LNNS vol. 1800</p>
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Medical imaging</li>
+                  <li class="chip">Fusion models</li>
+                  <li class="chip">Explainable AI</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span>Sabbir Hossain Durjoy, Fayazunnesa Chowdhury, <strong>Md. Mehedi Hasan Shoib</strong>, Md. Emon Shikder, Md. Hasan Imam Bijoy</p>
+                <a class="pub-card__doi" href="https://doi.org/10.1007/978-3-032-15764-5_8" target="_blank" rel="noopener">DOI 10.1007/978-3-032-15764-5_8 <span aria-hidden="true">↗</span><span class="sr-only"> — XAI-GIFNet: A Fusion of DenseNet121 and EfficientNetB0 with Gradient-Based Explainability for GI Bleeding Detection from Endoscopic Imagery (opens in a new tab)</span></a>
+              </article>
+            </li>
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Conference paper</span><span>2026</span></p>
+                  <h3 class="pub-card__title">CardioLiteNet: A Two-Stage Lightweight Autoencoder-Augmented Framework for Robust ECG Image Classification on Small Datasets</h3>
+                </div>
+                <p class="pub-card__venue">BIM 2025, Springer LNNS vol. 1800</p>
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Medical imaging</li>
+                  <li class="chip">Autoencoders</li>
+                  <li class="chip">Explainable AI (Grad-CAM, TCAV)</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span>Emon Shikder, Fayazunnesa Chowdhury, Md. Majidul Kabir, Sabbir Hossain Durjoy, <strong>Md. Mehedi Hasan Shoib</strong>, Md. Hasan Imam Bijoy</p>
+                <a class="pub-card__doi" href="https://doi.org/10.1007/978-3-032-15764-5_23" target="_blank" rel="noopener">DOI 10.1007/978-3-032-15764-5_23 <span aria-hidden="true">↗</span><span class="sr-only"> — CardioLiteNet: A Two-Stage Lightweight Autoencoder-Augmented Framework for Robust ECG Image Classification on Small Datasets (opens in a new tab)</span></a>
+              </article>
+            </li>
+          </ol>
+          <ol class="pubs__list pubs__list--dataset" role="list" aria-label="Dataset articles">
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Dataset article</span><span>2025</span></p>
+                  <h3 class="pub-card__title">Cauliflower Leaf Diseases: A Computer Vision Dataset for Smart Agriculture</h3>
+                </div>
+                <p class="pub-card__venue">Data in Brief, vol. 60, article 111594 (Elsevier)</p>
+                <p class="pub-card__note">2,661 field images of cauliflower leaves in three classes, collected in Bangladesh</p>
+                <!--if-image srcs="/images/publications/cauliflower/Black Rot.jpg,/images/publications/cauliflower/Healthy.jpg,/images/publications/cauliflower/Insect Hole.jpg" todo="add sample images"-->
+                <figure class="pub-card__samples" style="--sample-aspect: 1 / 1; --sample-cols-wide: 2.5">
+                  <div class="pub-card__sample-grid">
+                    <!--if-image srcs="/images/publications/cauliflower/Black Rot.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/cauliflower/Black Rot.jpg" alt="Sample cauliflower leaf: Black Rot" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Black Rot</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/cauliflower/Healthy.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/cauliflower/Healthy.jpg" alt="Sample cauliflower leaf: Healthy" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Healthy</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/cauliflower/Insect Hole.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/cauliflower/Insect Hole.jpg" alt="Sample cauliflower leaf: Insect Hole" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Insect Hole</span>
+                    </div>
+                    <!--/if-image-->
+                  </div>
+                  <figcaption class="pub-card__credit">Sample images: <a class="ext" href="https://data.mendeley.com/datasets/x995snz7p3" target="_blank" rel="noopener">Cauliflower Leaf Diseases dataset (Mendeley Data)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></figcaption>
+                </figure>
+                <!--/if-image-->
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Agricultural vision</li>
+                  <li class="chip">Open dataset</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span>Sabbir Hossain Durjoy, Md Emon Shikder, <strong>Md Mehedi Hasan Shoib</strong>, Md Hasan Imam Bijoy</p>
+                <a class="pub-card__doi" href="https://doi.org/10.1016/j.dib.2025.111594" target="_blank" rel="noopener">DOI 10.1016/j.dib.2025.111594 <span aria-hidden="true">↗</span><span class="sr-only"> — Cauliflower Leaf Diseases: A Computer Vision Dataset for Smart Agriculture (opens in a new tab)</span></a>
+              </article>
+            </li>
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Dataset article</span><span>2025</span></p>
+                  <h3 class="pub-card__title">IDBGL: A Unique Image Dataset of Black Gram (Vigna mungo) Leaves for Disease Detection and Classification</h3>
+                </div>
+                <p class="pub-card__venue">Data in Brief (Elsevier)</p>
+                <!--if-image srcs="/images/publications/black-gram/Cercospora leaf spot.jpg,/images/publications/black-gram/Healthy.jpg,/images/publications/black-gram/Insect.jpg,/images/publications/black-gram/Leaf Crinkle.jpg,/images/publications/black-gram/Yellow Mosaic.jpg" todo="add sample images"-->
+                <figure class="pub-card__samples" style="--sample-aspect: 3 / 4; --sample-cols-wide: 3">
+                  <div class="pub-card__sample-grid">
+                    <!--if-image srcs="/images/publications/black-gram/Cercospora leaf spot.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/black-gram/Cercospora leaf spot.jpg" alt="Sample black gram leaf: Cercospora leaf spot" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Cercospora leaf spot</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/black-gram/Healthy.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/black-gram/Healthy.jpg" alt="Sample black gram leaf: Healthy" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Healthy</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/black-gram/Insect.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/black-gram/Insect.jpg" alt="Sample black gram leaf: Insect" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Insect</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/black-gram/Leaf Crinkle.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/black-gram/Leaf Crinkle.jpg" alt="Sample black gram leaf: Leaf Crinkle" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Leaf Crinkle</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/black-gram/Yellow Mosaic.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/black-gram/Yellow Mosaic.jpg" alt="Sample black gram leaf: Yellow Mosaic" sizes="(min-width: 64em) 130px, (min-width: 48em) 22vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Yellow Mosaic</span>
+                    </div>
+                    <!--/if-image-->
+                  </div>
+                  <figcaption class="pub-card__credit">Sample images: <a class="ext" href="https://data.mendeley.com/datasets/z55yrbmn2d" target="_blank" rel="noopener">IDBGL dataset (Mendeley Data)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></figcaption>
+                </figure>
+                <!--/if-image-->
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Agricultural vision</li>
+                  <li class="chip">Open dataset</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span><strong>Md. Mehedi Hasan Shoib</strong>, Shahnewaz Saeem, Afia Benta Aziz Tonima, Mayen Uddin Mojumdar</p>
+                <a class="pub-card__doi" href="https://doi.org/10.1016/j.dib.2025.111347" target="_blank" rel="noopener">DOI 10.1016/j.dib.2025.111347 <span aria-hidden="true">↗</span><span class="sr-only"> — IDBGL: A Unique Image Dataset of Black Gram (Vigna mungo) Leaves for Disease Detection and Classification (opens in a new tab)</span></a>
+              </article>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="journey" class="timeline section" aria-labelledby="journey-title">
+        <div class="container">
+          <header class="section__head">
+            <h2 id="journey-title" class="section__title">Journey</h2>
+          </header>
+          <ol class="timeline__list" role="list">
+            <li class="timeline__item">
+              <p class="timeline__when label">Jan 2022</p>
+              <p class="timeline__text">Started B.Sc. in Computer Science &amp; Engineering at Daffodil International University</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Fall 2022</p>
+              <p class="timeline__text">18th place, DIU Take-Off Programming Contest (Final)</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Fall 2023</p>
+              <p class="timeline__text">26th place, Unlock the Algorithm (Preliminary, Slot A)</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Jan 2025</p>
+              <p class="timeline__text">Joined the Health Informatics Research Lab (HIRL) as a Research Assistant</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">2025</p>
+              <p class="timeline__text">Published two open image datasets in Data in Brief (cauliflower and black gram leaves)</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Jan 2026</p>
+              <p class="timeline__text">Completed B.Sc. in CSE, CGPA 3.80 / 4.00</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Apr 2026</p>
+              <p class="timeline__text">Three papers published in the BIM 2025 proceedings (Springer)</p>
+            </li>
+            <!--todo--><li class="todo">TODO: (optional) month/year for each project launch</li><!--/todo-->
+          </ol>
+        </div>
+      </section>
+
+      <section id="about" class="about section" aria-labelledby="about-title">
+        <div class="container about__grid">
+          <div class="about__portrait-col">
+            <div class="about__portrait">
+              <!--picture src="/images/profile/portrait.png" alt="Portrait of Md. Mehedi Hasan Shoib" sizes="(min-width: 64em) 36vw, min(92vw, 26rem)"-->
+            </div>
+          </div>
+
+          <div class="about__content">
+            <h2 id="about-title" class="section__title">About</h2>
+            <p class="about__meta label"><span>Dhaka, Bangladesh</span></p>
+            <p class="about__availability"><span class="status-dot" aria-hidden="true"></span>Open to full-time roles, on-site Dhaka or remote.</p>
+
+            <section class="about__block" aria-labelledby="about-experience">
+              <h3 id="about-experience" class="about__block-title">Experience</h3>
+              <p class="about__entry-title">Research Assistant <span>— Health Informatics Research Lab (HIRL), Daffodil International University</span></p>
+              <p class="about__entry-meta label">Jan 2025 – Present · On-site · Savar, Dhaka</p>
+              <ul class="about__list" role="list">
+                <li>Research on medical imaging in healthcare and agricultural image data in agriculture</li>
+                <li>Build custom ML and deep learning models for computer vision and write research papers</li>
+                <li>Co-authored five publications: three conference papers and two dataset articles</li>
+              </ul>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-education">
+              <h3 id="about-education" class="about__block-title">Education</h3>
+              <p class="about__entry-title">B.Sc. in Computer Science &amp; Engineering <span>— Daffodil International University</span></p>
+              <p class="about__entry-meta label">Jan 2022 – Jan 2026 · Completed · CGPA 3.80 / 4.00</p>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-problem-solving">
+              <h3 id="about-problem-solving" class="about__block-title">Problem solving</h3>
+              <p>700+ problems solved across judges · 60+ contests including onsite</p>
+              <p class="about__highlight">Beecrowd: top 1%, 210+ solved</p>
+              <ul class="about__links" role="list" aria-label="Problem-solving profiles">
+                <li><a class="ext" href="https://judge.beecrowd.com/en/profile/645784" target="_blank" rel="noopener">Beecrowd&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+                <li><a class="ext" href="https://codeforces.com/profile/shoib15-5511" target="_blank" rel="noopener">Codeforces&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+                <li><a class="ext" href="https://leetcode.com/u/srshoib/" target="_blank" rel="noopener">LeetCode&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+                <li><a class="ext" href="https://vjudge.net/user/SRShoib" target="_blank" rel="noopener">VJudge&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+              </ul>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-competitions">
+              <h3 id="about-competitions" class="about__block-title">Competitions</h3>
+              <ul class="about__contests" role="list">
+                <li><span class="about__contest-result label">18th</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-final/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Final&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">26th</span><a class="ext" href="https://toph.co/c/unlock-the-algorithm-fall-23-preliminary-a-slot/standings" target="_blank" rel="noopener">Unlock the Algorithm Fall 2023, Preliminary (Slot A)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">45th</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-slot-b/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Slot B&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">42nd</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-mock/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Mock&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">Certificate</span><a class="ext" href="https://drive.google.com/file/d/15eTkWevgZ4iHAgL4m5nLO3TvoPG-fP_y/view?usp=sharing" target="_blank" rel="noopener">Take-Off Programming Contest Final, Fall 2022&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+              </ul>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-skills">
+              <h3 id="about-skills" class="about__block-title">Skills</h3>
+              <div class="skills">
+                <div>
+                  <h4 class="skills__title">Generative &amp; Agentic AI</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">LLMs</li>
+                    <li class="chip">fine-tuning (LoRA, QLoRA)</li>
+                    <li class="chip">RAG</li>
+                    <li class="chip">multi-agent orchestration</li>
+                    <li class="chip">LangChain</li>
+                    <li class="chip">LangGraph</li>
+                    <li class="chip">LangServe</li>
+                    <li class="chip">LangSmith</li>
+                    <li class="chip">n8n</li>
+                    <li class="chip">prompt engineering</li>
+                    <li class="chip">tool calling</li>
+                    <li class="chip">structured output</li>
+                    <li class="chip">human-in-the-loop</li>
+                    <li class="chip">embedding models</li>
+                    <li class="chip">semantic and hybrid search</li>
+                    <li class="chip">chunking strategies</li>
+                    <li class="chip">reranking</li>
+                    <li class="chip">metadata filtering</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">NLP</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">tokenization</li>
+                    <li class="chip">text classification</li>
+                    <li class="chip">NER</li>
+                    <li class="chip">sentiment analysis</li>
+                    <li class="chip">summarization</li>
+                    <li class="chip">topic modeling</li>
+                    <li class="chip">semantic similarity</li>
+                    <li class="chip">Hugging Face Transformers</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">ML &amp; Deep Learning</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">computer vision</li>
+                    <li class="chip">MLOps</li>
+                    <li class="chip">PyTorch</li>
+                    <li class="chip">TensorFlow</li>
+                    <li class="chip">supervised and unsupervised learning</li>
+                    <li class="chip">ANN</li>
+                    <li class="chip">CNN</li>
+                    <li class="chip">LSTM</li>
+                    <li class="chip">Transformers</li>
+                    <li class="chip">graph neural networks</li>
+                    <li class="chip">attention</li>
+                    <li class="chip">fusion models</li>
+                    <li class="chip">explainable AI (Grad-CAM, Grad-CAM++, SHAP, LIME, TCAV)</li>
+                    <li class="chip">federated and split learning</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Backend &amp; APIs</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">FastAPI</li>
+                    <li class="chip">REST API design</li>
+                    <li class="chip">Pydantic</li>
+                    <li class="chip">authentication</li>
+                    <li class="chip">async request handling</li>
+                    <li class="chip">model-serving endpoints</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Databases</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">PostgreSQL</li>
+                    <li class="chip">MySQL</li>
+                    <li class="chip">FAISS</li>
+                    <li class="chip">Chroma</li>
+                    <li class="chip">Pinecone</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Frontend</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">Next.js</li>
+                    <li class="chip">React</li>
+                    <li class="chip">TypeScript</li>
+                    <li class="chip">Tailwind CSS</li>
+                    <li class="chip">HTML/CSS</li>
+                    <li class="chip">Streamlit</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">DevOps</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">Docker</li>
+                    <li class="chip">Git</li>
+                    <li class="chip">GitHub Actions</li>
+                    <li class="chip">CI/CD</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Languages</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">Python</li>
+                    <li class="chip">C</li>
+                    <li class="chip">C++</li>
+                    <li class="chip">Java</li>
+                    <li class="chip">JavaScript</li>
+                    <li class="chip">SQL</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="marquee section" aria-labelledby="stack-title">
+        <div class="container">
+          <h2 id="stack-title" class="marquee__title label">Tech stack</h2>
+          <div class="marquee__rows">
+            <ul class="marquee__row" role="list">
+              <li>LangGraph</li>
+              <li>LangChain</li>
+              <li>LangSmith</li>
+              <li>LangServe</li>
+              <li>OpenAI</li>
+              <li>Hugging Face</li>
+              <li>Pinecone</li>
+              <li>Chroma</li>
+              <li>FAISS</li>
+              <li>LoRA / QLoRA</li>
+              <li>BERTopic</li>
+              <li>n8n</li>
+            </ul>
+            <ul class="marquee__row" role="list">
+              <li>PyTorch</li>
+              <li>TensorFlow</li>
+              <li>FastAPI</li>
+              <li>Pydantic</li>
+              <li>PostgreSQL</li>
+              <li>Docker</li>
+              <li>GitHub Actions</li>
+              <li>Next.js</li>
+              <li>TypeScript</li>
+              <li>Python</li>
+              <li>C++</li>
+            </ul>
+          </div>
         </div>
       </section>
     </main>

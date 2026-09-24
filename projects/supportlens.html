@@ -3,17 +3,228 @@
   <head>
     <!--include:head.html title="SupportLens — Case study | Md. Mehedi Hasan Shoib" description="End-to-end NLP platform that turns raw support tickets into structured intelligence: classification, entities, sentiment, topics, search and RAG-drafted replies."-->
   </head>
-  <body>
+  <body id="top">
     <!--include:header.html-->
 
     <main id="main" tabindex="-1">
-      <article class="shell-section" aria-labelledby="page-title">
+      <article aria-labelledby="page-title">
+        <header class="cs-hero container">
+          <a class="cs-back label" href="/#work"><span aria-hidden="true">←</span> All projects</a>
+          <p class="cs-meta label">
+            <span class="cs-meta__status"><span class="status-dot" aria-hidden="true"></span>Live</span>
+            <span>NLP · Fine-tuning · RAG</span>
+          </p>
+          <h1 id="page-title" class="cs-title">SupportLens</h1>
+          <p class="cs-lead">End-to-end NLP platform that turns raw support tickets into structured intelligence: classification, entities, sentiment, topics, search and RAG-drafted replies.</p>
+          <ul class="cs-links" role="list" aria-label="Links">
+            <li><a class="btn btn--primary" href="https://supportlens-pink.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — SupportLens (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://supportlens-api-7ulp.onrender.com/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — SupportLens (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://github.com/SRShoib/Supportlens" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — SupportLens (opens in a new tab)</span></a></li>
+          </ul>
+        </header>
+
         <div class="container">
-          <h1 id="page-title">SupportLens</h1>
-          <p>End-to-end NLP platform that turns raw support tickets into structured intelligence: classification, entities, sentiment, topics, search and RAG-drafted replies.</p>
-          <!--todo--><p class="shell-note">M1 scaffold: the case-study template is built in M2.</p><!--/todo-->
+          <figure class="cs-cover">
+            <div class="cs-cover__frame">
+              <!--picture src="/images/projects/supportlens/cover.png" alt="Screenshot of SupportLens" sizes="(min-width: 90em) 1440px, 92vw" loading="eager" fetchpriority="high" todo="add screenshot"-->
+            </div>
+          </figure>
+
+          <section class="cs-section" aria-labelledby="problem-title">
+            <h2 id="problem-title" class="cs-section__title">Problem</h2>
+            <div class="cs-section__body">
+              <p>Support teams sit on thousands of unstructured tickets; finding what is urgent, what customers are asking about, and how to reply takes manual triage.</p>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="built-title">
+            <h2 id="built-title" class="cs-section__title">What I built</h2>
+            <div class="cs-section__body">
+              <ul class="cs-list" role="list">
+                <li>Intent and urgency classification, entity extraction, sentiment trajectories, summarization, topic discovery, semantic search and RAG-drafted replies</li>
+                <li>Next.js metrics dashboard backed by a PostgreSQL-persisted evaluation harness with live drift monitoring</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="architecture-title">
+            <h2 id="architecture-title" class="cs-section__title">Architecture</h2>
+            <div class="cs-section__body">
+              <div class="cs-architecture" data-diagram="supportlens" role="group" aria-label="SupportLens architecture">
+                <div class="cs-architecture__diagram" data-diagram-mount></div>
+                <!--todo--><p class="todo">TODO (M5): the architecture diagram is drawn here. Until then the pipeline below is the whole section.</p><!--/todo-->
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Pipeline</p>
+                  <ol class="cs-pipeline" role="list">
+                    <li>Tickets</li>
+                    <li>Classification (intent, urgency)</li>
+                    <li>Entity extraction</li>
+                    <li>Sentiment</li>
+                    <li>Summarization</li>
+                    <li>Topic discovery (BERTopic)</li>
+                    <li>Hybrid retrieval (dense embeddings + cross-encoder rerank)</li>
+                    <li>Citation-grounded reply drafts</li>
+                    <li>Dashboard</li>
+                  </ol>
+                </div>
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Supporting</p>
+                  <ul class="cs-list" role="list">
+                    <li>PostgreSQL eval harness</li>
+                    <li>Drift monitoring</li>
+                    <li>Budget-capped LLM client</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="decisions-title">
+            <h2 id="decisions-title" class="cs-section__title">Key engineering decisions</h2>
+            <div class="cs-section__body">
+              <ol class="cs-decisions" role="list">
+                <li><span>Benchmarked classical baselines against fine-tuned transformers for each task and deployed the winner. It was not a uniform transformer win: the baseline won intent classification (0.9990 vs. 0.9975 macro-F1) and rules won NER overall (0.585 vs. 0.447)</span></li>
+                <li><span>Hybrid retrieval with cross-encoder reranking</span></li>
+                <li><span>Budget-capped LLM client</span></li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="evaluation-title">
+            <h2 id="evaluation-title" class="cs-section__title">Evaluation &amp; results</h2>
+            <div class="cs-section__body">
+              <ul class="cs-results" role="list">
+                <li>+0.115 macro-F1 on urgency classification (0.794 → 0.910; TF-IDF + LinearSVC baseline → DeBERTa-v3-small)</li>
+                <li>+0.17 ROUGE-1 on summarization (FLAN-T5)</li>
+                <li>Retrieval hit-rate@5: 0.920</li>
+                <li>Total LLM spend under $0.04</li>
+              </ul>
+              <h3 class="cs-subtitle" id="baselines-title">Baselines per task</h3>
+              <p class="cs-note">Each row is a classical baseline vs. the model it was compared with, then the winner and margin.</p>
+              <ul class="baselines" role="list" aria-labelledby="baselines-title">
+                <li class="baseline">
+                  <p class="baseline__task">Intent</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF + LinearSVC <span class="baseline__vs">vs.</span> DistilBERT</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Baseline wins</strong> <span class="baseline__margin">0.9990 vs. 0.9975 macro-F1</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Urgency</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF + LinearSVC <span class="baseline__vs">vs.</span> DeBERTa-v3-small</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Transformer wins</strong> <span class="baseline__margin">0.794 → 0.910</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">NER</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">Regex/rules <span class="baseline__vs">vs.</span> BERT-base-cased</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Rules win overall</strong> <span class="baseline__margin">0.585 vs. 0.447</span></p>
+                    <p class="baseline__note">Each entity type goes to whichever does better</p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Sentiment/emotion</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF + LinearSVC <span class="baseline__vs">vs.</span> DistilBERT</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Transformer wins</strong> <span class="baseline__margin">+0.064 / +0.106</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Summarization</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">Lead-k extractive <span class="baseline__vs">vs.</span> FLAN-T5-small</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Transformer wins</strong> <span class="baseline__margin">+0.16-0.17 ROUGE-1</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Topics</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">TF-IDF/KMeans <span class="baseline__vs">vs.</span> BERTopic</p>
+                    <p class="baseline__result"><strong class="baseline__winner">BERTopic wins</strong> <span class="baseline__margin">0.226 vs. 0.143 NPMI</span></p>
+                  </div>
+                </li>
+                <li class="baseline">
+                  <p class="baseline__task">Search</p>
+                  <div class="baseline__body">
+                    <p class="baseline__matchup">Dense retrieval only <span class="baseline__vs">vs.</span> + cross-encoder rerank</p>
+                    <p class="baseline__result"><strong class="baseline__winner">Rerank wins</strong> <span class="baseline__margin">0.900 → 0.920 hit-rate@5</span></p>
+                  </div>
+                </li>
+              </ul>
+              <h3 class="cs-subtitle" id="datasets-title">Datasets used</h3>
+              <dl class="datasets" aria-labelledby="datasets-title">
+                <div class="datasets__item">
+                  <dt>Bitext Customer Support (Hugging Face)</dt>
+                  <dd>27 intents, about 27k utterances — used to train intent classification</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>Customer Support on Twitter (Kaggle, about 3M tweets)</dt>
+                  <dd>unlabeled real-world text, used for cleaning, clustering, search and drift analysis</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>tweet_eval (sentiment/emotion)</dt>
+                  <dd>transfer learning for sentiment and emotion models</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>samsum / dialogsum</dt>
+                  <dd>transfer learning for thread summarization</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>Synthetic NER set (generated) plus a 200-example hand-checked gold set</dt>
+                  <dd>entity extraction for ORDER_ID, PRODUCT, DATE, AMOUNT and ACCOUNT_REF</dd>
+                </div>
+                <div class="datasets__item">
+                  <dt>Urgency labels</dt>
+                  <dd>no existing dataset has these; rule-based labels plus up to 2,000 LLM-generated labels</dd>
+                </div>
+              </dl>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="stack-title">
+            <h2 id="stack-title" class="cs-section__title">Stack</h2>
+            <div class="cs-section__body">
+              <div class="stack">
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-backend">Backend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-backend">
+                    <li class="chip">FastAPI</li>
+                    <li class="chip">PostgreSQL</li>
+                    <li class="chip">Chroma</li>
+                    <li class="chip">Hugging Face Transformers</li>
+                    <li class="chip">BERTopic</li>
+                    <li class="chip">OpenAI</li>
+                    <li class="chip">Docker Compose</li>
+                    <li class="chip">CI/CD</li>
+                  </ul>
+                </div>
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-frontend">Frontend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-frontend">
+                    <li class="chip">Next.js 15</li>
+                    <li class="chip">TypeScript</li>
+                    <li class="chip">Tailwind CSS</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="cs-deploy"><strong>Deployment:</strong> API on Render, frontend on Vercel</p>
+            </div>
+          </section>
         </div>
       </article>
+
+      <nav class="container cs-pager" aria-label="More case studies">
+        <a class="cs-pager__link cs-pager__link--prev" href="/projects/filing-reconciler.html" rel="prev">
+          <span class="cs-pager__label label">← Previous project</span>
+          <span class="cs-pager__title">Filing Reconciler</span>
+        </a>
+        <a class="cs-pager__link cs-pager__link--next" href="/projects/youtube-rag-chatbot.html" rel="next">
+          <span class="cs-pager__label label">Next project →</span>
+          <span class="cs-pager__title">YouTube Transcript RAG Chatbot</span>
+        </a>
+      </nav>
     </main>
 
     <!--include:footer.html-->

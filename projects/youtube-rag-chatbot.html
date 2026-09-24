@@ -3,17 +3,140 @@
   <head>
     <!--include:head.html title="YouTube Transcript RAG Chatbot — Case study | Md. Mehedi Hasan Shoib" description="Chrome extension that answers questions about any YouTube video using only its transcript."-->
   </head>
-  <body>
+  <body id="top">
     <!--include:header.html-->
 
     <main id="main" tabindex="-1">
-      <article class="shell-section" aria-labelledby="page-title">
+      <article aria-labelledby="page-title">
+        <header class="cs-hero container">
+          <a class="cs-back label" href="/#work"><span aria-hidden="true">←</span> All projects</a>
+          <p class="cs-meta label">
+            <span class="cs-meta__status"><span class="status-dot" aria-hidden="true"></span>Deployed backend</span>
+            <span>RAG · Chrome extension · Backend</span>
+          </p>
+          <h1 id="page-title" class="cs-title">YouTube Transcript RAG Chatbot</h1>
+          <p class="cs-lead">Chrome extension that answers questions about any YouTube video using only its transcript.</p>
+          <ul class="cs-links" role="list" aria-label="Links">
+            <li><a class="btn btn--primary" href="https://youtube-chatbot-tzq1.onrender.com/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — YouTube Transcript RAG Chatbot (opens in a new tab)</span></a></li>
+            <li><a class="btn btn--ghost" href="https://github.com/SRShoib/YouTube-ChatBot" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — YouTube Transcript RAG Chatbot (opens in a new tab)</span></a></li>
+            <!--todo--><li class="todo">TODO: Chrome Web Store or demo video (optional)</li><!--/todo-->
+          </ul>
+        </header>
+
         <div class="container">
-          <h1 id="page-title">YouTube Transcript RAG Chatbot</h1>
-          <p>Chrome extension that answers questions about any YouTube video using only its transcript.</p>
-          <!--todo--><p class="shell-note">M1 scaffold: the case-study template is built in M2.</p><!--/todo-->
+          <figure class="cs-cover">
+            <div class="cs-cover__frame">
+              <!--picture src="/images/projects/youtube-rag-chatbot/cover.png" alt="Screenshot of YouTube Transcript RAG Chatbot" sizes="(min-width: 90em) 1440px, 92vw" loading="eager" fetchpriority="high" todo="add screenshot"-->
+            </div>
+          </figure>
+
+          <section class="cs-section" aria-labelledby="problem-title">
+            <h2 id="problem-title" class="cs-section__title">Problem</h2>
+            <div class="cs-section__body">
+              <p>Long videos are hard to search; viewers want answers from the video itself without scrubbing through it.</p>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="built-title">
+            <h2 id="built-title" class="cs-section__title">What I built</h2>
+            <div class="cs-section__body">
+              <ul class="cs-list" role="list">
+                <li>Manifest V3 Chrome extension with DOM transcript extraction</li>
+                <li>FastAPI backend with LangServe routes for Q&amp;A and a dedicated summarization path</li>
+              </ul>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="architecture-title">
+            <h2 id="architecture-title" class="cs-section__title">Architecture</h2>
+            <div class="cs-section__body">
+              <div class="cs-architecture" data-diagram="youtube-rag-chatbot" role="group" aria-label="YouTube Transcript RAG Chatbot architecture">
+                <div class="cs-architecture__diagram" data-diagram-mount></div>
+                <!--todo--><p class="todo">TODO (M5): the architecture diagram is drawn here. Until then the pipeline below is the whole section.</p><!--/todo-->
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Pipeline</p>
+                  <ol class="cs-pipeline" role="list">
+                    <li>YouTube page</li>
+                    <li>Transcript extraction (extension)</li>
+                    <li>FastAPI backend</li>
+                    <li>Recursive chunking</li>
+                    <li>OpenAI embeddings</li>
+                    <li>FAISS search</li>
+                    <li>Answer / Summary (LangServe routes)</li>
+                    <li>Extension UI</li>
+                  </ol>
+                </div>
+                <div class="cs-architecture__group">
+                  <p class="label cs-architecture__label">Supporting</p>
+                  <ul class="cs-list" role="list">
+                    <li>Per-IP rate limiting</li>
+                    <li>LRU-capped vector store</li>
+                    <li>Automatic re-indexing</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="cs-section" aria-labelledby="decisions-title">
+            <h2 id="decisions-title" class="cs-section__title">Key engineering decisions</h2>
+            <div class="cs-section__body">
+              <ol class="cs-decisions" role="list">
+                <li><span>Per-IP rate limiting to protect a shared backend</span></li>
+                <li><span>LRU-capped vector store to bound memory</span></li>
+                <li><span>Automatic re-indexing so the service survives free-tier cold starts on Render</span></li>
+              </ol>
+            </div>
+          </section>
+
+          <!--todo-->
+          <section class="cs-section" aria-labelledby="evaluation-title">
+            <h2 id="evaluation-title" class="cs-section__title">Evaluation &amp; results</h2>
+            <div class="cs-section__body">
+              <p class="todo">TODO: (optional) evaluation &amp; results</p>
+            </div>
+          </section>
+          <!--/todo-->
+
+          <section class="cs-section" aria-labelledby="stack-title">
+            <h2 id="stack-title" class="cs-section__title">Stack</h2>
+            <div class="cs-section__body">
+              <div class="stack">
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-backend">Backend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-backend">
+                    <li class="chip">Python</li>
+                    <li class="chip">FastAPI</li>
+                    <li class="chip">LangChain</li>
+                    <li class="chip">LangServe</li>
+                    <li class="chip">FAISS</li>
+                    <li class="chip">OpenAI API</li>
+                  </ul>
+                </div>
+                <div class="stack__group">
+                  <p class="stack__label label" id="cs-stack-frontend">Frontend</p>
+                  <ul class="chips" role="list" aria-labelledby="cs-stack-frontend">
+                    <li class="chip">JavaScript</li>
+                    <li class="chip">Chrome Extension (MV3)</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="cs-deploy"><strong>Deployment:</strong> Backend on Render</p>
+            </div>
+          </section>
         </div>
       </article>
+
+      <nav class="container cs-pager" aria-label="More case studies">
+        <a class="cs-pager__link cs-pager__link--prev" href="/projects/supportlens.html" rel="prev">
+          <span class="cs-pager__label label">← Previous project</span>
+          <span class="cs-pager__title">SupportLens</span>
+        </a>
+        <a class="cs-pager__link cs-pager__link--next" href="/projects/enterprise-knowledge-assistant.html" rel="next">
+          <span class="cs-pager__label label">Next project →</span>
+          <span class="cs-pager__title">Enterprise Knowledge Assistant</span>
+        </a>
+      </nav>
     </main>
 
     <!--include:footer.html-->

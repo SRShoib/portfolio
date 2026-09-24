@@ -1,0 +1,72 @@
+/* Statement + proof stats. In M4 the statement's words scrub from dim to full opacity; the accent
+   colour on key words stays fixed. This is the fully revealed state, the one that must pass AA. */
+
+.statement__text {
+  max-width: 30em;
+  font-size: var(--step-4);
+  font-weight: 500;
+  font-stretch: 92%;
+  line-height: 1.16;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.statement__text .accent {
+  color: var(--accent);
+}
+
+@media (min-width: 48em) {
+  .statement__text {
+    font-size: var(--step-5);
+  }
+}
+@media (min-width: 90em) {
+  .statement__text {
+    font-size: var(--step-6);
+  }
+}
+
+/* ---- Stats ---------------------------------------------------------------------------- */
+.stats {
+  padding-block: var(--space-2xl);
+}
+
+.stats__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-l) var(--space-m);
+  padding: 0;
+  list-style: none;
+}
+
+.stat {
+  padding-top: var(--space-s);
+  border-top: 1px solid var(--line);
+}
+
+/* Numerals: weight 800, width axis 80% (the condensed cut), --accent. tabular-nums keeps digits
+   the same width so the M4 count-up doesn't jitter sideways. */
+.stat__number {
+  color: var(--accent);
+  font-size: var(--step-7);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--track-tight);
+  line-height: 1;
+}
+
+.stat__label {
+  max-width: 18em;
+  margin-top: var(--space-2xs);
+  color: var(--muted);
+  font-size: var(--step-n1);
+  line-height: 1.4;
+}
+
+@media (min-width: 64em) {
+  .stats__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-m);
+  }
+}
