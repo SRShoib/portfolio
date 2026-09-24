@@ -12,6 +12,7 @@
     "predev": "node scripts/optimize-images.mjs",
     "build": "vite build",
     "prebuild": "node scripts/optimize-images.mjs",
+    "postbuild": "node scripts/size-report.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
