@@ -802,7 +802,13 @@ export const contact = {
   github: 'https://github.com/SRShoib',
   linkedin: 'https://www.linkedin.com/in/md-mehedi-hasan-shoib-1b7b35258',
   resume: '/resume.pdf',
-  otherProfiles: todo('(optional) Google Scholar / Hugging Face / Kaggle'),
+  // Research profiles, in the order the footer shows them. `label` is the visible link text.
+  // (Hugging Face / Kaggle were not provided: add them here only if the profiles have real content.)
+  researchProfiles: [
+    { label: 'Google Scholar', url: 'https://scholar.google.com/citations?user=iY736XgAAAAJ&hl=en' },
+    { label: 'ResearchGate', url: 'https://www.researchgate.net/profile/Md-Mehedi-Hasan-Shoib' },
+    { label: 'ORCID', url: 'https://orcid.org/0009-0007-4596-2325' },
+  ],
 };
 
 export const getEmail = () => `${contact.email.user}@${contact.email.domain}`;
@@ -812,6 +818,6 @@ export const seo = {
   homeTitle: 'Md. Mehedi Hasan Shoib — AI/ML Engineer (Generative & Agentic AI)',
   homeDescription:
     'AI/ML engineer building RAG and multi-agent LLM systems, with published research in medical and agricultural computer vision. Based in Dhaka, Bangladesh.',
-  domain: todo('production domain'),
+  domain: todo('production domain'), // deferred until M8: canonical, og:*, JSON-LD and sitemap need it
   caseStudyTitle: (projectName) => `${projectName} — Case study | Md. Mehedi Hasan Shoib`,
 };
