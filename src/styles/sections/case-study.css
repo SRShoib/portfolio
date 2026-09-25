@@ -250,8 +250,9 @@
 }
 
 /* ---- Architecture ------------------------------------------------------------------------
-   The labelled mount point for the M5 diagram, plus the same pipeline written out as a list.
-   Once the SVG exists the list stays as its text alternative. */
+   The inline SVG diagram (drawn on by sections/case-study.js), plus the same pipeline written
+   out as a list right below it -- the list is the diagram's text alternative: identical
+   information, always present, so nothing here is JS- or SVG-only. */
 .cs-architecture {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -260,9 +261,6 @@
   border: 1px solid var(--line);
   border-radius: var(--r-m);
   background: var(--surface);
-}
-.cs-architecture__diagram:empty {
-  display: none; /* M5's SVG mounts here; until then it takes no room */
 }
 .cs-architecture__label {
   margin-bottom: var(--space-2xs);

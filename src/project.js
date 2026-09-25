@@ -3,10 +3,12 @@
 import { initScroll } from './lib/scroll.js';
 import { checkTokenSync } from './lib/motion.js';
 import { initHeader } from './sections/header.js';
+import { initCaseStudy } from './sections/case-study.js';
 import { initContact } from './sections/contact.js';
 
 initScroll();
 initHeader();
+initCaseStudy();
 initContact();
 
 if (import.meta.env.DEV) checkTokenSync();

@@ -122,6 +122,27 @@ a {
   outline: none;
 }
 
+/* ---- Cross-document View Transitions -----------------------------------------------
+   Opts every page into the browser's native page-to-page transition (Chrome/Edge; a no-op
+   everywhere else, so unsupported browsers just navigate normally -- no fallback code needed).
+   Elements sharing a `view-transition-name` across the outgoing and incoming document (a
+   project card's title/cover and the matching case-study header, set inline per page) morph
+   between them; everything else gets the browser's default root cross-fade. */
+@view-transition {
+  navigation: auto;
+}
+
+/* Reduced motion: the View Transitions API does not consult prefers-reduced-motion on its own,
+   so every generated transition pseudo-element is told not to animate. Navigation still happens
+   instantly; only the crossfade/morph animation is removed. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* ---- Layout helpers --------------------------------------------------------------- */
 .container {
   width: min(100% - 2 * var(--gutter), var(--max-w));

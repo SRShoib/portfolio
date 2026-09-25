@@ -1,0 +1,113 @@
+/* Architecture diagrams (M5): one hand-authored inline SVG per project, included by
+   scripts/vite-partials.mjs from src/partials/diagrams/<slug>.svg into both the home project
+   card (behind the cover, revealed on hover/focus) and the case-study Architecture section
+   (drawn on with stroke-dashoffset by sections/case-study.js). Geometry lives in the SVG; every
+   visual property lives here, so the same markup reads correctly in both places and in light of
+   this file alone.
+
+   Shape grammar, consistent across all four diagrams: a rounded rect is a pipeline stage, a
+   diamond is a human/decision gate, a stack of offset rects is a parallel branch, and a dashed
+   accent-2 arrow is a reflection loop back to an earlier stage. */
+
+.diagram {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.diagram-node__shape {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+.diagram-node--gate .diagram-node__shape {
+  fill: var(--raised);
+  stroke: var(--accent-50);
+}
+.diagram-node--parallel .diagram-node__shadow {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1.5;
+  opacity: 0.55;
+}
+
+.diagram-node__label {
+  fill: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+.diagram-node--gate .diagram-node__label {
+  fill: var(--muted);
+}
+.diagram-node--gate .diagram-node__label tspan:first-child {
+  fill: var(--accent);
+}
+
+.diagram-line {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+.diagram-line--loop {
+  stroke: var(--accent-2);
+  stroke-dasharray: 5 5;
+}
+
+.diagram-arrowhead {
+  fill: var(--muted);
+}
+.diagram-arrowhead--loop {
+  fill: var(--accent-2);
+}
+
+/* ---- Home card ----------------------------------------------------------------------------
+   The diagram sits in the DOM first (painted underneath); the cover sits on top of it and,
+   at rest, fully occludes it with an oversized clip-path circle. Hover or focus shrinks that
+   circle to nothing, revealing the diagram beneath (CLAUDE.md's motion principles: clip-path is
+   one of the three properties this site ever animates). Pure CSS: the swap works with
+   JavaScript disabled, and any interior link receiving keyboard focus keeps the diagram
+   revealed via :focus-within. `.project-card__media` itself is already `position: relative;
+   overflow: hidden` (base.css's shared image-frame rule). */
+.project-card__cover,
+.project-card__diagram {
+  position: absolute;
+  inset: 0;
+}
+.project-card__diagram {
+  display: grid;
+  place-items: center;
+  padding: var(--space-m);
+  background: var(--raised);
+}
+.project-card__diagram .diagram {
+  width: 100%;
+  height: auto;
+}
+.project-card__cover {
+  clip-path: circle(150% at 80% 20%);
+  transition: clip-path var(--dur-m) var(--ease-in-out);
+}
+.project-card:hover .project-card__cover,
+.project-card:focus-within .project-card__cover {
+  clip-path: circle(0% at 80% 20%);
+}
+/* No screenshot (dev TODO, or missing in production): nothing to wipe away, so the diagram
+   just shows permanently instead of sitting under an empty cover layer. */
+.project-card__cover:not(:has(picture, .todo)) {
+  display: none;
+}
+
+/* ---- Case study: full width, drawn on by sections/case-study.js. A static SVG in a static
+   frame here, unlike the card -- reduced motion and no-JS visitors get the same fully-drawn
+   diagram, just without the entrance animation. */
+.cs-architecture__diagram {
+  display: grid;
+  place-items: center;
+  padding: var(--space-m) 0;
+}
+.cs-architecture__diagram .diagram {
+  max-width: 44rem;
+}
