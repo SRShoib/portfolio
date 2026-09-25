@@ -1,10 +1,10 @@
 // FRAGMENT SHADER: runs once per PIXEL covered by each particle's square sprite.
 // The vertex shader only produced a square; this is what turns it into a soft round dot.
 
-uniform vec3 uColor;   // the shape's tint (from tints in motion.js)
 uniform float uOpacity; // overall brightness of one particle
 
 varying float vRandom;
+varying vec3 vColor; // this particle's colour, already mixed for the current uProgress (see the vertex shader)
 
 void main() {
   // gl_PointCoord runs (0,0) to (1,1) across the sprite. Subtract 0.5 to get the offset from the
@@ -23,9 +23,9 @@ void main() {
 
   // With AdditiveBlending the GPU computes: framebuffer += rgb * alpha. Overlapping particles
   // therefore add up and glow, and (unlike normal alpha blending) drawing order does not matter.
-  gl_FragColor = vec4(uColor, alpha);
+  gl_FragColor = vec4(vColor, alpha);
 
-  // uColor arrives in linear light (three converts every THREE.Color to it), but the canvas
+  // Each uColor* arrives in linear light (three converts every THREE.Color to it), but the canvas
   // expects sRGB. This built-in chunk converts, so the on-screen tint matches the CSS hex.
   // Leave it out and every tint comes out darker and more saturated than its hex (this leaf's
   // pale mint turns a vivid green).

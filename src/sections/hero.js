@@ -5,10 +5,10 @@
 // here is skipped or fails, whether reduced motion, no WebGL, or a blocked script, the visitor
 // still sees the portrait photo.
 //
-// M3b scope: the face (from the portrait cutout) or the tooth (from the GLB, or a procedural
-// fallback), still no morphing or scroll (that is M3c/M3d, when a fourth shape, the graph, joins
-// them). The scene itself lives in lib/pointcloud/scene.js and is loaded with a dynamic import()
-// only when it is actually needed.
+// M3c scope: all four shapes (face, tooth, leaf, graph) now live in one geometry and morph via a
+// single uProgress uniform (see scene.js), but nothing here MOVES that uniform yet — the hero
+// still just sits at rest on one shape. Driving uProgress from scroll is M3d. The scene itself
+// lives in lib/pointcloud/scene.js and is loaded with a dynamic import() only when actually needed.
 
 import { gsap } from 'gsap';
 import { conditions } from '../lib/motion.js';
@@ -16,8 +16,7 @@ import { preloaderDone } from './preloader.js';
 
 // The design's shape 0 (CLAUDE.md, "Hero: morphing point cloud"): the visitor's own face, no
 // caption, since the hero text right beside it already introduces them. If the cutout image can't
-// be sampled, createPointCloud falls back to the tooth itself (see scene.js) and corrects the
-// size preset below to match.
+// be sampled, createPointCloud starts at the tooth instead (see scene.js).
 const DEFAULT_SHAPE = 'face';
 
 let mm = null;
@@ -63,20 +62,16 @@ export function initHero() {
         if (cancelled) return;
 
         // The dynamic import(): Vite splits scene.js (and everything it imports: three.js, the
-        // face and tooth samplers) into their own file, fetched now.
-        const { createPointCloud, SHAPE_PRESETS } = await import('../lib/pointcloud/scene.js');
+        // face, tooth and graph builders) into their own file, fetched now.
+        const { createPointCloud, DEVICE_PRESETS } = await import('../lib/pointcloud/scene.js');
         if (cancelled) return;
 
         const device = desktop ? 'desktop' : 'mobile';
-        cloud = await createPointCloud(visual, { shape: DEFAULT_SHAPE, ...SHAPE_PRESETS[DEFAULT_SHAPE][device] });
+        cloud = await createPointCloud(visual, { shape: DEFAULT_SHAPE, ...DEVICE_PRESETS[device] });
         if (cancelled) {
           cloud.destroy();
           return;
         }
-        // createPointCloud silently falls back to another shape if the requested one's source
-        // failed to load (see scene.js); when that happens, correct the size to that shape's own
-        // tuned preset instead of leaving it at the shape we asked for but didn't get.
-        if (cloud.params.shape !== DEFAULT_SHAPE) cloud.setSize(SHAPE_PRESETS[cloud.params.shape][device].size);
 
         if (import.meta.env.DEV) {
           const { attachDebugPanel } = await import('../lib/pointcloud/debug.js');

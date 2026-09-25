@@ -3,9 +3,7 @@
 // file nor lil-gui is ever part of the shipped site. (Check: search dist/ for "lil-gui".)
 
 import GUI from 'lil-gui';
-import { SHAPE_PRESETS } from './scene.js';
-
-const SHAPES = ['face', 'tooth', 'leaf'];
+import { DEVICE_PRESETS } from './scene.js';
 
 /** Add the panel for a cloud made by createPointCloud(). Returns a function that removes it. */
 export function attachDebugPanel(cloud) {
@@ -15,13 +13,13 @@ export function attachDebugPanel(cloud) {
   // On a phone the open panel would cover most of the cloud. Start collapsed there; tap to open.
   if (window.innerWidth < 768) gui.close();
 
+  // Free: setProgress only touches a uniform (see scene.js), so this can update live on every
+  // drag tick, not just on release, and scrubbing it by hand is the whole point of this control
+  // (CLAUDE.md, M3c: "a lil-gui slider to scrub uProgress by hand").
   gui
-    .add(cloud.params, 'shape', SHAPES)
-    .name('shape')
-    .onChange((value) => {
-      cloud.setShape(value);
-      faceFolder.show(value === 'face');
-    });
+    .add(cloud.params, 'progress', 0, 3, 0.001)
+    .name('uProgress (0 face, 1 tooth, 2 leaf, 3 graph)')
+    .onChange((value) => cloud.setProgress(value));
 
   // onChange fires continuously while dragging. That is fine for a uniform (free), but a count
   // change rebuilds the geometry, so it only applies when you let go (onFinishChange).
@@ -34,11 +32,10 @@ export function attachDebugPanel(cloud) {
     .name('particle count')
     .onFinishChange((value) => cloud.setCount(value));
 
-  // A quick way to compare the two real device tiers, sized per shape (see SHAPE_PRESETS in
-  // scene.js: the same 20k/6k particles look better at a different point size per shape). These
-  // are buttons, not sliders, because one click sets count AND size together; nothing to drag.
+  // A quick way to compare the two real device tiers. A button, not a slider, because one click
+  // sets count AND size together; nothing to drag.
   const applyPreset = (device) => {
-    const preset = SHAPE_PRESETS[cloud.params.shape][device];
+    const preset = DEVICE_PRESETS[device];
     cloud.setCount(preset.count);
     cloud.setSize(preset.size);
     // The two calls above changed cloud.params directly, but the sliders drawn on screen don't
@@ -49,9 +46,9 @@ export function attachDebugPanel(cloud) {
   gui.add({ fn: () => applyPreset('mobile') }, 'fn').name('preset: mobile (6k)');
 
   // Face-only knobs (CLAUDE.md, M3b: "tune luminance weighting, depth and point size until the
-  // face reads clearly at 6k points"). `reach` controls the vignette that fades the shoulders out
-  // (see face.js): it turned out to matter as much for legibility as the luminance weights do,
-  // since it also sets how "zoomed in" the face ends up once the cloud is normalised.
+  // face reads clearly"). Always visible: unlike M3b there is no single "current shape" to gate
+  // this on any more (the cloud can sit anywhere along the whole sequence at once), and these
+  // still tune the SAME aFace data whichever part of the sequence uProgress happens to be showing.
   const faceFolder = gui.addFolder('Face (luminance weighting)');
   const faceControl = (key, min, max, step, label) =>
     faceFolder
@@ -64,7 +61,6 @@ export function attachDebugPanel(cloud) {
   faceControl('floor', 0, 0.6, 0.01, 'floor (min weight)');
   faceControl('depth', 0, 0.4, 0.01, 'depth (z from luminance)');
   faceControl('reach', 0.3, 1.6, 0.02, 'reach (vignette / zoom)');
-  faceFolder.show(cloud.params.shape === 'face'); // hidden unless the face is the one showing
 
   // Handy for poking at from the browser console: __cloud.params, __cloud.canvas ...
   window.__cloud = cloud;

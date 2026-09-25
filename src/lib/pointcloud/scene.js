@@ -1,4 +1,5 @@
-// The hero point cloud: a Three.js scene with one THREE.Points object.
+// The hero point cloud: a Three.js scene with one THREE.Points object that MORPHS between four
+// shapes (face -> tooth -> leaf -> graph) as a single uniform, uProgress, moves from 0 to 3.
 //
 // This file is loaded with a dynamic import() from sections/hero.js, after first paint, so the
 // ~135 KB (gzipped) of three.js never delays the page's text. Only the named classes used below are
@@ -26,6 +27,7 @@ import {
 import { gsap } from 'gsap';
 import { tints } from '../motion.js';
 import { makeLeaf } from './shapes/leaf.js';
+import { makeGraph } from './shapes/graph.js';
 import { seededRandom } from './shapes/utils.js';
 import { FACE_DEFAULTS, loadFaceSource, sampleFace } from './shapes/face.js';
 import { loadToothSource, sampleTooth } from './shapes/tooth.js';
@@ -39,40 +41,42 @@ const FIT_MARGIN = 1.2; // how much empty space around the shape (bigger = shape
 // following sin(time * speed) * angle. `angle` is the peak turn in radians (0.5 is about 29 degrees).
 const SWAY = { speed: 0.4, angle: 0.5 };
 
-// Particle count and diameter (world units) tuned by eye per shape and per device tier, so that at
-// 6k points (mobile) each shape still reads clearly, not just at 20k (CLAUDE.md, M3b). A denser,
-// more detailed shape (the face) needs smaller particles than a simple one (the tooth's smooth
-// dome), or the particles overlap and the detail that carries the likeness washes out.
-export const SHAPE_PRESETS = {
-  face: { desktop: { count: 20000, size: 0.022 }, mobile: { count: 6000, size: 0.03 } },
-  tooth: { desktop: { count: 20000, size: 0.022 }, mobile: { count: 6000, size: 0.036 } },
-  leaf: { desktop: { count: 20000, size: 0.022 }, mobile: { count: 6000, size: 0.04 } },
+// uProgress endpoints, in the order the real design visits them (CLAUDE.md, "Hero: morphing point
+// cloud"). Every shape now lives in the SAME geometry (see buildGeometry below), so "switching
+// shapes" is just moving this number — no rebuild, unlike M3b's setShape().
+const SHAPE_PROGRESS = { face: 0, tooth: 1, leaf: 2, graph: 3 };
+
+// Particle count and diameter (world units), tuned by eye across all four shapes at once (unlike
+// M3b, sizing is no longer per-shape: every particle attribute now lives in one geometry and morphs
+// continuously, so there is no single moment to hold one shape's "current" size against). 20k on
+// desktop, 6k on mobile (CLAUDE.md).
+export const DEVICE_PRESETS = {
+  desktop: { count: 20000, size: 0.022 },
+  mobile: { count: 6000, size: 0.032 },
 };
 
 /**
- * Positions for one shape, from whichever source that shape needs. `sources` holds what was
- * preloaded in createPointCloud (the face's pixel grid, the tooth's mesh or null for procedural).
- * Never throws: a shape whose source failed to load falls back to something that always works,
- * so a rebuild (changing the count slider, say) can never crash the scene.
+ * The face's positions, or the leaf's as a last-resort fallback if the face's own source is
+ * unusable (should only happen if every pixel's weight collapses to 0 — see face.js). Never
+ * throws, so a rebuild can never crash the scene over a slider dragged to a strange combination.
  */
-function buildPositions(shape, count, sources, faceParams) {
-  if (shape === 'face') {
-    const positions = sources.faceSource && sampleFace(sources.faceSource, count, faceParams);
-    if (positions) return positions;
-    console.warn('[pointcloud] face sampling produced nothing (source missing or every weight is 0); using the leaf instead');
-  }
-  if (shape === 'tooth') return sampleTooth(sources.toothMesh, count); // toothMesh null -> procedural molar
+function buildFacePositions(count, faceSource, faceParams) {
+  const positions = faceSource && sampleFace(faceSource, count, faceParams);
+  if (positions) return positions;
+  console.warn('[pointcloud] face sampling produced nothing (source missing or every weight is 0); using the leaf instead');
   return makeLeaf(count);
 }
 
 /**
  * Create the point cloud inside `container` (the hero's visual slot). Loads the face and tooth
- * sources up front (whichever `shape` you start on, the sequence visits all of them once scroll
- * drives it in M3d, so preloading both now is not wasted work) so that switching shapes afterwards
- * (setShape) is instant. Throws if WebGL is unavailable; the caller keeps the portrait photo then.
+ * sources up front — every shape morphs through the whole sequence once scroll drives it (M3d), so
+ * loading both now, whichever `shape` you start on, is not wasted work. Throws if WebGL is
+ * unavailable; the caller keeps the portrait photo then.
  *
  * @param {HTMLElement} container element that gives the canvas its size (CSS decides, we follow)
- * @param {{shape: string, count: number, size: number, faceParams: object}} options
+ * @param {{shape: string, count: number, size: number, faceParams: object}} options `shape` is
+ *   only the STARTING point on the 0-3 sequence (see SHAPE_PROGRESS); moving through the rest is
+ *   what setProgress() is for.
  */
 export async function createPointCloud(container, { shape = 'leaf', count, size, faceParams = FACE_DEFAULTS } = {}) {
   // ---- Renderer ------------------------------------------------------------------------
@@ -91,11 +95,11 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   // Both loaders resolve null on failure rather than rejecting (see face.js / tooth.js), so one
   // missing asset can never stop the other from loading, and Promise.all is safe to use here.
   const [faceSource, toothMesh] = await Promise.all([loadFaceSource(), loadToothSource()]);
-  const sources = { faceSource, toothMesh };
   // CLAUDE.md's documented fallback: "If the cutout is missing, skip the face stage: the sequence
-  // starts at the tooth". Tooth itself can't be "missing" in the same sense: sampleTooth always
-  // produces something, real mesh or procedural molar.
-  if (shape === 'face' && !faceSource) shape = 'tooth';
+  // starts at the tooth (uProgress 1 -> 3)". Tooth itself can't be "missing" in the same sense:
+  // sampleTooth always produces something, real mesh or procedural molar.
+  let startProgress = SHAPE_PROGRESS[shape] ?? 0;
+  if (startProgress === 0 && !faceSource) startProgress = SHAPE_PROGRESS.tooth;
 
   // ---- Camera and scene ------------------------------------------------------------------
   const scene = new Scene();
@@ -111,9 +115,17 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     uniforms: {
       uSize: { value: size },
       uScale: { value: 1 }, // real value set in resize()
-      uColor: { value: new Color(tints[shape]) }, // hex in, linear-light out (the fragment shader converts back)
-      // Additive light adds up: where many particles overlap (the veins) the sum exceeds 1 and the
-      // colour clips toward white. A lower opacity keeps the tint visible in the densest places.
+      uProgress: { value: startProgress },
+      // One colour per shape (hex in, linear-light out — the fragment shader converts back). Fixed
+      // for the shape's whole lifetime: unlike M3b, nothing ever REASSIGNS these; the vertex shader
+      // mixes between them per particle, the same way it mixes positions (see points.vert.glsl).
+      uColorFace: { value: new Color(tints.face) },
+      uColorTooth: { value: new Color(tints.tooth) },
+      uColorLeaf: { value: new Color(tints.leaf) },
+      uColorGraph: { value: new Color(tints.graph) },
+      // Additive light adds up: where many particles overlap (the leaf's veins, a graph node) the
+      // sum exceeds 1 and the colour clips toward white. A lower opacity keeps every tint visible
+      // in the densest places, across all four shapes (a single compromise value, as with uSize).
       uOpacity: { value: 0.5 },
     },
     transparent: true, // needed for blending to apply at all
@@ -122,16 +134,43 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   });
 
   // ---- Geometry: the per-particle data ----------------------------------------------------
-  // A BufferGeometry is a bag of named typed arrays ("attributes"), one entry per vertex. For
-  // Points, one vertex = one particle. `position` is special (three reads it to know how many
-  // vertices there are); anything else we name ourselves and read in the vertex shader.
-  // Mutable state for whichever shape is currently showing; setShape/setCount/setFaceParams edit
-  // this and then call rebuildGeometry(), which is the one place that reads it.
-  const state = { shape, count, faceParams: { ...faceParams } };
+  // A BufferGeometry is a bag of named typed arrays ("attributes"), one entry per vertex. Every
+  // shape needs the SAME number of vertices, because morphing is done by INDEX: particle 7's face
+  // position and particle 7's tooth position are simply whatever each sampler happened to produce
+  // at that index, no relation to each other beyond "the same particle". That is deliberate (see
+  // LEARNING.md): a plain index correspondence is what the staggering and mid-transition scatter
+  // are there to disguise, turning an otherwise ordinary "points sliding to new spots" into
+  // something that reads as scattering apart and re-forming.
+  //
+  // tooth/leaf/graph do not depend on `faceParams`, so rebuilding them every time only the face's
+  // sliders change would be wasted work (a full GLB re-sample, a full leaf and graph re-generation,
+  // for numbers that did not affect them). They are cached here and only rebuilt when the PARTICLE
+  // COUNT changes; only aFace is rebuilt on every call.
+  let cachedCount = null;
+  let cachedTooth;
+  let cachedLeaf;
+  let cachedGraph;
+  const ensureSharedShapes = (n) => {
+    if (cachedCount === n) return;
+    cachedTooth = sampleTooth(toothMesh, n);
+    cachedLeaf = makeLeaf(n);
+    cachedGraph = makeGraph(n);
+    cachedCount = n;
+  };
+
+  const state = { count, faceParams: { ...faceParams } };
   const buildGeometry = (n) => {
+    ensureSharedShapes(n);
     const geo = new BufferGeometry();
-    // BufferAttribute(array, itemSize): itemSize 3 = every 3 numbers are one vec3 (x, y, z).
-    geo.setAttribute('position', new BufferAttribute(buildPositions(state.shape, n, sources, state.faceParams), 3));
+    const faceAttr = new BufferAttribute(buildFacePositions(n, faceSource, state.faceParams), 3);
+    // `position` is the one attribute three.js itself reads, purely to COUNT the vertices to draw
+    // (see the vertex shader's header comment); its VALUES are never read by our shader, so it
+    // shares aFace's exact buffer rather than wasting a second copy of the same numbers.
+    geo.setAttribute('position', faceAttr);
+    geo.setAttribute('aFace', faceAttr);
+    geo.setAttribute('aTooth', new BufferAttribute(cachedTooth, 3));
+    geo.setAttribute('aLeaf', new BufferAttribute(cachedLeaf, 3));
+    geo.setAttribute('aGraph', new BufferAttribute(cachedGraph, 3));
     // aRandom: one float per particle, from a seeded generator so it is stable between rebuilds.
     const rand = seededRandom(1234);
     const randoms = new Float32Array(n);
@@ -155,7 +194,7 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
 
   // Numbers the dev panel edits. Kept in one object so lil-gui can bind to it directly. `face` is a
   // nested object (not spread flat) so a GUI folder can bind straight to its fields.
-  const params = { count: state.count, size, shape: state.shape, face: state.faceParams };
+  const params = { count: state.count, size, progress: startProgress, face: state.faceParams };
 
   // ---- Sizing --------------------------------------------------------------------------
   // CSS decides how big the container is; the canvas just follows it.
@@ -217,6 +256,17 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     },
 
     /**
+     * Move along the face -> tooth -> leaf -> graph sequence. Free: every shape's data already
+     * lives in the geometry (see buildGeometry above), so this is a plain uniform update, exactly
+     * like setSize — no rebuild, however often or however smoothly it is called (a scroll handler
+     * in M3d will call this every frame).
+     */
+    setProgress(value) {
+      params.progress = value;
+      material.uniforms.uProgress.value = value;
+    },
+
+    /**
      * Change the particle count. Unlike a uniform this needs a NEW geometry: a BufferAttribute's
      * length is fixed when it is created. The old geometry's GPU buffers are freed explicitly
      * with dispose(), because the garbage collector cannot see GPU memory.
@@ -228,26 +278,15 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     },
 
     /**
-     * Switch which shape the cloud shows. Both sources were loaded up front, so this is a resample
-     * and a rebuild, no network. Also swaps the tint, since each shape has its own (tints keys match
-     * shape names one-to-one: face, tooth, leaf, and graph in M3c).
-     */
-    setShape(name) {
-      state.shape = name;
-      params.shape = name;
-      material.uniforms.uColor.value.set(tints[name]);
-      rebuildGeometry();
-    },
-
-    /**
      * Merge new face-weighting values (gain, gamma, floor, depth, reach; see face.js) and rebuild.
      * A no-op patch (call with nothing) still rebuilds from the current params.face, which is what
-     * the dev panel does: it has already written the dragged value into params.face itself.
-     * Rebuilding only when the face is actually showing avoids resampling a shape nobody sees.
+     * the dev panel does: it has already written the dragged value into params.face itself. Only
+     * aFace is actually recomputed (see ensureSharedShapes): tooth, leaf and graph are unaffected
+     * by these numbers and are reused as-is.
      */
     setFaceParams(patch = {}) {
       Object.assign(state.faceParams, patch);
-      if (state.shape === 'face') rebuildGeometry();
+      rebuildGeometry();
     },
 
     destroy() {
