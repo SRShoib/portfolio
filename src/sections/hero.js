@@ -51,6 +51,24 @@ function afterFirstPaint() {
 }
 
 /**
+ * Cheap, synchronous capability check: can this browser get a WebGL context at all? Used to skip
+ * the pin and caption scrubbing entirely on a device that can never render the cloud (CLAUDE.md's
+ * fallback: "the three research captions as a static list", the SAME plain presentation reduced
+ * motion gets — not a pin with no shape to show inside it). A throwaway canvas that is never added to
+ * the page is the standard way to ask this without needing three.js's own (much larger) check; the
+ * context this creates is never used and is left for the browser to reclaim, same as any other
+ * capability probe of this kind.
+ */
+function isWebGLAvailable() {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl2') || canvas.getContext('webgl')));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Dim or brighten each research caption by how close `progress` is to its own shape. A caption's
  * opacity is a plain triangle: 1 exactly at its shape, fading to CAPTION_DIM one whole shape away
  * on either side. No easing on top (CLAUDE.md's motion principles: "linear for anything scrubbed by
@@ -85,6 +103,15 @@ export function initHero() {
     // hero's documented fallback), and "View projects" is a normal, un-pinned anchor jump — the
     // skip logic below exists only to counter a PIN, so with no pin there is nothing to counter.
     if (!motion) return;
+
+    // No WebGL: the SAME fallback as reduced motion (CLAUDE.md groups them together: "the hero's
+    // visual slot shows the plain portrait photo... and the three research captions as a static
+    // list"), not a pin with nothing to show inside it. Checked here, before the pin below is ever
+    // created, rather than after the point cloud fails to load: the point cloud's own WebGLRenderer
+    // construction (scene.js) would tell us the same thing, but only after the async asset loading
+    // below, by which time the pin would already be engaged (and possibly mid-scroll) and undoing it
+    // would risk exactly the snap-back this milestone's pin-timing design (M3d) tries to avoid.
+    if (!isWebGLAvailable()) return;
 
     // ---- Pin + scroll-driven progress, set up SYNCHRONOUSLY -----------------------------------
     // This does not wait for the point cloud (which loads asynchronously, below): the PIN itself
@@ -193,7 +220,11 @@ export function initHero() {
         });
         removeCursor = () => cursorMM.revert();
       } catch (error) {
-        // No WebGL, a blocked chunk, a lost network: the portrait photo is still there. Say so in the console.
+        // The common "no WebGL at all" case is already handled above, before the pin is even
+        // created; this catches rarer failures once we thought WebGL was available — a context lost
+        // moments later, a blocked chunk, a dropped network request. The portrait photo is still
+        // there either way (scene.js never gets far enough to touch the DOM before throwing), but
+        // the pin and captions, already running, are not undone: see the comment on isWebGLAvailable.
         console.warn('[hero] point cloud not started, keeping the portrait photo:', error);
       }
     })();

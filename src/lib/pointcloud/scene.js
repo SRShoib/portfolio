@@ -262,20 +262,46 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     // rather than a huge or zero delta (either would make the very first damp() step misbehave).
     const dt = (deltaMs || 16.67) / 1000;
 
-    // The cursor's contribution to the tilt (0 when there is no active pointer, e.g. touch devices
-    // or the mouse has left — see setPointer/clearPointer). Clamped because pointerNDC.x can land
-    // outside -1..1 (the pointer can be anywhere on the page, not just over the canvas — see hero.js).
+    // Kept LIVE even while offscreen — cheap (a couple of trig and damp() calls). `points.rotation.y`
+    // itself would be fine either way: it is a PURE function of the absolute `time`, so recomputing it
+    // fresh on the first tick after becoming visible again gives exactly the value continuous sway
+    // would already show at that moment, no catching up needed (verified: recomputing it here or only
+    // after the visibility check below produces the identical number for the same `time` — there is no
+    // stored rotation to go stale). `currentTilt`, just below, is different: it is a damped, ACCUMULATED
+    // value, not a lookup, so freezing ITS update would leave it stuck wherever it was when the hero
+    // left the viewport, needing its usual second or so to visibly ease back to rest AFTER returning,
+    // rather than having already settled during the (often longer) time spent offscreen. Keeping both
+    // together here is simpler than treating them differently for a distinction this small, and costs
+    // nothing extra: a sin() and two damp() calls, done or skipped, are not where the frame budget goes.
     const targetTilt = pointerActive ? MathUtils.clamp(pointerNDC.x, -1, 1) * MAX_TILT : 0;
-    // MathUtils.damp: a frame-rate-independent lerp (see its use for uRepelStrength below too) — the
-    // ONLY frame-independent alternative to `current += (target - current) * fixedFraction`, which
-    // would ease faster on a high refresh-rate display and slower on a stuttering one.
+    // MathUtils.damp: a frame-rate-independent lerp — the ONLY frame-independent alternative to
+    // `current += (target - current) * fixedFraction`, which would ease faster on a high refresh-rate
+    // display and slower on a stuttering one.
     currentTilt = MathUtils.damp(currentTilt, targetTilt, TILT_DAMPING, dt);
     points.rotation.y = Math.sin(time * SWAY.speed) * SWAY.angle + currentTilt;
-    // The repel shader code (see points.vert.glsl) needs uMouse in THIS object's own, currently
-    // rotating, local space, so the rotation just set above must land in matrixWorld before the
-    // raycast below reads it — updateMatrixWorld() forces that now rather than waiting for render().
-    points.updateMatrixWorld();
+    // Fades the repel effect in when the cursor arrives and out when it leaves, on top of the
+    // shader's own spatial (distance-based) falloff — see the comment in points.vert.glsl. Kept live
+    // for the same reason as `currentTilt` above (this is also a damped, accumulated value, not a
+    // lookup): so it has already faded to 0 by the time rendering resumes, not stuck mid-fade.
+    material.uniforms.uRepelStrength.value = MathUtils.damp(
+      material.uniforms.uRepelStrength.value,
+      pointerActive ? 1 : 0,
+      REPEL_DAMPING,
+      dt,
+    );
 
+    // Everything below only matters for what actually gets DRAWN, which is exactly the part that
+    // pauses while the hero is offscreen (see the IntersectionObserver set up below): the cursor
+    // raycast (whose only purpose is feeding the next render) and the render call itself, by far the
+    // most expensive line in this function. gsap.ticker still calls tick() every frame regardless —
+    // pausing OUR work here is what saves the GPU time, not stopping the ticker, which other things
+    // (Lenis, ScrollTrigger) still need running.
+    if (!isVisible) return;
+
+    // The repel shader code (see points.vert.glsl) needs uMouse in THIS object's own, currently
+    // rotating, local space, so the rotation set above must land in matrixWorld before the raycast
+    // below reads it — updateMatrixWorld() forces that now rather than waiting for render().
+    points.updateMatrixWorld();
     if (pointerActive) {
       raycaster.setFromCamera(pointerNDC, camera);
       // intersectPlane returns null if the ray is parallel to the plane (never happens with this
@@ -285,20 +311,24 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
         material.uniforms.uMouse.value.copy(localHit);
       }
     }
-    // Fades the repel effect in when the cursor arrives and out when it leaves, on top of the
-    // shader's own spatial (distance-based) falloff — see the comment in points.vert.glsl.
-    material.uniforms.uRepelStrength.value = MathUtils.damp(
-      material.uniforms.uRepelStrength.value,
-      pointerActive ? 1 : 0,
-      REPEL_DAMPING,
-      dt,
-    );
 
     renderer.render(scene, camera);
   };
 
   const observer = new ResizeObserver(resize);
   observer.observe(container);
+
+  // Pause rendering (and the cursor raycast that feeds it — see tick()) while the hero is scrolled
+  // out of view: once the visitor is reading the Statement or Stats sections, this canvas is invisible
+  // but gsap.ticker would otherwise keep calling tick() 60 times a second for nothing, burning battery
+  // and GPU time on frames nobody sees. `entry.isIntersecting` starts true here (the hero is normally
+  // the first thing on the page); the observer corrects that shortly after if it is ever wrong.
+  let isVisible = true;
+  const visibilityObserver = new IntersectionObserver(([entry]) => {
+    isVisible = entry.isIntersecting;
+  });
+  visibilityObserver.observe(container);
+
   resize();
   tick(0); // draw one frame BEFORE revealing the canvas, so it never fades in empty
   gsap.ticker.add(tick);
@@ -375,6 +405,7 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     destroy() {
       gsap.ticker.remove(tick);
       observer.disconnect();
+      visibilityObserver.disconnect();
       container.classList.remove('is-webgl'); // the portrait photo comes back
       geometry.dispose();
       material.dispose();
