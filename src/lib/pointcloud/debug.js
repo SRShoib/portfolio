@@ -15,11 +15,15 @@ export function attachDebugPanel(cloud) {
 
   // Free: setProgress only touches a uniform (see scene.js), so this can update live on every
   // drag tick, not just on release, and scrubbing it by hand is the whole point of this control
-  // (CLAUDE.md, M3c: "a lil-gui slider to scrub uProgress by hand").
+  // (CLAUDE.md, M3c: "a lil-gui slider to scrub uProgress by hand"). Since M3d, uProgress is ALSO
+  // driven from outside the panel (the hero's scroll pin), so this slider needs .listen(): without
+  // it, a controller only redraws when its OWN input changes, and would sit stuck at its last value
+  // while you scrolled straight past it. .listen() polls the value every frame and keeps it in sync.
   gui
     .add(cloud.params, 'progress', 0, 3, 0.001)
     .name('uProgress (0 face, 1 tooth, 2 leaf, 3 graph)')
-    .onChange((value) => cloud.setProgress(value));
+    .onChange((value) => cloud.setProgress(value))
+    .listen();
 
   // onChange fires continuously while dragging. That is fine for a uniform (free), but a count
   // change rebuilds the geometry, so it only applies when you let go (onFinishChange).

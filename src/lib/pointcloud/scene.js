@@ -19,9 +19,13 @@ import {
   Color,
   MathUtils,
   PerspectiveCamera,
+  Plane,
   Points,
+  Raycaster,
   Scene,
   ShaderMaterial,
+  Vector2,
+  Vector3,
   WebGLRenderer,
 } from 'three';
 import { gsap } from 'gsap';
@@ -40,6 +44,15 @@ const FIT_MARGIN = 1.2; // how much empty space around the shape (bigger = shape
 // Idle motion so the depth is visible: the cloud turns left and right about the vertical axis,
 // following sin(time * speed) * angle. `angle` is the peak turn in radians (0.5 is about 29 degrees).
 const SWAY = { speed: 0.4, angle: 0.5 };
+// Cursor tilt (CLAUDE.md: "the whole cloud rotates slightly toward the cursor with lerp") ADDS to the
+// sway above rather than replacing it. MAX_TILT is in radians, reached when the cursor sits at the
+// horizontal edge of the visual; TILT_DAMPING is how quickly the current tilt eases toward that
+// target (bigger = snappier, see MathUtils.damp below).
+const MAX_TILT = 0.25;
+const TILT_DAMPING = 4;
+// How quickly the repel effect itself (not any one particle's push, which is instant per frame) fades
+// in when the cursor arrives and out when it leaves.
+const REPEL_DAMPING = 5;
 
 // uProgress endpoints, in the order the real design visits them (CLAUDE.md, "Hero: morphing point
 // cloud"). Every shape now lives in the SAME geometry (see buildGeometry below), so "switching
@@ -127,6 +140,10 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
       // sum exceeds 1 and the colour clips toward white. A lower opacity keeps every tint visible
       // in the densest places, across all four shapes (a single compromise value, as with uSize).
       uOpacity: { value: 0.5 },
+      // Cursor repel (see the vertex shader and tick() below). uMouse starts far outside every
+      // shape's -1..1 box so nothing is repelled before any pointer activity has been recorded.
+      uMouse: { value: new Vector3(1000, 1000, 1000) },
+      uRepelStrength: { value: 0 },
     },
     transparent: true, // needed for blending to apply at all
     blending: AdditiveBlending, // overlapping particles add their light: dense areas glow
@@ -223,12 +240,60 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     material.uniforms.uScale.value = canvas.height / (2 * tanHalfFov);
   }
 
+  // ---- Cursor: repel + lerped tilt -------------------------------------------------------
+  // Reused every frame instead of allocated fresh, so the render loop makes no garbage: a Raycaster
+  // to turn a 2D pointer position into a 3D ray, a fixed ground Plane (world-space z = 0, roughly
+  // where the cloud sits) for it to hit, and two Vector3 scratch objects for the hit point.
+  const raycaster = new Raycaster();
+  const groundPlane = new Plane(new Vector3(0, 0, 1), 0);
+  const worldHit = new Vector3();
+  const localHit = new Vector3();
+  const pointerNDC = new Vector2(); // normalised device coords (-1..1), relative to THIS canvas
+  let pointerActive = false;
+  let currentTilt = 0; // radians, lerped toward targetTilt every frame (see tick())
+
   // ---- The frame loop --------------------------------------------------------------------
   // Driven by gsap.ticker (the same clock Lenis and ScrollTrigger use, see lib/scroll.js) instead
-  // of a private requestAnimationFrame loop, so in M3d the scroll-driven changes and the drawing
-  // happen in the same frame. `time` is seconds since the ticker started.
-  const tick = (time) => {
-    points.rotation.y = Math.sin(time * SWAY.speed) * SWAY.angle;
+  // of a private requestAnimationFrame loop, so scroll-driven changes (M3d) and the drawing happen
+  // in the same frame. `time` is seconds since the ticker started; `deltaMs` is milliseconds since
+  // the previous tick (GSAP's ticker convention), used below to make the lerps frame-rate independent.
+  const tick = (time, deltaMs) => {
+    // A fresh page's first tick has no previous frame to measure from; treat it as one 60fps frame
+    // rather than a huge or zero delta (either would make the very first damp() step misbehave).
+    const dt = (deltaMs || 16.67) / 1000;
+
+    // The cursor's contribution to the tilt (0 when there is no active pointer, e.g. touch devices
+    // or the mouse has left — see setPointer/clearPointer). Clamped because pointerNDC.x can land
+    // outside -1..1 (the pointer can be anywhere on the page, not just over the canvas — see hero.js).
+    const targetTilt = pointerActive ? MathUtils.clamp(pointerNDC.x, -1, 1) * MAX_TILT : 0;
+    // MathUtils.damp: a frame-rate-independent lerp (see its use for uRepelStrength below too) — the
+    // ONLY frame-independent alternative to `current += (target - current) * fixedFraction`, which
+    // would ease faster on a high refresh-rate display and slower on a stuttering one.
+    currentTilt = MathUtils.damp(currentTilt, targetTilt, TILT_DAMPING, dt);
+    points.rotation.y = Math.sin(time * SWAY.speed) * SWAY.angle + currentTilt;
+    // The repel shader code (see points.vert.glsl) needs uMouse in THIS object's own, currently
+    // rotating, local space, so the rotation just set above must land in matrixWorld before the
+    // raycast below reads it — updateMatrixWorld() forces that now rather than waiting for render().
+    points.updateMatrixWorld();
+
+    if (pointerActive) {
+      raycaster.setFromCamera(pointerNDC, camera);
+      // intersectPlane returns null if the ray is parallel to the plane (never happens with this
+      // camera, which always looks roughly down -z, but cheap to guard regardless).
+      if (raycaster.ray.intersectPlane(groundPlane, worldHit)) {
+        points.worldToLocal(localHit.copy(worldHit));
+        material.uniforms.uMouse.value.copy(localHit);
+      }
+    }
+    // Fades the repel effect in when the cursor arrives and out when it leaves, on top of the
+    // shader's own spatial (distance-based) falloff — see the comment in points.vert.glsl.
+    material.uniforms.uRepelStrength.value = MathUtils.damp(
+      material.uniforms.uRepelStrength.value,
+      pointerActive ? 1 : 0,
+      REPEL_DAMPING,
+      dt,
+    );
+
     renderer.render(scene, camera);
   };
 
@@ -253,6 +318,24 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     setSize(value) {
       params.size = value;
       material.uniforms.uSize.value = value; // uniforms are free to change: no rebuild
+    },
+
+    /**
+     * Record the cursor's position (in CSS pixels, e.g. straight from a PointerEvent's clientX/Y)
+     * for the repel + tilt effect. Converts to this canvas's own normalised device coordinates
+     * (-1..1); the actual raycast happens once per frame in tick(), not on every call, so this
+     * stays cheap even if the caller listens on `window` and gets far more events than frames.
+     */
+    setPointer(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      pointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1; // screen Y grows down, NDC Y grows up
+      pointerActive = true;
+    },
+
+    /** No active pointer: repel strength damps to 0 and the cursor tilt eases back to plain sway. */
+    clearPointer() {
+      pointerActive = false;
     },
 
     /**

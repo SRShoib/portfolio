@@ -18,6 +18,9 @@ uniform vec3 uColorTooth;
 uniform vec3 uColorLeaf;
 uniform vec3 uColorGraph;
 
+uniform vec3 uMouse;          // cursor's position in this object's OWN local space (see scene.js tick())
+uniform float uRepelStrength; // 0..1, damped in scene.js: fades in on hover, out when the cursor leaves
+
 attribute vec3 aFace;    // this particle's position when the cloud is fully the face
 attribute vec3 aTooth;   // ...fully the tooth
 attribute vec3 aLeaf;    // ...fully the leaf
@@ -31,6 +34,7 @@ varying vec3 vColor;   // this particle's colour right now, already mixed for th
 // allowed to eat into. It must stay below 1, or some particle's own window would have zero duration.
 const float STAGGER = 0.5;
 const float SCATTER = 0.22;
+const float REPEL_RADIUS = 0.2; // world units: particles closer than this to uMouse are pushed away
 
 // A cheap, deterministic pseudo-random number from one float. Not statistically rigorous — just
 // good enough that every particle gets its own stable, unpredictable-looking scatter direction.
@@ -93,6 +97,24 @@ void main() {
   float scatterAmount = sin(local * 3.14159265) * SCATTER;
   vec3 scatterDir = vec3(hash(aRandom) - 0.5, hash(aRandom + 1.7) - 0.5, hash(aRandom + 3.1) - 0.5);
   shapePosition += scatterDir * scatterAmount;
+
+  // CURSOR REPEL: particles within REPEL_RADIUS of the cursor are pushed directly away from it.
+  // smoothstep gives a soft falloff (full push at the centre, none at the rim) instead of a hard
+  // cutoff, which is what makes a particle "ease back" as the cursor moves away, without needing to
+  // remember where it used to be — this is a pure function of the CURRENT distance, recomputed fresh
+  // every frame. uRepelStrength (damped over TIME in scene.js) additionally fades the whole effect in
+  // on hover and out when the cursor leaves, on top of this spatial falloff.
+  vec3 toParticle = shapePosition - uMouse;
+  float mouseDist = length(toParticle);
+  float repelFalloff = 1.0 - smoothstep(0.0, REPEL_RADIUS, mouseDist);
+  // Weaker on the face (CLAUDE.md: "cursor repel is weaker on this stage so it doesn't distort the
+  // face"): FACE_REPEL holds it down through segment 0, ramping back up to full strength as `eased`
+  // carries the particle away from the face and into the tooth. Segments 1 and 2 are always full.
+  const float FACE_REPEL = 0.2;
+  float repelScale = segment < 0.5 ? mix(FACE_REPEL, 1.0, eased) : 1.0;
+  // + 1e-5: normalize(0) is undefined; guards the (rare) case of a particle sitting exactly on uMouse.
+  vec3 repelDir = normalize(toParticle + 1e-5);
+  shapePosition += repelDir * repelFalloff * uRepelStrength * repelScale * REPEL_RADIUS;
 
   // Object space -> camera space. In camera space the camera sits at the origin looking down -z,
   // so an object 5 units in front of the camera has mvPosition.z = -5.
