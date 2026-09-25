@@ -13,6 +13,12 @@
   counter-reset: pub;
 }
 
+/* M6: wraps both lists together so sections/publications.js has one element to measure and to
+   scroll-trigger against (a "fanned stack that spreads into a grid" needs both lists' cards
+   treated as one group). A plain block, so it needs no layout rule of its own here -- it is
+   still the two lists' shared parent, so the `.pubs__list + .pubs__list` sibling rule below
+   applies exactly as before. */
+
 .pubs__list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

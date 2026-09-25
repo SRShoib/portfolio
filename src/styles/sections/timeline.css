@@ -1,5 +1,13 @@
 /* Journey timeline: a vertical list. In M6 desktop (>=1024px, motion allowed) turns this into a
-   pinned horizontal scroll; this vertical version stays for mobile and reduced motion. */
+   pinned horizontal scroll; this vertical version stays for mobile and reduced motion.
+
+   The horizontal layout below is built to survive JavaScript being off: it is gated behind
+   `html.js` (added synchronously in partials/head.html, before first paint, the same guard
+   tokens.css already uses for the header) as well as the width and motion media features. A
+   sections/timeline.js pin is what actually reveals items past the first screenful, so without
+   JS -- or under reduced motion, where timeline.js never builds that pin -- this block never
+   applies and the plain, fully-readable vertical list above is what a visitor gets, however wide
+   their screen is. */
 
 .timeline__list {
   position: relative;
@@ -58,5 +66,59 @@
   }
   .timeline__when {
     padding-top: 0.35em;
+  }
+}
+
+@media (min-width: 64em) and (prefers-reduced-motion: no-preference) {
+  /* The pinned stage: sections/timeline.js pins this box for exactly 100vh of scroll (CLAUDE.md
+     rule 4's journey budget) and scrubs the track below sideways to fill it. `overflow: hidden`
+     is what turns "a very wide flex row" into "a window that reveals it a slice at a time" --
+     the track is free to spill past .container's centred max-width right to the section's own
+     edges, which is more scroll runway for the same 100vh. */
+  html.js .timeline {
+    height: 100svh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* The track: one row, no wrapping, exactly as wide as its items need (`max-content`) rather
+     than the viewport -- sections/timeline.js reads that natural width to know how far to scrub. */
+  html.js .timeline__list {
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    gap: var(--space-3xl);
+    padding-top: var(--space-l); /* clears the rail + dots, drawn at this same offset below */
+  }
+
+  /* The rail rotates from a vertical line down the left to a horizontal one along the top, at
+     the same offset the track just padded itself by, so the two agree without a shared variable. */
+  html.js .timeline__list::before {
+    top: var(--space-l);
+    bottom: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 1px;
+  }
+
+  html.js .timeline__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    flex: 0 0 clamp(16rem, 20vw, 20rem);
+    gap: var(--space-3xs);
+    padding-left: 0;
+    padding-top: var(--space-l);
+  }
+  /* Recentred on the now-horizontal rail: -0.3125rem is half the dot's own 0.625rem, so it sits
+     centred on the line at the item's own top edge (unaffected by the item's padding-top above --
+     padding shifts the WHEN/TEXT content below, never this absolutely positioned dot's origin). */
+  html.js .timeline__item::before {
+    top: -0.3125rem;
+    left: 0;
+  }
+  html.js .timeline__when {
+    padding-top: 0;
   }
 }
