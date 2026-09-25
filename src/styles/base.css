@@ -385,3 +385,57 @@ main {
   border-radius: 0;
   text-align: center;
 }
+
+/* ---- Custom cursor (lib/cursor.js: fine pointers + motion only) -------------------------------
+   .has-cursor is only ever added once cursor.js has actually built the replacement, so the real
+   cursor never disappears for anyone else (no JS, reduced motion, touch). The universal `*` is
+   needed because inheritance alone would lose to `button { cursor: pointer }` in base.css above. */
+.has-cursor,
+.has-cursor * {
+  cursor: none;
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-xs) var(--ease-out);
+}
+.cursor-dot.is-visible,
+.cursor-ring.is-visible {
+  opacity: 1;
+}
+
+/* The dot: precise, no lag, no hover state -- it marks the exact pointer position. */
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--accent-2);
+}
+
+/* The ring: cursor.js positions this wrapper every frame (transform, eased/lagging). Its own size
+   and hover state live on the child instead, so growing on a link is a CSS transform:scale()
+   transition -- never fighting the position transform cursor.js sets on the wrapper every tick. */
+.cursor-ring__shape {
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin: -16px 0 0 -16px;
+  border: 1px solid var(--accent-2);
+  border-radius: 50%;
+  transition:
+    transform var(--dur-s) var(--ease-out),
+    border-color var(--dur-s) var(--ease-out),
+    background-color var(--dur-s) var(--ease-out);
+}
+.cursor-ring.is-hover .cursor-ring__shape {
+  transform: scale(1.4);
+  border-color: var(--accent);
+  background: var(--accent-12);
+}
