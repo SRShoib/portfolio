@@ -69,10 +69,17 @@ export function initPublications() {
       );
     });
 
+    // Both ends are pinned to the wrap's own TOP edge, not its bottom: with `bottom 70%` the
+    // scrub used to span the wrap's entire height, which -- across two lists and up to three rows
+    // -- meant the fan was still resolving well after the first row had scrolled out of view, so
+    // it visibly settled while the viewport showed a LATER row, not the first one. Tying `end` to
+    // `top 20%` instead makes the whole transition a fixed, modest slice of scroll (about 55% of
+    // one viewport height) right as the section arrives, so it is fully settled while the first
+    // row is still on screen, however many rows follow underneath.
     const trigger = ScrollTrigger.create({
       trigger: wrap,
       start: 'top 75%',
-      end: 'bottom 70%',
+      end: 'top 20%',
       scrub: true,
       animation: tl,
     });
