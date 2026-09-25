@@ -1,6 +1,9 @@
-/* Research / Engineering: two large cards. M4 makes the hovered one expand and the other
-   compress on fine pointers; on touch they stay stacked, as here. Each card has one stretched
-   link (see base.css), so the whole card is the click target. */
+/* Research / Engineering: two large cards. On a fine pointer at desktop width, hovering (or
+   keyboard-focusing) one card scales it up slightly and scales the other down -- CLAUDE.md's
+   motion principles allow only transform, opacity and clip-path, so this is a transform-only
+   effect: the grid stays a fixed 50/50 and no text reflows. On touch, or below 64em, the cards
+   are plain and stacked (this block never matches, so nothing here applies). Each card has one
+   stretched link (see base.css), so the whole card is the click target. */
 
 .split__grid {
   display: grid;
@@ -56,5 +59,30 @@
   .split__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-l);
+  }
+}
+
+/* Hover/focus expand: fine pointer + desktop width only (mirrors motion.js's `fine` + `desktop`
+   matchMedia conditions). `:has()` on the grid reads whether ANY card is hovered/focused, so the
+   card that is NEITHER can be targeted with a single rule instead of one per card. The compress
+   rule below excludes the active card with :not() -- without that, its selector's specificity
+   (:has()'s specificity is its argument's, so `.split__grid:has(.split__card:hover) .split__card`
+   outweighs the plain `.split__card:hover` rule) would win on the active card too, shrinking the
+   card the visitor is actually pointing at instead of growing it. */
+@media (min-width: 64em) and (hover: hover) and (pointer: fine) {
+  .split__card {
+    transition:
+      background-color var(--dur-xs) var(--ease-out),
+      border-color var(--dur-xs) var(--ease-out),
+      transform var(--dur-s) var(--ease-out);
+  }
+
+  .split__grid:has(.split__card:hover, .split__card:focus-within) .split__card:not(:hover):not(:focus-within) {
+    transform: scale(0.96);
+  }
+  .split__card:hover,
+  .split__card:focus-within {
+    transform: scale(1.03);
+    z-index: 1; /* sit above the compressed neighbour while enlarged */
   }
 }
