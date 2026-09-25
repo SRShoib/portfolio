@@ -3,8 +3,8 @@
    Layout is built mobile-first and JS-optional:
    - Base (also what a no-JS visitor gets): a flex bar; the nav wraps onto a second row.
    - `.js` + narrow screens: the nav becomes a fullscreen menu opened by the Menu button
-     (sections/header.js toggles [data-menu-open]). The stagger, image crossfade and focus
-     trap for that menu arrive in M4.
+     (sections/header.js toggles [data-menu-open]). The link stagger, preview-image crossfade
+     and focus trap (main.inert + a Tab wrap) all live in sections/header.js.
    - >= 48em (768px): monogram | centred nav | Resume, no Menu button.
    48em is written out in the media queries because CSS custom properties can't be used there. */
 
@@ -143,6 +143,13 @@
   transform: translateY(-3.25px) rotate(-45deg);
 }
 
+/* The preview-image crossfade only exists inside the narrow fullscreen menu (below); at every
+   other width it stays display:none so it can never mis-position itself against the wrong
+   containing block (site-nav has no `position` of its own above 48em). */
+.menu-preview {
+  display: none;
+}
+
 /* ---- Narrow + JS: fullscreen menu ----------------------------------------------------- */
 @media (max-width: 47.99em) {
   .js .menu-toggle {
@@ -169,6 +176,32 @@
     visibility: visible;
     opacity: 1;
     transition-delay: 0s;
+  }
+
+  /* Preview crossfade, behind the link list. A negative z-index child paints ABOVE its own
+     parent's background (site-nav's solid --bg) but below the parent's normal, unpositioned
+     content (the <ul> below), so the image sits between the two. Capped at 25% opacity so
+     --bg still dominates: see LEARNING.md M4 for the contrast numbers against --text/--accent. */
+  .js .menu-preview {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .js .menu-preview img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    opacity: 0;
+    transition: opacity var(--dur-m) var(--ease-out);
+  }
+  .js .menu-preview img.is-active {
+    opacity: 0.25;
   }
 
   .js .site-nav__list {

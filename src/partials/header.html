@@ -8,14 +8,26 @@
     </a>
 
     <nav id="site-nav" class="site-nav" aria-label="Primary">
+      <div class="menu-preview" aria-hidden="true" data-menu-preview></div>
       <ul class="site-nav__list" role="list">
-        <li><a class="site-nav__link label" href="/#work">Work</a></li>
+        <li><a class="site-nav__link label" href="/#work" data-preview="work">Work</a></li>
         <li><a class="site-nav__link label" href="/#research">Research</a></li>
         <li><a class="site-nav__link label" href="/#publications">Publications</a></li>
-        <li><a class="site-nav__link label" href="/#about">About</a></li>
+        <li><a class="site-nav__link label" href="/#about" data-preview="about">About</a></li>
         <li><a class="site-nav__link label" href="/#contact">Contact</a></li>
       </ul>
     </nav>
+
+    <!-- Sources for the mobile menu's preview crossfade (sections/header.js). A <template>'s
+         content is inert, so these images are never requested on page load, with JS off, or on a
+         touch tap -- only the first mouse hover or keyboard focus on "Work"/"About" clones one
+         into [data-menu-preview]. Only links with a real, owned image get one (CLAUDE.md rule 1:
+         no invented content, and the licensed dataset photos need a credit line this decorative
+         backdrop has no room for), so Research/Publications/Contact simply have none. -->
+    <template data-menu-previews>
+      <div data-preview="work"><!--picture src="/images/projects/enterprise-knowledge-assistant/cover.png" alt="" sizes="100vw" todo="add screenshot"--></div>
+      <div data-preview="about"><!--picture src="/images/profile/portrait.png" alt="" sizes="100vw"--></div>
+    </template>
 
     <div class="site-header__actions">
       <a class="btn btn--primary" href="/resume.pdf" target="_blank" rel="noopener">Resume<span class="sr-only"> (PDF, opens in a new tab)</span></a>

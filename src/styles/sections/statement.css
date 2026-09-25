@@ -1,5 +1,8 @@
-/* Statement + proof stats. In M4 the statement's words scrub from dim to full opacity; the accent
-   colour on key words stays fixed. This is the fully revealed state, the one that must pass AA. */
+/* Statement + proof stats. sections/statement.js splits the words and scrubs their opacity from
+   dim to full as the section scrolls (SplitText wraps each word in an inline-block span, JS-only);
+   the accent colour on key words stays fixed throughout. The rules below are the fully-revealed
+   state -- the one that has to pass AA -- and are also exactly what a no-JS or reduced-motion
+   visitor sees, since the words are never split for them. */
 
 .statement__text {
   max-width: 30em;
