@@ -50,11 +50,22 @@ export function initPublications() {
       const dx = anchorX - (rect.left + rect.width / 2);
       const dy = anchorY - (rect.top + rect.height / 2);
       const angle = (i - (cards.length - 1) / 2) * FAN_STEP_DEG;
+      // Cards paint in DOM order, so the LAST card (i = cards.length - 1) is always the one
+      // sitting visually on top of the pile -- painting order is fixed and nothing here changes
+      // it. It has to be the FIRST to leave (like dealing off the top of a hand of cards), or it
+      // spends the back half of the scroll sitting on top of whichever earlier card has already
+      // finished settling underneath it, hiding that card exactly like a deck reshuffling itself
+      // backwards would. Reversing the stagger (last card gets position 0, first card gets the
+      // largest position) is what actually fixed a real bug: the fan used to hand out positions
+      // in DOM order, so the top-painted card also left last and sat over the settled first card
+      // for a big stretch of the scroll -- easy to land on with an ordinary scroll gesture, since
+      // it covered roughly the back third of the whole range, not just a brief instant.
+      const position = (cards.length - 1 - i) * CARD_STAGGER;
       tl.fromTo(
         card,
         { x: dx, y: dy, rotation: angle, scale: FAN_SCALE },
         { x: 0, y: 0, rotation: 0, scale: 1, duration: CARD_DURATION, ease: 'none' },
-        i * CARD_STAGGER,
+        position,
       );
     });
 
