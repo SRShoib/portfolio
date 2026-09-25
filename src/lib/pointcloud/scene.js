@@ -27,6 +27,8 @@ import { gsap } from 'gsap';
 import { tints } from '../motion.js';
 import { makeLeaf } from './shapes/leaf.js';
 import { seededRandom } from './shapes/utils.js';
+import { FACE_DEFAULTS, loadFaceSource, sampleFace } from './shapes/face.js';
+import { loadToothSource, sampleTooth } from './shapes/tooth.js';
 import vertexShader from './shaders/points.vert.glsl?raw'; // ?raw = import the file's text as a string
 import fragmentShader from './shaders/points.frag.glsl?raw';
 
@@ -37,23 +39,63 @@ const FIT_MARGIN = 1.2; // how much empty space around the shape (bigger = shape
 // following sin(time * speed) * angle. `angle` is the peak turn in radians (0.5 is about 29 degrees).
 const SWAY = { speed: 0.4, angle: 0.5 };
 
+// Particle count and diameter (world units) tuned by eye per shape and per device tier, so that at
+// 6k points (mobile) each shape still reads clearly, not just at 20k (CLAUDE.md, M3b). A denser,
+// more detailed shape (the face) needs smaller particles than a simple one (the tooth's smooth
+// dome), or the particles overlap and the detail that carries the likeness washes out.
+export const SHAPE_PRESETS = {
+  face: { desktop: { count: 20000, size: 0.022 }, mobile: { count: 6000, size: 0.03 } },
+  tooth: { desktop: { count: 20000, size: 0.022 }, mobile: { count: 6000, size: 0.036 } },
+  leaf: { desktop: { count: 20000, size: 0.022 }, mobile: { count: 6000, size: 0.04 } },
+};
+
 /**
- * Create the point cloud inside `container` (the hero's visual slot).
- * Throws if WebGL is unavailable; the caller keeps the portrait photo in that case.
+ * Positions for one shape, from whichever source that shape needs. `sources` holds what was
+ * preloaded in createPointCloud (the face's pixel grid, the tooth's mesh or null for procedural).
+ * Never throws: a shape whose source failed to load falls back to something that always works,
+ * so a rebuild (changing the count slider, say) can never crash the scene.
+ */
+function buildPositions(shape, count, sources, faceParams) {
+  if (shape === 'face') {
+    const positions = sources.faceSource && sampleFace(sources.faceSource, count, faceParams);
+    if (positions) return positions;
+    console.warn('[pointcloud] face sampling produced nothing (source missing or every weight is 0); using the leaf instead');
+  }
+  if (shape === 'tooth') return sampleTooth(sources.toothMesh, count); // toothMesh null -> procedural molar
+  return makeLeaf(count);
+}
+
+/**
+ * Create the point cloud inside `container` (the hero's visual slot). Loads the face and tooth
+ * sources up front (whichever `shape` you start on, the sequence visits all of them once scroll
+ * drives it in M3d, so preloading both now is not wasted work) so that switching shapes afterwards
+ * (setShape) is instant. Throws if WebGL is unavailable; the caller keeps the portrait photo then.
  *
  * @param {HTMLElement} container element that gives the canvas its size (CSS decides, we follow)
- * @param {{count: number, size: number}} options particle count, and particle diameter in world units
+ * @param {{shape: string, count: number, size: number, faceParams: object}} options
  */
-export function createPointCloud(container, { count, size }) {
+export async function createPointCloud(container, { shape = 'leaf', count, size, faceParams = FACE_DEFAULTS } = {}) {
   // ---- Renderer ------------------------------------------------------------------------
-  // antialias off: each point is already soft-edged by the shader, and multisampling costs GPU time.
-  // alpha on: the canvas is transparent, so the page background shows through the gaps.
+  // Built FIRST, before fetching anything: a device with no WebGL throws right here, and the
+  // caller (hero.js) keeps the portrait photo. Fetching the portrait cutout and the ~460 KB tooth
+  // GLB before this check would waste that download on exactly the visitors least able to afford
+  // it. antialias off: each point is already soft-edged by the shader, and multisampling costs GPU
+  // time. alpha on: the canvas is transparent, so the page background shows through the gaps.
   const renderer = new WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0); // clear to fully transparent black each frame
   const canvas = renderer.domElement;
   canvas.className = 'hero__canvas';
   canvas.setAttribute('aria-hidden', 'true'); // decorative; the captions and portrait alt carry the meaning
   container.appendChild(canvas);
+
+  // Both loaders resolve null on failure rather than rejecting (see face.js / tooth.js), so one
+  // missing asset can never stop the other from loading, and Promise.all is safe to use here.
+  const [faceSource, toothMesh] = await Promise.all([loadFaceSource(), loadToothSource()]);
+  const sources = { faceSource, toothMesh };
+  // CLAUDE.md's documented fallback: "If the cutout is missing, skip the face stage: the sequence
+  // starts at the tooth". Tooth itself can't be "missing" in the same sense: sampleTooth always
+  // produces something, real mesh or procedural molar.
+  if (shape === 'face' && !faceSource) shape = 'tooth';
 
   // ---- Camera and scene ------------------------------------------------------------------
   const scene = new Scene();
@@ -69,7 +111,7 @@ export function createPointCloud(container, { count, size }) {
     uniforms: {
       uSize: { value: size },
       uScale: { value: 1 }, // real value set in resize()
-      uColor: { value: new Color(tints.leaf) }, // hex in, linear-light out (the fragment shader converts back)
+      uColor: { value: new Color(tints[shape]) }, // hex in, linear-light out (the fragment shader converts back)
       // Additive light adds up: where many particles overlap (the veins) the sum exceeds 1 and the
       // colour clips toward white. A lower opacity keeps the tint visible in the densest places.
       uOpacity: { value: 0.5 },
@@ -83,10 +125,13 @@ export function createPointCloud(container, { count, size }) {
   // A BufferGeometry is a bag of named typed arrays ("attributes"), one entry per vertex. For
   // Points, one vertex = one particle. `position` is special (three reads it to know how many
   // vertices there are); anything else we name ourselves and read in the vertex shader.
+  // Mutable state for whichever shape is currently showing; setShape/setCount/setFaceParams edit
+  // this and then call rebuildGeometry(), which is the one place that reads it.
+  const state = { shape, count, faceParams: { ...faceParams } };
   const buildGeometry = (n) => {
     const geo = new BufferGeometry();
     // BufferAttribute(array, itemSize): itemSize 3 = every 3 numbers are one vec3 (x, y, z).
-    geo.setAttribute('position', new BufferAttribute(makeLeaf(n), 3));
+    geo.setAttribute('position', new BufferAttribute(buildPositions(state.shape, n, sources, state.faceParams), 3));
     // aRandom: one float per particle, from a seeded generator so it is stable between rebuilds.
     const rand = seededRandom(1234);
     const randoms = new Float32Array(n);
@@ -94,14 +139,23 @@ export function createPointCloud(container, { count, size }) {
     geo.setAttribute('aRandom', new BufferAttribute(randoms, 1));
     return geo;
   };
-  let geometry = buildGeometry(count);
+  let geometry = buildGeometry(state.count);
 
   // Points = "draw this geometry as one dot per vertex". (Mesh would draw triangles, Line lines.)
   const points = new Points(geometry, material);
   scene.add(points);
 
-  // Numbers the dev panel edits. Kept in one object so lil-gui can bind to it directly.
-  const params = { count, size };
+  /** The one place a geometry is actually rebuilt: dispose the old one, build and mount a new one. */
+  function rebuildGeometry() {
+    const next = buildGeometry(state.count);
+    geometry.dispose();
+    geometry = next;
+    points.geometry = next;
+  }
+
+  // Numbers the dev panel edits. Kept in one object so lil-gui can bind to it directly. `face` is a
+  // nested object (not spread flat) so a GUI folder can bind straight to its fields.
+  const params = { count: state.count, size, shape: state.shape, face: state.faceParams };
 
   // ---- Sizing --------------------------------------------------------------------------
   // CSS decides how big the container is; the canvas just follows it.
@@ -168,11 +222,32 @@ export function createPointCloud(container, { count, size }) {
      * with dispose(), because the garbage collector cannot see GPU memory.
      */
     setCount(n) {
-      const next = buildGeometry(n);
-      geometry.dispose();
-      geometry = next;
-      points.geometry = next;
+      state.count = n;
       params.count = n;
+      rebuildGeometry();
+    },
+
+    /**
+     * Switch which shape the cloud shows. Both sources were loaded up front, so this is a resample
+     * and a rebuild, no network. Also swaps the tint, since each shape has its own (tints keys match
+     * shape names one-to-one: face, tooth, leaf, and graph in M3c).
+     */
+    setShape(name) {
+      state.shape = name;
+      params.shape = name;
+      material.uniforms.uColor.value.set(tints[name]);
+      rebuildGeometry();
+    },
+
+    /**
+     * Merge new face-weighting values (gain, gamma, floor, depth, reach; see face.js) and rebuild.
+     * A no-op patch (call with nothing) still rebuilds from the current params.face, which is what
+     * the dev panel does: it has already written the dragged value into params.face itself.
+     * Rebuilding only when the face is actually showing avoids resampling a shape nobody sees.
+     */
+    setFaceParams(patch = {}) {
+      Object.assign(state.faceParams, patch);
+      if (state.shape === 'face') rebuildGeometry();
     },
 
     destroy() {
