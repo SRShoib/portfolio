@@ -5,6 +5,8 @@
 // "name [at] domain [dot] com" fallback, and this module builds the real address at runtime.
 // Scrapers that only read HTML never see it; people with JS get a working mailto: link.
 
+import { gsap } from 'gsap';
+import { ease, motionDuration } from '../lib/motion.js';
 import { getEmail } from '../data/content.js';
 
 let teardown = null;
@@ -55,9 +57,15 @@ export function initContact() {
 
   const onClick = async () => {
     const ok = await copyText(email);
-    // Visible confirmation (the button text) and audible confirmation (the live region).
+    // Visible confirmation (the button text + a transform-only pulse) and audible confirmation
+    // (the live region). motionDuration('s') is a one-off JS tween, exactly what it exists for
+    // (motion.js): a snappy pop under full motion, capped to 200ms under reduced motion.
     button.textContent = ok ? 'Copied ✓' : 'Copy failed';
     if (status) status.textContent = ok ? 'Email address copied to the clipboard.' : 'Could not copy. The address is shown above.';
+    if (ok) {
+      gsap.killTweensOf(button);
+      gsap.fromTo(button, { scale: 1 }, { scale: 1.08, duration: motionDuration('s') / 2, ease: ease.out, yoyo: true, repeat: 1 });
+    }
     clearTimeout(timer);
     timer = setTimeout(() => {
       button.textContent = idleLabel;
@@ -69,6 +77,8 @@ export function initContact() {
   teardown = () => {
     clearTimeout(timer);
     button.removeEventListener('click', onClick);
+    gsap.killTweensOf(button);
+    gsap.set(button, { clearProps: 'scale' });
     button.textContent = idleLabel;
     button.hidden = true;
   };

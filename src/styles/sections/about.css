@@ -1,7 +1,10 @@
 /* About: portrait beside the details. On small screens the portrait sits above the text (it comes
    first in the DOM too). From 64em the portrait column is sticky, so it stays beside you while
-   you read the long right-hand column: plain CSS, not a pinned scroll section. M7 adds the
-   clip-path reveal on the portrait. */
+   you read the long right-hand column: plain CSS, not a pinned scroll section. The clip-path wipe
+   + scale reveal on the portrait (sections/about.js) sets its start and end states with GSAP
+   directly, not here -- .about__portrait is already the right shape for it (base.css's "Image
+   frames" block makes it the overflow-hidden frame and the <img> inside the thing that scales),
+   and it only needs to exist for the instant the reveal runs. */
 
 .about__grid {
   display: grid;

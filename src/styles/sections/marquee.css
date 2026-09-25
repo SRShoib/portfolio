@@ -1,5 +1,8 @@
-/* Tech stack: two rows of text wordmarks in the mono face. M7 makes them move in opposite
-   directions (speed reacting to scroll velocity, pausing on hover). Static, they simply wrap. */
+/* Tech stack: two rows of text wordmarks in the mono face. With JS and motion allowed,
+   sections/marquee.js duplicates each row and scrolls it sideways forever (opposite directions,
+   speed reacting to scroll velocity, pausing on hover) -- the [data-marquee-js] attribute it sets
+   on the section is what switches a row from wrapping in place to a single clipped, nowrap line.
+   Without it (no JS, or reduced motion, which marquee.js also skips), the rows simply wrap. */
 
 .marquee__title {
   margin-bottom: var(--space-m);
@@ -11,6 +14,9 @@
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-s);
 }
+.marquee[data-marquee-js] .marquee__rows {
+  overflow: hidden; /* clips each row's now-doubled, nowrap width back down to the container */
+}
 
 .marquee__row {
   display: flex;
@@ -21,6 +27,12 @@
   font-size: var(--step-1);
   font-weight: 500;
   list-style: none;
+}
+.marquee[data-marquee-js] .marquee__row {
+  flex-wrap: nowrap;
+}
+.marquee[data-marquee-js] .marquee__row li {
+  flex: none; /* nowrap alone still lets flex shrink items to fit -- this keeps their natural width */
 }
 .marquee__row:first-child {
   color: var(--text);
