@@ -1,8 +1,8 @@
 /* Hero: badge, SHOIB wordmark, name, title, tagline, buttons, and the visual slot.
 
-   M2 shows the plain portrait in the visual slot. In M3 the WebGL point cloud takes that slot
-   over, and this same markup (portrait + caption list) stays as the fallback for reduced motion
-   and no-WebGL visitors.
+   The visual slot starts as the plain portrait. The WebGL point cloud takes it over (see
+   "WebGL takeover" below), and this same markup (portrait + caption list) stays as the fallback
+   for reduced motion and no-WebGL visitors.
 
    Layout is one grid whose AREAS change with the screen:
      small   visual / text / captions   the portrait sits ABOVE the text, as the spec asks, but the
@@ -107,6 +107,40 @@
    this picks which slice of the portrait shows: 10% of the way down keeps the hair, drops the suit. */
 .hero__visual img {
   object-position: 50% 10%;
+}
+
+/* ---- WebGL takeover ----------------------------------------------------------------------
+   sections/hero.js adds .is-webgl to the slot once the point cloud has drawn its first frame. Until
+   then (and forever with JS off, reduced motion, or no WebGL) none of these rules apply and the
+   portrait photo is simply what you see. The photo is faded, not removed, so its alt text stays in
+   the accessibility tree; the canvas itself is aria-hidden. */
+.hero__visual {
+  transition:
+    border-color var(--dur-l) var(--ease-out),
+    background-color var(--dur-l) var(--ease-out);
+}
+.hero__visual img {
+  transition: opacity var(--dur-l) var(--ease-out);
+}
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity var(--dur-l) var(--ease-out);
+}
+.hero__visual.is-webgl {
+  /* the cloud floats on the page background instead of sitting in a photo frame */
+  border-color: transparent;
+  background-color: transparent;
+}
+.hero__visual.is-webgl img {
+  opacity: 0;
+}
+.hero__visual.is-webgl .hero__canvas {
+  opacity: 1;
 }
 
 /* One caption per point-cloud shape, each with the shape's tint as a dot. The tints are the same
