@@ -4,9 +4,40 @@
    on the section is what switches a row from wrapping in place to a single clipped, nowrap line.
    Without it (no JS, or reduced motion, which marquee.js also skips), the rows simply wrap. */
 
-.marquee__title {
+.marquee__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
   margin-bottom: var(--space-m);
+}
+
+.marquee__title {
   color: var(--muted);
+}
+
+/* Pause/play toggle (WCAG 2.2.2): only unhidden by marquee.js once the rows actually move, so it
+   is never a dead control. Same label typography as .marquee__title, styled as a small button. */
+.marquee__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem; /* 44px touch target, matching .btn */
+  padding: 0.4em 0.9em;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--muted);
+  transition: border-color var(--dur-xs) var(--ease-out), color var(--dur-xs) var(--ease-out);
+}
+.marquee__toggle:hover {
+  border-color: var(--muted);
+  color: var(--text);
+}
+.marquee__toggle[aria-pressed='true'] {
+  border-color: var(--accent-50);
+  color: var(--accent);
 }
 
 .marquee__rows {
@@ -41,9 +72,13 @@
   color: var(--muted);
 }
 
-/* A slash between words, drawn by CSS so it is not read out. */
+/* A slash between words. Generated content is NOT excluded from the accessible name by default --
+   browsers include ::after text when a list item's name is computed from its subtree -- so this
+   needs the CSS `content: <value> / <string>` alt-text syntax (the empty string after the slash)
+   to actually stay silent; a bare `content: '/'` gets read aloud as "slash" between every word. */
 .marquee__row li:not(:last-child)::after {
   content: '/';
+  content: '/' / '';
   margin-left: var(--space-m);
   color: var(--line);
 }

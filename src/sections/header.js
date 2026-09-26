@@ -79,12 +79,16 @@ export function initHeader() {
     if (open) stopScroll(); // …and Lenis, which would otherwise still glide the page
     else startScroll();
 
-    // Focus trap, part 1: the page the menu now covers is not just visually hidden, it is
-    // `inert` -- unreachable by Tab and unclickable -- for as long as the menu is open. `main`
-    // wraps everything below the header on every page (including the footer/contact), so this
-    // alone stops Tab reaching content behind the fullscreen overlay (part 2, the Tab wrap
-    // between the header's own controls, is in onKeydown below).
-    main.inert = open;
+    // Focus trap, part 1: everything the fullscreen overlay covers is made `inert` -- unreachable
+    // by Tab, unclickable, AND skipped by a screen reader's swipe/browse navigation (not just Tab)
+    // -- for as long as the menu is open. That is more than `main`: the skip link and the footer
+    // are both siblings of `main` (see partials/header.html and every page's body), not inside it,
+    // so inerting only `main` left both reachable by swipe gestures behind the mobile menu. Instead
+    // this inerts every body child except the header itself. Part 2, the Tab wrap between the
+    // header's own controls, is in onKeydown below.
+    for (const el of document.body.children) {
+      if (el !== header) el.inert = open;
+    }
 
     linksTween?.kill();
     if (open && !prefersReducedMotion()) {
@@ -111,7 +115,7 @@ export function initHeader() {
   // Focus trap, part 2: Tab/Shift+Tab cycles among the header's own focusable controls (the
   // monogram, the links, Resume, the toggle itself -- all of which stay visually on top of the
   // menu's own background; see header.css's stacking comment) instead of leaving the header
-  // range once `main.inert` has removed everything after it.
+  // range once every other body child has gone `inert` above.
   function onKeydown(event) {
     if (event.key === 'Escape' && isOpen()) {
       setOpen(false);
@@ -155,7 +159,6 @@ export function initHeader() {
     wide.removeEventListener('change', onBreakpoint);
     previewListeners.forEach((remove) => remove());
     linksTween?.kill();
-    main.inert = false;
   };
 }
 
