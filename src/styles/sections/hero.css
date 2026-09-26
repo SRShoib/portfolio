@@ -144,13 +144,19 @@
 }
 
 /* One caption per point-cloud shape, each with the shape's tint as a dot. The tints are the same
-   custom properties the shaders will use. */
+   custom properties the shaders will use.
+   Color is --text, not --muted, on purpose: hero.js dims an inactive caption's inline `opacity`
+   down to CAPTION_DIM (see its comment) as the scroll-driven "seen next / seen already" state, and
+   that dim state is not a momentary transition frame -- it is how the two non-current captions sit
+   at rest for as long as the visitor looks at any one shape. --muted (7.9:1) composited at
+   CAPTION_DIM would read at roughly 2:1, well under WCAG AA; --text (16.8:1) leaves enough room
+   for the dim state to still clear 4.5:1 (see hero.js). */
 .hero__captions {
   grid-area: captions;
   display: grid;
   gap: var(--space-2xs);
   padding: 0;
-  color: var(--muted);
+  color: var(--text);
   font-size: var(--step-n1);
   list-style: none;
 }

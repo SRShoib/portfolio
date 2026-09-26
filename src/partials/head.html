@@ -4,6 +4,25 @@
 <meta name="description" content="{{description}}">
 <meta name="theme-color" content="#0F0E0C">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{site}}{{path}}">
+
+<!-- Open Graph + Twitter. One shared image (CONTENT.md §12/§1: the OG image already combines the
+     portrait, name and title, so every page — including case studies — shares it rather than
+     inventing a per-project image CONTENT.md never specified). -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Md. Mehedi Hasan Shoib">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="{{site}}{{path}}">
+<meta property="og:image" content="{{site}}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Portrait of Md. Mehedi Hasan Shoib">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{title}}">
+<meta name="twitter:description" content="{{description}}">
+<meta name="twitter:image" content="{{site}}/og.png">
+<meta name="twitter:image:alt" content="Portrait of Md. Mehedi Hasan Shoib">
 
 <!-- Runs before first paint, so it must be inline and tiny.
      1. Adds `.js` so CSS can show JS-only controls (the Menu button) and never show a dead one.

@@ -31,7 +31,14 @@ const CAPTION_PROGRESS = { tooth: 1, leaf: 2, graph: 3 };
 // A caption dims to this opacity rather than 0 when its shape is not showing — a "seen next / seen
 // already" list item, not a hole that appears and disappears in the layout (there is no caption for
 // the face, so at rest on progress 0 every item sits at this dim baseline; none does at progress 1-3).
-const CAPTION_DIM = 0.35;
+// This is a RESTING state, not a mid-transition frame (whichever shape is current, the other two
+// sit here for as long as the visitor looks at it), so it still has to clear WCAG AA on its own —
+// CLAUDE.md's "the fully revealed state must meet AA contrast" is written for a reveal that
+// finishes; this dim state never does. hero.css sets the caption color to --text (16.8:1) rather
+// than --muted for the same reason: at 0.5 opacity over --bg, --text composites to #817F79, which
+// measures 4.82:1 — --muted needs about 0.73 opacity to clear 4.5:1 at all, leaving almost no room
+// to actually dim anything (verified with WCAG's relative-luminance formula, not eyeballed).
+const CAPTION_DIM = 0.5;
 
 let mm = null;
 

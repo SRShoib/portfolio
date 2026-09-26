@@ -25,6 +25,14 @@ const WEBP = { quality: 78, effort: 4 };
 // Keep in step with IMAGE_EXTENSIONS in vite-partials.mjs (the plugin must accept what this converts).
 const SOURCE_EXTENSIONS = ['.png', '.jpg', '.jpeg'];
 
+// M8: JSON-LD's `image` (CLAUDE.md, Portrait in About / SEO) needs a square crop; portrait.png is
+// 928x1065 (portrait orientation). This is generated here, not by hand, so it stays in sync with
+// portrait.png automatically (same freshness check as every other output below).
+const PORTRAIT_SQUARE = {
+  source: join(IMAGES_DIR, 'profile', 'portrait.png'),
+  output: join(IMAGES_DIR, 'profile', 'portrait-square.jpg'),
+};
+
 async function* walk(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
@@ -77,6 +85,21 @@ async function optimize(file) {
   return made;
 }
 
+/** Square, top-aligned crop of the portrait (928x928 from 928x1065): the same top-anchored framing
+ *  base.css already gives the About portrait (`object-position: top`), since a face sits near the
+ *  top of a headshot. `fit: cover` with `position: 'top'` crops the excess off the bottom only. */
+async function buildPortraitSquare() {
+  const sourceMtimeMs = (await stat(PORTRAIT_SQUARE.source)).mtimeMs;
+  if (await isFresh(PORTRAIT_SQUARE.output, sourceMtimeMs)) return false;
+  const { width } = await sharp(PORTRAIT_SQUARE.source).metadata();
+  await sharp(PORTRAIT_SQUARE.source)
+    .resize({ width, height: width, fit: 'cover', position: 'top' })
+    .flatten({ background: '#0f0e0c' }) // in case the source PNG has any transparent edge
+    .jpeg({ quality: 82 })
+    .toFile(PORTRAIT_SQUARE.output);
+  return true;
+}
+
 async function main() {
   let dirExists = true;
   try {
@@ -92,12 +115,19 @@ async function main() {
   let sources = 0;
   let made = 0;
   for await (const file of walk(IMAGES_DIR)) {
+    if (file === PORTRAIT_SQUARE.output) continue; // a derived file, never its own source
     sources += 1;
     const count = await optimize(file);
     made += count;
     if (count) console.log(`[images] ${relative(IMAGES_DIR, file)}: wrote ${count} file(s)`);
   }
   console.log(`[images] ${sources} image(s) checked, ${made} file(s) written, ${sources ? 'rest up to date' : 'nothing to convert'}`);
+
+  try {
+    if (await buildPortraitSquare()) console.log('[images] profile/portrait-square.jpg: wrote 1 file');
+  } catch {
+    console.log('[images] profile/portrait.png not found, skipped the square crop (JSON-LD image)');
+  }
 }
 
 main().catch((error) => {

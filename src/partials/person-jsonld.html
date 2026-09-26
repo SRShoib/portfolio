@@ -1,0 +1,26 @@
+<!-- JSON-LD Person schema, home page only (index.html includes this directly; other pages don't).
+     Fields and their source, so nothing here drifts from CONTENT.md (rule 1):
+       name, jobTitle  -> CONTENT.md §1 Identity
+       image           -> the square crop scripts/optimize-images.mjs generates from portrait.png
+       sameAs          -> CONTENT.md §11, in the order listed there
+     No email (rule 5: the address is only ever assembled in JS, never written to a file) and no
+     address/employer fields, since CLAUDE.md's JSON-LD spec lists only name, jobTitle, image and
+     sameAs. size-report.mjs does not count this block as JS: its type is not "module" or
+     "text/javascript", so it is excluded from the budget on purpose (it is data, not code). -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Md. Mehedi Hasan Shoib",
+  "jobTitle": "AI/ML Engineer · Generative & Agentic AI",
+  "url": "{{site}}/",
+  "image": "{{site}}/images/profile/portrait-square.jpg",
+  "sameAs": [
+    "https://github.com/SRShoib",
+    "https://www.linkedin.com/in/md-mehedi-hasan-shoib-1b7b35258",
+    "https://scholar.google.com/citations?user=iY736XgAAAAJ&hl=en",
+    "https://www.researchgate.net/profile/Md-Mehedi-Hasan-Shoib",
+    "https://orcid.org/0009-0007-4596-2325"
+  ]
+}
+</script>

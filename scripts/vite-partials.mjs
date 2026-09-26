@@ -106,7 +106,7 @@ function imageSize(file) {
  *  A comma would also end a srcset candidate, and encodeURI does not touch commas. */
 const toUrl = (path) => encodeURI(path).replaceAll(',', '%2C');
 
-export default function partials({ dir = 'src/partials', publicDir = 'public' } = {}) {
+export default function partials({ dir = 'src/partials', publicDir = 'public', vars: globalVars = {} } = {}) {
   let root;
   let isBuild = false;
 
@@ -178,16 +178,25 @@ export default function partials({ dir = 'src/partials', publicDir = 'public' } 
 
   // PHASE 1 (pre): shared HTML. Must run before Vite, because the included head has the stylesheet
   // and module-script tags that Vite bundles and rewrites.
+  //
+  // `globalVars` (e.g. { site: SITE_URL }) are available to every include; a page's own attributes
+  // (title, description, path, …) are layered on top and win on a name clash. A template variable
+  // with no value anywhere throws instead of silently becoming "": M8 added {{site}}{{path}} to
+  // head.html for canonical/og:url, and a page that forgot `path="…"` would otherwise get a
+  // canonical URL silently equal to "" + SITE_URL, wrong but not visibly broken.
   const expandIncludes = (html, page) =>
     html.replace(INCLUDE, (_match, name, attrs) => {
-      const vars = parseAttrs(attrs);
+      const vars = { ...globalVars, ...parseAttrs(attrs) };
       let body;
       try {
         body = readFileSync(resolve(root, dir, name), 'utf8');
       } catch {
         throw new Error(`[partials] ${page}: cannot read "${dir}/${name}"`);
       }
-      body = body.replace(/\{\{\s*([\w-]+)\s*\}\}/g, (_m, key) => vars[key] ?? '');
+      body = body.replace(/\{\{\s*([\w-]+)\s*\}\}/g, (_m, key) => {
+        if (!(key in vars)) throw new Error(`[partials] ${page}: include:${name} uses {{${key}}}, but no such attribute was passed`);
+        return vars[key];
+      });
       return expandIncludes(body, name); // partials may include other partials
     });
 

@@ -47,6 +47,8 @@ function buildLoop(row, direction) {
 export function initMarquee() {
   const section = document.querySelector('.marquee');
   const rows = section ? [...section.querySelectorAll('.marquee__row')] : [];
+  const toggle = section?.querySelector('[data-marquee-toggle]');
+  const toggleLabel = toggle?.querySelector('[data-marquee-toggle-label]');
   if (!section || rows.length < 2) return;
 
   mm = gsap.matchMedia();
@@ -65,15 +67,41 @@ export function initMarquee() {
     };
     gsap.ticker.add(tick);
 
-    // ---- Pause on hover: fine pointers only, so a touch tap does not freeze the loop ----------
+    // ---- Pause: hovering a fine pointer OR pressing the toggle button (WCAG 2.2.2 requires a
+    // control that works without a mouse, which "pause on hover" alone does not give a keyboard
+    // or touch user). Combined with `||` so leaving the row while the button is pressed doesn't
+    // silently resume the loop the visitor asked to stop. -----------------------------------
+    let hovering = false;
+    let userPaused = false;
+    const applyPauseState = () => {
+      const paused = hovering || userPaused;
+      tweens.forEach((t) => (paused ? t.pause() : t.resume()));
+    };
+
     const onEnter = (event) => {
-      if (event.pointerType !== 'touch') tweens.forEach((t) => t.pause());
+      if (event.pointerType === 'touch') return;
+      hovering = true;
+      applyPauseState();
     };
     const onLeave = (event) => {
-      if (event.pointerType !== 'touch') tweens.forEach((t) => t.resume());
+      if (event.pointerType === 'touch') return;
+      hovering = false;
+      applyPauseState();
     };
     section.addEventListener('pointerenter', onEnter);
     section.addEventListener('pointerleave', onLeave);
+
+    const onToggle = () => {
+      userPaused = !userPaused;
+      toggle.setAttribute('aria-pressed', String(userPaused));
+      if (toggleLabel) toggleLabel.textContent = userPaused ? 'Play' : 'Pause';
+      applyPauseState();
+    };
+    if (toggle) {
+      toggle.hidden = false; // a dead button (no JS, reduced motion -- this branch never runs) stays hidden
+      toggle.setAttribute('aria-pressed', 'false');
+      toggle.addEventListener('click', onToggle);
+    }
 
     // ---- Re-measure on resize: the fluid type scale keeps the rows' natural width changing ----
     let resizeTimer = 0;
@@ -82,6 +110,7 @@ export function initMarquee() {
       resizeTimer = setTimeout(() => {
         tweens.forEach((t) => t.kill());
         tweens = rows.map((row, i) => buildLoop(row, i % 2 === 0 ? -1 : 1));
+        applyPauseState(); // a rebuilt tween starts running; re-apply hover/button pause if still active
       }, RESIZE_DEBOUNCE_MS);
     };
     window.addEventListener('resize', onResize);
@@ -91,6 +120,12 @@ export function initMarquee() {
       window.removeEventListener('resize', onResize);
       section.removeEventListener('pointerenter', onEnter);
       section.removeEventListener('pointerleave', onLeave);
+      if (toggle) {
+        toggle.removeEventListener('click', onToggle);
+        toggle.hidden = true;
+        toggle.removeAttribute('aria-pressed');
+        if (toggleLabel) toggleLabel.textContent = 'Pause';
+      }
       gsap.ticker.remove(tick);
       tweens.forEach((t) => t.kill());
       rows.forEach((row, i) => {

@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="en" data-preloader>
   <head>
-    <!--include:head.html title="Md. Mehedi Hasan Shoib — AI/ML Engineer (Generative &amp; Agentic AI)" description="AI/ML engineer building RAG and multi-agent LLM systems, with published research in medical and agricultural computer vision. Based in Dhaka, Bangladesh."-->
+    <!--include:head.html title="Md. Mehedi Hasan Shoib — AI/ML Engineer (Generative &amp; Agentic AI)" description="AI/ML engineer building RAG and multi-agent LLM systems, with published research in medical and agricultural computer vision. Based in Dhaka, Bangladesh." path="/"-->
+    <!--include:person-jsonld.html-->
   </head>
   <body id="top">
     <!--include:preloader.html-->
@@ -671,7 +672,16 @@
 
       <section class="marquee section" aria-labelledby="stack-title">
         <div class="container">
-          <h2 id="stack-title" class="marquee__title label">Tech stack</h2>
+          <div class="marquee__head">
+            <h2 id="stack-title" class="marquee__title label">Tech stack</h2>
+            <!-- Hidden by default: only the motion-on branch of marquee.js reveals it, so a
+                 no-JS or reduced-motion visitor (whose rows never move) never sees a dead
+                 control. WCAG 2.2.2 requires a way to pause a >5s auto-scrolling loop that
+                 doesn't depend on a mouse hover. -->
+            <button class="marquee__toggle label" type="button" data-marquee-toggle hidden>
+              <span data-marquee-toggle-label>Pause</span><span class="sr-only"> tech stack scrolling</span>
+            </button>
+          </div>
           <div class="marquee__rows">
             <ul class="marquee__row" role="list">
               <li>LangGraph</li>
