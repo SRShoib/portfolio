@@ -15,8 +15,13 @@
 import { gsap } from 'gsap';
 import { conditions } from './motion.js';
 
-const CELL_SIZE = 48; // CSS px per noise-sampling cell: keeps blob scale similar at any viewport size
-const FREQUENCY = 0.22; // how "zoomed in" the noise is, in cells; smaller = larger, softer blobs
+const CELL_SIZE = 22; // CSS px per noise-sampling cell: keeps blob scale similar at any viewport size.
+// Finer than a first pass would need purely for blob size -- the marching-squares grid resolution
+// is also what makes the drawn lines read as smoothly curved rather than faceted, since each cell
+// only ever contributes a straight segment; more, smaller segments approximate a curve better.
+const FREQUENCY = 0.037; // how "zoomed in" the noise is, in cells; smaller = larger, softer blobs.
+// Tuned together with CELL_SIZE: one noise cycle spans roughly CELL_SIZE / FREQUENCY CSS px, so
+// halving CELL_SIZE for resolution alone would have halved the blobs too without also lowering this.
 const LEVELS = [0.36, 0.5, 0.64]; // contour thresholds drawn every frame: three nested bands
 const DRIFT_SPEED = 0.05; // domain-warp speed (noise-space units per second)
 const MAX_PIXEL_RATIO = 1.5; // thin strokes don't need full retina crispness; caps GPU/CPU cost
@@ -194,6 +199,11 @@ export function initBackdrop() {
       ctx.strokeStyle = lineColor;
       ctx.lineWidth = 1;
       ctx.globalAlpha = 0.6;
+      // Each cell still only ever draws one straight segment, but rounding its ends softens the
+      // facet where it meets its neighbour's segment, so the finer grid above reads as a smooth,
+      // flowing curve instead of a chain of visible corners.
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
 
       for (const threshold of LEVELS) {
         ctx.beginPath();
