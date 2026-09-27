@@ -65,7 +65,12 @@ export function initCursor() {
 
     function tick() {
       const now = performance.now();
-      const dt = (now - lastTime) / 1000;
+      // Capped at 100ms for the same reason scene.js's tick caps its own dt: a backgrounded tab
+      // throttles requestAnimationFrame, so the tick that finally runs on regaining focus can
+      // otherwise report a multi-second dt. damp() already degrades safely for a huge, uncapped dt
+      // (the ring would just snap straight to the dot instead of easing), so this is defensive
+      // consistency with scene.js rather than a fix for a visible bug in this file specifically.
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
       ringX = damp(ringX, targetX, RING_LAMBDA, dt);
       ringY = damp(ringY, targetY, RING_LAMBDA, dt);

@@ -260,7 +260,13 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   const tick = (time, deltaMs) => {
     // A fresh page's first tick has no previous frame to measure from; treat it as one 60fps frame
     // rather than a huge or zero delta (either would make the very first damp() step misbehave).
-    const dt = (deltaMs || 16.67) / 1000;
+    // Also capped at 100ms: a backgrounded tab throttles requestAnimationFrame, so the tick that
+    // finally runs when the tab regains focus can report a multi-second deltaMs (gsap.ticker's
+    // lagSmoothing is off, see lib/scroll.js) -- left uncapped, currentTilt and uRepelStrength
+    // (both damp()'d below) would jump straight to their targets in one frame instead of easing.
+    // `time` itself needs no such cap: it already reflects true elapsed wall time on its own (see
+    // the comment below on why that is correct, not a bug).
+    const dt = Math.min((deltaMs || 16.67) / 1000, 0.1);
 
     // Kept LIVE even while offscreen — cheap (a couple of trig and damp() calls). `points.rotation.y`
     // itself would be fine either way: it is a PURE function of the absolute `time`, so recomputing it

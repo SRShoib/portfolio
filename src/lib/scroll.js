@@ -88,7 +88,20 @@ export function initScroll() {
     // a clock that disagrees with real time and the scroll would stutter, so turn it off.
     gsap.ticker.lagSmoothing(0);
 
+    // A backgrounded tab throttles (often to a near-standstill) requestAnimationFrame, so with
+    // lag smoothing deliberately off, the tick that finally runs when the tab regains focus can
+    // report a multi-second elapsed time straight into Lenis -- which it would otherwise try to
+    // reconcile in one step, reading as a sudden scroll jump/stutter rather than the smooth glide
+    // Lenis exists for. Stopping Lenis while hidden and starting it again on return means there is
+    // nothing to reconcile: the scroll position never tried to move while nobody could see it.
+    const onVisibilityChange = () => {
+      if (document.hidden) instance.stop();
+      else instance.start();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       gsap.ticker.remove(tick);
       gsap.ticker.lagSmoothing(500, 33); // GSAP's default, restored
       instance.destroy();
