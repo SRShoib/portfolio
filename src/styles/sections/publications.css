@@ -147,9 +147,14 @@
 }
 
 .pub-card__doi {
+  align-self: flex-start; /* .pub-card is column-flex: without this it stretches full width, and
+    the underline (base.css, a background-image line the width of the box) would run on far past
+    where the DOI text actually ends */
   padding-top: var(--space-2xs);
   font-family: var(--font-mono);
   font-size: var(--step-n2);
+  line-height: 1.3; /* tighter than the inherited body line-height, so the underline (base.css)
+    sits close under the text instead of at the bottom of a much taller line box */
   overflow-wrap: anywhere; /* DOIs are long unbroken strings; never let one widen the page */
 }
 

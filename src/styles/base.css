@@ -419,13 +419,17 @@ main {
    underline came out broken into short dashes, one per character, with a gap at every
    boundary, instead of one continuous line. A background-image line instead of
    `text-decoration` draws across the whole link as a single box, unaffected by whatever
-   elements sit inside it. */
+   elements sit inside it. The tighter `line-height` is what keeps that line close under the
+   text: a background is painted across an inline element's full line-height box, so the
+   inherited body line-height (1.6) put the default `background-position: 0 100%` well below
+   the actual glyphs, reading as a gap rather than an underline. */
 .ext,
 .pub-card__doi,
 .site-footer__links a,
 .site-footer__bottom a,
 .site-footer__email a {
   text-decoration: none;
+  line-height: 1.3;
   background-image: linear-gradient(currentColor, currentColor);
   background-repeat: no-repeat;
   background-position: 0 100%;
