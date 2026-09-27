@@ -1,16 +1,18 @@
 // Whole-page background: a handful of slowly flowing, closed contour lines (an organic,
 // topographic-map look) behind every section, always fixed to the viewport. Inspired by the
-// reference recording (video/Recording background effect.mp4) — the technique itself (contour
-// lines traced through an animated noise field) is a well-known, generic creative-coding method,
-// not anything specific to that site; the palette, motion values and every line of code here are
-// this project's own (CLAUDE.md rule 2: no borrowed assets, code or visual identity).
+// reference recordings (video/Recording background effect.mp4, video/Recording background effect
+// 2.mp4) — the technique itself (contour lines traced through an animated noise field) is a
+// well-known, generic creative-coding method, not anything specific to that site; the palette,
+// motion values and every line of code here are this project's own (CLAUDE.md rule 2: no borrowed
+// assets, code or visual identity).
 //
 // Built from scratch rather than a dependency (CLAUDE.md rule 6): the noise function is a small
-// hand-rolled 2D value-noise (a seeded permutation grid + smoothstep interpolation), animated by
-// slowly drifting the sampling coordinates through the noise space (a domain warp) instead of
-// needing true 3D/4D noise for the time axis. The contour lines themselves come from marching
-// squares, a standard, public-domain scalar-field-contouring algorithm — the same family of
-// technique GIS software uses to draw elevation lines on a real topographic map.
+// hand-rolled 3D value-noise (a seeded permutation table, hashed the classic Perlin way, with
+// trilinear + smoothstep interpolation) with time as the third axis, so the field itself evolves
+// at every point independently — blobs form, merge and dissolve, with no net direction to the
+// motion. The contour lines themselves come from marching squares, a standard, public-domain
+// scalar-field-contouring algorithm — the same family of technique GIS software uses to draw
+// elevation lines on a real topographic map.
 
 import { gsap } from 'gsap';
 import { conditions } from './motion.js';
@@ -23,10 +25,10 @@ const FREQUENCY = 0.037; // how "zoomed in" the noise is, in cells; smaller = la
 // Tuned together with CELL_SIZE: one noise cycle spans roughly CELL_SIZE / FREQUENCY CSS px, so
 // halving CELL_SIZE for resolution alone would have halved the blobs too without also lowering this.
 const LEVELS = [0.36, 0.5, 0.64]; // contour thresholds drawn every frame: three nested bands
-const DRIFT_SPEED = 0.05; // domain-warp speed (noise-space units per second)
+const TIME_SPEED = 0.05; // how fast time moves through the noise volume's 3rd axis (units/second)
 const MAX_PIXEL_RATIO = 1.5; // thin strokes don't need full retina crispness; caps GPU/CPU cost
 const FRAME_INTERVAL = 1 / 24; // redraw at ~24fps: smooth enough for a slow background, cheap
-const NOISE_SIZE = 256; // permutation grid side length, must be a power of two (see noise2D's mask)
+const PERM_SIZE = 256; // permutation table length, must be a power of two (see noise3D's mask)
 
 /** A tiny seeded PRNG (mulberry32), just to fill the noise permutation grid deterministically. */
 function mulberry32(seed) {
@@ -39,47 +41,58 @@ function mulberry32(seed) {
   };
 }
 
-/** Bilinear-interpolated 2D value noise over a seeded grid, wrapped with a bitmask (NOISE_SIZE is
- *  a power of two) so sampling never runs off the edge of the grid. Returns roughly 0..1. */
-function makeNoise2D(seed) {
+/** Trilinear-interpolated 3D value noise, hashed the classic Perlin way: a seeded permutation
+ *  table (shuffled once) chains three lookups to turn an integer (x, y, z) lattice point into an
+ *  index into a table of random values, wrapped with a bitmask (PERM_SIZE is a power of two) so
+ *  sampling never runs off the table. Time is just this function's z axis, one call site down in
+ *  drawFrame() -- the field's own values genuinely change at every fixed (x, y) as z advances, so
+ *  blobs independently form, merge and dissolve instead of the whole field sliding in one
+ *  direction (which is all a 2D noise sampled through a moving x/y offset could ever produce).
+ *  Returns roughly 0..1. */
+function makeNoise3D(seed) {
   const rand = mulberry32(seed);
-  const grid = new Float32Array(NOISE_SIZE * NOISE_SIZE);
-  for (let i = 0; i < grid.length; i++) grid[i] = rand();
-  const mask = NOISE_SIZE - 1;
+  const mask = PERM_SIZE - 1;
+  const perm = new Uint8Array(PERM_SIZE);
+  for (let i = 0; i < PERM_SIZE; i++) perm[i] = i;
+  for (let i = PERM_SIZE - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [perm[i], perm[j]] = [perm[j], perm[i]];
+  }
+  const values = new Float32Array(PERM_SIZE);
+  for (let i = 0; i < PERM_SIZE; i++) values[i] = rand();
+  const hash = (xi, yi, zi) => values[perm[(perm[(perm[xi & mask] + yi) & mask] + zi) & mask]];
   const smooth = (t) => t * t * (3 - 2 * t);
 
-  return (x, y) => {
+  return (x, y, z) => {
     const xi = Math.floor(x);
     const yi = Math.floor(y);
-    const xf = x - xi;
-    const yf = y - yi;
-    const x0 = xi & mask;
-    const x1 = (xi + 1) & mask;
-    const y0 = yi & mask;
-    const y1 = (yi + 1) & mask;
-    const v00 = grid[y0 * NOISE_SIZE + x0];
-    const v10 = grid[y0 * NOISE_SIZE + x1];
-    const v01 = grid[y1 * NOISE_SIZE + x0];
-    const v11 = grid[y1 * NOISE_SIZE + x1];
-    const sx = smooth(xf);
-    const sy = smooth(yf);
-    const a = v00 + (v10 - v00) * sx;
-    const b = v01 + (v11 - v01) * sx;
-    return a + (b - a) * sy;
+    const zi = Math.floor(z);
+    const sx = smooth(x - xi);
+    const sy = smooth(y - yi);
+    const sz = smooth(z - zi);
+    const x00 = lerp(hash(xi, yi, zi), hash(xi + 1, yi, zi), sx);
+    const x10 = lerp(hash(xi, yi + 1, zi), hash(xi + 1, yi + 1, zi), sx);
+    const x01 = lerp(hash(xi, yi, zi + 1), hash(xi + 1, yi, zi + 1), sx);
+    const x11 = lerp(hash(xi, yi + 1, zi + 1), hash(xi + 1, yi + 1, zi + 1), sx);
+    const y0 = lerp(x00, x10, sy);
+    const y1 = lerp(x01, x11, sy);
+    return lerp(y0, y1, sz);
   };
 }
 
 /** Fractal Brownian motion: a few octaves of the same noise at doubling frequency and halving
  *  amplitude, summed and renormalised to ~0..1. Softens the raw grid's blocky look into the
- *  rounder, more organic shape contour lines need to read as "flowing" rather than "gridded". */
-function makeFbm(noise2D, octaves = 3) {
-  return (x, y) => {
+ *  rounder, more organic shape contour lines need to read as "flowing" rather than "gridded".
+ *  Doubling z's frequency too, along with x and y, is what makes the finer detail churn faster
+ *  than the big blob shapes -- the same relationship FBM always has between scale and rate. */
+function makeFbm(noise3D, octaves = 3) {
+  return (x, y, z) => {
     let sum = 0;
     let amp = 0.5;
     let freq = 1;
     let ampTotal = 0;
     for (let i = 0; i < octaves; i++) {
-      sum += noise2D(x * freq, y * freq) * amp;
+      sum += noise3D(x * freq, y * freq, z * freq) * amp;
       ampTotal += amp;
       amp *= 0.5;
       freq *= 2;
@@ -158,8 +171,8 @@ export function initBackdrop() {
     document.body.prepend(canvas); // first child: base.css's z-index puts it behind everything regardless
 
     const ctx = canvas.getContext('2d');
-    const noise2D = makeNoise2D(1234);
-    const fbm = makeFbm(noise2D);
+    const noise3D = makeNoise3D(1234);
+    const fbm = makeFbm(noise3D);
 
     let cols = 0;
     let rows = 0;
@@ -185,13 +198,10 @@ export function initBackdrop() {
     function drawFrame() {
       const valueCols = cols + 1;
       const values = new Float32Array(valueCols * (rows + 1));
-      // Domain warp: a slowly drifting offset stands in for a true time axis on the noise, which
-      // would otherwise need a 3D (or 4D, with octaves) noise function instead of this 2D one.
-      const wx = Math.cos(time * DRIFT_SPEED) * 3;
-      const wy = Math.sin(time * DRIFT_SPEED * 0.8) * 3;
+      const z = time * TIME_SPEED; // the noise volume's 3rd axis: real time, not a spatial offset
       for (let gy = 0; gy <= rows; gy++) {
         for (let gx = 0; gx <= cols; gx++) {
-          values[gy * valueCols + gx] = fbm(gx * FREQUENCY + wx, gy * FREQUENCY + wy);
+          values[gy * valueCols + gx] = fbm(gx * FREQUENCY, gy * FREQUENCY, z);
         }
       }
 
@@ -232,10 +242,11 @@ export function initBackdrop() {
       }
     }
 
-    // Advances the domain-warp clock in fixed steps (not by however long the frame actually took)
-    // so the flow's speed never depends on the redraw rate, only capped so a stalled tab's first
-    // tick back can't lurch the field forward by several seconds' worth of drift in one jump (the
-    // same class of bug this project's hero point cloud and cursor both had to be fixed for).
+    // Advances the noise volume's time axis in fixed steps (not by however long the frame actually
+    // took) so the flow's speed never depends on the redraw rate, only capped so a stalled tab's
+    // first tick back can't lurch the field forward by several seconds' worth of evolution in one
+    // jump (the same class of bug this project's hero point cloud and cursor both had to be fixed
+    // for).
     function tick(_frameTime, deltaMs) {
       const dt = Math.min((deltaMs || 16.67) / 1000, 0.1);
       lastFrameTime += dt;
