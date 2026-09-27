@@ -59,8 +59,16 @@ const ORB_RADIUS = 95; // CSS px, base value before the per-frame breathing nois
 const ORB_JITTER = 20; // CSS px of perpendicular drift, at most -- organic curvature, kept well
 // inside the overlap margin above so the jitter can't accidentally pull the shape apart.
 const GOO_BUFFER_SIZE = 420; // CSS px square offscreen buffer the cluster is composited from
-const GOO_BLUR_STD_DEV = 20; // feGaussianBlur std deviation, px: only needs to soften an already-
-// (generously) overlapping union into a smooth bridge now, not stretch to reach across a gap.
+const GOO_BLUR_STD_DEV = 8; // feGaussianBlur std deviation, px -- deliberately smaller than the
+// merge alone would want (merging depends on true geometric overlap, not blur amount: see
+// ORB_LAMBDA above), kept low here so it only softens the seam between orbs without smoothing away
+// the high-frequency wave ripple each orb's own outline gets in drawCursorBubble().
+const WAVE_POINTS = 28; // samples around each orb's own circumference
+const WAVE_FREQUENCY = 3.5; // noise-space units traversed per full circle -- higher = more, smaller ripples
+const WAVE_AMOUNT = 0.22; // fraction of radius each ripple pushes the edge in/out
+const WAVE_SPEED = 4; // how much faster the ripples slosh than the slow drift/breathing above --
+// "uneven, sloshing liquid surface" needs the surface texture itself agitated, not just the whole
+// shape drifting slowly.
 
 /** A tiny seeded PRNG (mulberry32), just to fill the noise permutation grid deterministically. */
 function mulberry32(seed) {
@@ -277,13 +285,14 @@ export function initBackdrop() {
     gooSvg.innerHTML = `<filter id="backdrop-goo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="${GOO_BLUR_STD_DEV}" result="blur" /><feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4" /></filter>`;
     document.body.append(gooSvg);
 
-    /** A soft, liquid-looking bubble cluster centred near (cx, cy): each orb is a filled circle,
-     *  drawn into the small offscreen buffer under the goo filter above so touching orbs melt into
-     *  one smooth silhouette. Perfect, identically-sized circles merged in a straight line reads as
-     *  a clean geometric capsule, not liquid -- reusing the SAME noise field the background uses,
-     *  each orb's radius breathes and its position drifts sideways off the straight cursor-to-tail
-     *  line, both continuously evolving with time, so the merged shape's width and curvature vary
-     *  organically along its length instead of being a uniform-width pill. */
+    /** A soft, liquid-looking bubble cluster centred near (cx, cy): each orb is a filled, WAVY
+     *  shape (not a plain circle), drawn into the small offscreen buffer under the goo filter above
+     *  so touching orbs melt into one silhouette. A plain circle's edge is perfectly smooth no
+     *  matter how the whole shape drifts or breathes -- the "shake a half-full bottle" surface
+     *  needs the EDGE ITSELF choppy and uneven, like a sloshing liquid surface, not just the overall
+     *  outline drifting. Reuses the same noise field the background uses, at a higher frequency and
+     *  faster time-scale than the slow drift/breathing below, sampled once per point around each
+     *  orb's own circumference instead of once per orb. */
     function drawCursorBubble(cx, cy, amount) {
       const half = GOO_BUFFER_SIZE / 2;
       gooCtx.clearRect(0, 0, GOO_BUFFER_SIZE, GOO_BUFFER_SIZE);
@@ -305,8 +314,30 @@ export function initBackdrop() {
         const jx = orbX[i] + perpX * wobble * ORB_JITTER;
         const jy = orbY[i] + perpY * wobble * ORB_JITTER;
         const radiusNoise = 0.75 + 0.5 * fbm(i * 1.3 + 10, 0, z * 2); // roughly 0.75..1.25
+        const radius = ORB_RADIUS * radiusNoise;
+
+        // The wavy outline itself: WAVE_POINTS samples around the circumference, each pushed in or
+        // out by fast-evolving noise, connected with quadratic curves through each pair's midpoint
+        // (a smooth PATH, but tracing a genuinely choppy radius profile -- the ripples come from the
+        // radius varying quickly point-to-point, not from the segments themselves being jagged).
+        const points = [];
+        for (let p = 0; p < WAVE_POINTS; p++) {
+          const angle = (p / WAVE_POINTS) * Math.PI * 2;
+          const wz = i * 30 + z * WAVE_SPEED; // offset per orb so their ripples aren't in lockstep
+          const n = fbm(Math.cos(angle) * WAVE_FREQUENCY, Math.sin(angle) * WAVE_FREQUENCY, wz);
+          const r = radius * (1 - WAVE_AMOUNT + WAVE_AMOUNT * 2 * n);
+          points.push([jx + Math.cos(angle) * r - cx + half, jy + Math.sin(angle) * r - cy + half]);
+        }
         gooCtx.beginPath();
-        gooCtx.arc(jx - cx + half, jy - cy + half, ORB_RADIUS * radiusNoise, 0, Math.PI * 2);
+        const mid = (u, v) => [(u[0] + v[0]) / 2, (u[1] + v[1]) / 2];
+        let m = mid(points[WAVE_POINTS - 1], points[0]);
+        gooCtx.moveTo(m[0], m[1]);
+        for (let p = 0; p < WAVE_POINTS; p++) {
+          const next = points[(p + 1) % WAVE_POINTS];
+          m = mid(points[p], next);
+          gooCtx.quadraticCurveTo(points[p][0], points[p][1], m[0], m[1]);
+        }
+        gooCtx.closePath();
         gooCtx.fill();
       }
       gooCtx.filter = 'none';
