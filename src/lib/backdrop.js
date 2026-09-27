@@ -31,47 +31,6 @@ const MAX_PIXEL_RATIO = 1.5; // thin strokes don't need full retina crispness; c
 const FRAME_INTERVAL = 1 / 24; // redraw at ~24fps: smooth enough for a slow background, cheap
 const PERM_SIZE = 256; // permutation table length, must be a power of two (see noise3D's mask)
 
-// ---- Cursor-follow organic blob (fine pointers only; see initBackdrop) ---------------------
-// Reuses the EXACT same technique as the ambient background above -- marching squares over the
-// noise field -- instead of a separate shape system built from circles. A smooth, falling-off
-// "bump" is added to the field's values in a small region near the (lagged) cursor, then filled
-// wherever the BIASED field crosses a threshold. Three earlier attempts (a single noise-wobbled
-// blob, then a cluster of merged circles, then circles with a wavy edge) all still fundamentally
-// read as "rounded", however organic the tuning: every one of them was built from a smooth base
-// shape (a circle) with perturbation added on top. Tracing the SAME noisy field the background
-// lines already flow through means the boundary's irregularity is the real thing, not a
-// perturbation of something rounder underneath -- it inherits the ambient background's own
-// non-circular character for free, and reads as visibly consistent with it.
-const CURSOR_LAMBDA = 8; // how tightly the head point tracks the real pointer
-const TAIL_LAMBDA = 5; // how tightly the tail point tracks the head -- slower on purpose, so the
-// tail lags further behind during fast movement (the same "lag of a lag" idea used elsewhere in
-// this file), which is what makes the blob elongate while moving and contract to one point at rest.
-const ENERGY_LAMBDA = 6; // how fast the blob's strength rises/falls toward its target
-const SPEED_FOR_FULL_ENERGY = 900; // cursor speed (CSS px/s) that brings the blob fully in
-const BUMP_RADIUS = 130; // CSS px: how far the bump reaches perpendicular to the head-tail line
-const BUMP_STRENGTH = 0.65; // added to the field value at the head/tail line itself, tapering
-// linearly to 0 at BUMP_RADIUS -- comfortably above CURSOR_FILL_THRESHOLD at the centre, at the
-// real noise's own typical range by the edge, so the interplay of bump + already-flowing noise
-// decides the exact boundary there, not the bump's own (perfectly smooth) falloff shape alone.
-const CURSOR_FILL_THRESHOLD = 0.78; // deliberately HIGHER than the ambient bands' own max (0.64),
-// a dedicated value rather than reusing one of LEVELS -- caught by screenshotting, not by
-// reasoning about the bump formula alone: at a mid-level threshold like 0.5, a naturally-high
-// patch of the SAME noise the ambient blobs are made from can combine with the bump and stay
-// "inside" far past where the bump itself has finished tapering, which showed up as a hard
-// rectangular clip at whatever bounding box the fill pass iterated. A threshold safely above the
-// noise's own typical range means only the bump can realistically cross it, keeping the blob's
-// real size predictable and close to BUMP_RADIUS, the same way the box below assumes.
-const BLOB_BUFFER_SIZE = 640; // CSS px square offscreen buffer: comfortably covers the head-tail
-// segment's typical spread plus the worst-case box margin below, on every side.
-// The iterated region has to reach further out than BUMP_RADIUS itself: the bump tapers to 0
-// there, but the field's real, already-flowing noise can independently be above
-// CURSOR_FILL_THRESHOLD at that distance regardless of the bump -- and if the box stopped exactly
-// at BUMP_RADIUS, that still-"inside" area past the box edge would hard-clip into a visible
-// straight line (caught by screenshotting, not by reasoning about the bump formula alone). Sized
-// for the worst case: noise at its own maximum (~1) still needs the bump to have fully finished
-// tapering before the combined value can drop back under threshold.
-const BOX_MARGIN = BUMP_RADIUS * (1 + (1 - CURSOR_FILL_THRESHOLD) / BUMP_STRENGTH);
-
 /** A tiny seeded PRNG (mulberry32), just to fill the noise permutation grid deterministically. */
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -205,95 +164,14 @@ const EDGE_TABLE = {
   14: [['left', 'bottom']],
 };
 
-/** The fill counterpart to EDGE_TABLE's stroke segments above: adds the "inside" (above-threshold)
- *  polygon for one marching-squares cell to `path`, by walking the cell's perimeter (TL, TR, BR,
- *  BL) and including each inside corner plus each edge's threshold-crossing point wherever two
- *  consecutive corners disagree. The two ambiguous "saddle" cases (5, 10) are special-cased into
- *  their two separate corner triangles -- the general walk would otherwise connect them into one
- *  self-intersecting bowtie -- using the same diagonal convention EDGE_TABLE already commits to. */
-function addFillPolygon(path, x0, y0, size, tl, tr, br, bl, threshold) {
-  const c = (tl > threshold ? 8 : 0) | (tr > threshold ? 4 : 0) | (br > threshold ? 2 : 0) | (bl > threshold ? 1 : 0);
-  if (c === 0) return;
-  if (c === 15) {
-    path.rect(x0, y0, size, size);
-    return;
-  }
-  if (c === 5 || c === 10) {
-    const top = edgePoint('top', x0, y0, size, tl, tr, br, bl, threshold);
-    const right = edgePoint('right', x0, y0, size, tl, tr, br, bl, threshold);
-    const bottom = edgePoint('bottom', x0, y0, size, tl, tr, br, bl, threshold);
-    const left = edgePoint('left', x0, y0, size, tl, tr, br, bl, threshold);
-    if (c === 5) {
-      // TR and BL inside: a triangle at each of those two corners.
-      path.moveTo(x0 + size, y0);
-      path.lineTo(top[0], top[1]);
-      path.lineTo(right[0], right[1]);
-      path.closePath();
-      path.moveTo(x0, y0 + size);
-      path.lineTo(left[0], left[1]);
-      path.lineTo(bottom[0], bottom[1]);
-      path.closePath();
-    } else {
-      // TL and BR inside.
-      path.moveTo(x0, y0);
-      path.lineTo(top[0], top[1]);
-      path.lineTo(left[0], left[1]);
-      path.closePath();
-      path.moveTo(x0 + size, y0 + size);
-      path.lineTo(right[0], right[1]);
-      path.lineTo(bottom[0], bottom[1]);
-      path.closePath();
-    }
-    return;
-  }
-  const corners = [
-    { x: x0, y: y0, v: tl, edge: 'top' },
-    { x: x0 + size, y: y0, v: tr, edge: 'right' },
-    { x: x0 + size, y: y0 + size, v: br, edge: 'bottom' },
-    { x: x0, y: y0 + size, v: bl, edge: 'left' },
-  ];
-  let started = false;
-  const moveOrLine = (x, y) => {
-    if (!started) {
-      path.moveTo(x, y);
-      started = true;
-    } else path.lineTo(x, y);
-  };
-  for (let k = 0; k < 4; k++) {
-    const cur = corners[k];
-    const next = corners[(k + 1) % 4];
-    const curIn = cur.v > threshold;
-    if (curIn) moveOrLine(cur.x, cur.y);
-    if (curIn !== next.v > threshold) {
-      const [ex, ey] = edgePoint(cur.edge, x0, y0, size, tl, tr, br, bl, threshold);
-      moveOrLine(ex, ey);
-    }
-  }
-  path.closePath();
-}
-
-/** Shortest distance from (px, py) to the segment (ax, ay)-(bx, by) -- used to bias the noise
- *  field along the whole head-to-tail line rather than just at one point, so the cursor blob's
- *  bump region elongates into a capsule while moving fast and contracts to a simple circle once
- *  the head and tail catch up to each other at rest. */
-function distanceToSegment(px, py, ax, ay, bx, by) {
-  const dx = bx - ax;
-  const dy = by - ay;
-  const lenSq = dx * dx + dy * dy;
-  const t = lenSq > 0 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lenSq)) : 0;
-  return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
-}
-
 export function initBackdrop() {
   let mm = gsap.matchMedia();
 
   // Both conditions, not just `motion` (the about.js portrait reveal uses the same pattern, for
   // the same reason): reduced-motion visitors still get the canvas and its first static frame --
-  // only the per-frame animation loop below is what actually needs to be skipped for them. `fine`
-  // gates the cursor-follow blob specifically (a touchscreen has no hovering pointer to follow),
-  // the same condition lib/cursor.js already uses for its own pointer-only enhancement.
-  mm.add({ motion: conditions.motion, reduce: conditions.reduce, fine: conditions.fine }, (context) => {
-    const { reduce, fine } = context.conditions;
+  // only the per-frame animation loop below is what actually needs to be skipped for them.
+  mm.add({ motion: conditions.motion, reduce: conditions.reduce }, (context) => {
+    const { reduce } = context.conditions;
     const canvas = document.createElement('canvas');
     canvas.className = 'backdrop';
     canvas.setAttribute('aria-hidden', 'true'); // decorative, carries no content of its own
@@ -313,109 +191,6 @@ export function initBackdrop() {
     // second time here, so tokens.css stays the one place the palette is actually defined.
     const lineColor = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
 
-    // Cursor-follow blob state: a head point tracking the real pointer, and a tail point tracking
-    // the head with more lag -- see LEARNING.md for why this needs lagged positions and an
-    // "energy" value rather than just biasing the field at the raw pointer position.
-    const cursorEnabled = !reduce && fine;
-    let hasPointer = false;
-    let pointerTargetX = 0;
-    let pointerTargetY = 0;
-    let prevTargetX = 0;
-    let prevTargetY = 0;
-    let energy = 0;
-    let headX = 0;
-    let headY = 0;
-    let tailX = 0;
-    let tailY = 0;
-
-    function onPointerMove(event) {
-      pointerTargetX = event.clientX;
-      pointerTargetY = event.clientY;
-      if (!hasPointer) {
-        hasPointer = true; // first real position: start head and tail exactly there, no swoop-in
-        prevTargetX = headX = tailX = pointerTargetX;
-        prevTargetY = headY = tailY = pointerTargetY;
-      }
-    }
-
-    // A small, reused offscreen buffer: composited onto the main canvas once per frame, the same
-    // proven alpha-handling this file already established (a single ctx.globalAlpha draw at the
-    // very end) rather than trying to apply alpha to several separate draws directly on the main
-    // canvas, which would multiply together instead of combining the way a flat value should.
-    const blobCanvas = document.createElement('canvas');
-    blobCanvas.width = BLOB_BUFFER_SIZE;
-    blobCanvas.height = BLOB_BUFFER_SIZE;
-    const blobCtx = blobCanvas.getContext('2d');
-
-    /** Fills the region where the ambient noise field, locally biased by a falling-off bump along
-     *  the head-tail line, crosses CURSOR_FILL_THRESHOLD -- reusing addFillPolygon() (the SAME
-     *  marching squares the stroked contour lines below use) over a small local grid, into the
-     *  offscreen buffer. `baseValues` is the UNBIASED field drawFrame() already computed for the
-     *  ambient lines this frame; reusing it here means this only ever costs one extra distance
-     *  calculation per grid vertex in the local region, not a second noise evaluation. */
-    function drawCursorBlob(amount, baseValues, valueCols, rows, cols) {
-      const half = BLOB_BUFFER_SIZE / 2;
-      const anchorX = (headX + tailX) / 2;
-      const anchorY = (headY + tailY) / 2;
-      const minGx = Math.max(0, Math.floor((Math.min(headX, tailX) - BOX_MARGIN) / CELL_SIZE));
-      const maxGx = Math.min(cols - 1, Math.ceil((Math.max(headX, tailX) + BOX_MARGIN) / CELL_SIZE));
-      const minGy = Math.max(0, Math.floor((Math.min(headY, tailY) - BOX_MARGIN) / CELL_SIZE));
-      const maxGy = Math.min(rows - 1, Math.ceil((Math.max(headY, tailY) + BOX_MARGIN) / CELL_SIZE));
-      if (minGx > maxGx || minGy > maxGy) return;
-
-      const strength = BUMP_STRENGTH * amount;
-      const bumpAt = (gx, gy) => {
-        const dist = distanceToSegment(gx * CELL_SIZE, gy * CELL_SIZE, headX, headY, tailX, tailY);
-        return dist < BUMP_RADIUS ? strength * (1 - dist / BUMP_RADIUS) : 0;
-      };
-
-      blobCtx.clearRect(0, 0, BLOB_BUFFER_SIZE, BLOB_BUFFER_SIZE);
-      blobCtx.save();
-      blobCtx.translate(half - anchorX, half - anchorY); // draw in page coordinates, buffer just follows
-      blobCtx.beginPath();
-      for (let gy = minGy; gy <= maxGy; gy++) {
-        const rowTop = gy * valueCols;
-        const rowBottom = (gy + 1) * valueCols;
-        for (let gx = minGx; gx <= maxGx; gx++) {
-          const tl = baseValues[rowTop + gx] + bumpAt(gx, gy);
-          const tr = baseValues[rowTop + gx + 1] + bumpAt(gx + 1, gy);
-          const br = baseValues[rowBottom + gx + 1] + bumpAt(gx + 1, gy + 1);
-          const bl = baseValues[rowBottom + gx] + bumpAt(gx, gy + 1);
-          addFillPolygon(blobCtx, gx * CELL_SIZE, gy * CELL_SIZE, CELL_SIZE, tl, tr, br, bl, CURSOR_FILL_THRESHOLD);
-        }
-      }
-      blobCtx.fillStyle = '#ffffff'; // opaque white: only the alpha channel survives compositing below
-      blobCtx.fill();
-
-      // A directional shade, masked to the shape's own silhouette via `source-atop` (verified in
-      // isolation first, sampling actual pixel values, before relying on it here -- see
-      // LEARNING.md): paints new colour only where the existing canvas content already has alpha,
-      // keeping that alpha, so the gradient lands exactly inside the just-filled shape above with
-      // no separate clip path needed. A flat single colour would read as a paper cutout, not a
-      // rounded volume.
-      blobCtx.globalCompositeOperation = 'source-atop';
-      const shadeSize = BUMP_RADIUS * 1.7;
-      const shade = blobCtx.createRadialGradient(
-        anchorX - BUMP_RADIUS * 0.4,
-        anchorY - BUMP_RADIUS * 0.45,
-        0,
-        anchorX,
-        anchorY,
-        shadeSize,
-      );
-      shade.addColorStop(0, '#ffffff'); // highlight, as if lit from the upper-left
-      shade.addColorStop(0.55, '#a0a0a0');
-      shade.addColorStop(1, '#323232'); // shadowed edge, away from the light
-      blobCtx.fillStyle = shade;
-      blobCtx.fillRect(anchorX - shadeSize, anchorY - shadeSize, shadeSize * 2, shadeSize * 2);
-      blobCtx.restore(); // also resets globalCompositeOperation/translate before next frame's clearRect
-
-      ctx.save();
-      ctx.globalAlpha = 0.22 * amount;
-      ctx.drawImage(blobCanvas, anchorX - half, anchorY - half);
-      ctx.restore();
-    }
-
     function resize() {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -427,7 +202,7 @@ export function initBackdrop() {
       rows = Math.ceil(height / CELL_SIZE) + 1;
     }
 
-    function drawFrame(dt) {
+    function drawFrame() {
       const valueCols = cols + 1;
       const values = new Float32Array(valueCols * (rows + 1));
       const z = time * TIME_SPEED; // the noise volume's 3rd axis: real time, not a spatial offset
@@ -438,28 +213,6 @@ export function initBackdrop() {
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (cursorEnabled && hasPointer) {
-        // Speed drives a TARGET energy, which is itself damped toward -- rising and falling
-        // smoothly instead of snapping -- so a single quick flick doesn't pop the blob instantly to
-        // full strength, and stopping doesn't cut it off either; both ease, matching the reference
-        // recording's fade in/out rather than a hard on/off.
-        const speed = dt > 0 ? Math.hypot(pointerTargetX - prevTargetX, pointerTargetY - prevTargetY) / dt : 0;
-        prevTargetX = pointerTargetX;
-        prevTargetY = pointerTargetY;
-        const targetEnergy = Math.min(speed / SPEED_FOR_FULL_ENERGY, 1);
-        energy = damp(energy, targetEnergy, ENERGY_LAMBDA, dt);
-
-        // The tail chases the head, which chases the real pointer -- a lag of a lag, so the
-        // head-tail line naturally spreads out along the recent path while moving fast (elongating
-        // the bump into a capsule) and collapses onto one point once it stops.
-        headX = damp(headX, pointerTargetX, CURSOR_LAMBDA, dt);
-        headY = damp(headY, pointerTargetY, CURSOR_LAMBDA, dt);
-        tailX = damp(tailX, headX, TAIL_LAMBDA, dt);
-        tailY = damp(tailY, headY, TAIL_LAMBDA, dt);
-
-        if (energy > 0.01) drawCursorBlob(energy, values, valueCols, rows, cols);
-      }
 
       ctx.strokeStyle = lineColor;
       ctx.lineWidth = 1;
@@ -506,14 +259,13 @@ export function initBackdrop() {
       const dt = Math.min((deltaMs || 16.67) / 1000, 0.1);
       lastFrameTime += dt;
       if (lastFrameTime < FRAME_INTERVAL) return;
-      const frameDt = lastFrameTime;
-      time += frameDt;
+      time += lastFrameTime;
       lastFrameTime = 0;
-      drawFrame(frameDt);
+      drawFrame();
     }
 
     resize();
-    drawFrame(0); // one frame immediately, so reduced motion (which never starts the loop) isn't blank
+    drawFrame(); // one frame immediately, so reduced motion (which never starts the loop) isn't blank
 
     let onVisibilityChange = null;
     if (!reduce) {
@@ -526,7 +278,6 @@ export function initBackdrop() {
       };
       document.addEventListener('visibilitychange', onVisibilityChange);
     }
-    if (cursorEnabled) document.addEventListener('pointermove', onPointerMove);
 
     window.addEventListener('resize', resize);
 
@@ -534,7 +285,6 @@ export function initBackdrop() {
       gsap.ticker.remove(tick);
       window.removeEventListener('resize', resize);
       if (onVisibilityChange) document.removeEventListener('visibilitychange', onVisibilityChange);
-      if (cursorEnabled) document.removeEventListener('pointermove', onPointerMove);
       canvas.remove();
     };
   });
