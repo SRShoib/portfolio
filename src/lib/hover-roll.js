@@ -131,7 +131,7 @@ function play(inners, steps) {
   gsap.set(inners, { willChange: 'transform' });
   gsap.to(inners, {
     y: (_i, target) => steps * lineHeightOf(target),
-    duration: duration.xs,
+    duration: duration.s,
     ease: ease.out,
     stagger: charStagger(inners.length),
     onComplete: () => gsap.set(inners, { y: (_i, target) => REST * lineHeightOf(target), clearProps: 'willChange' }),
