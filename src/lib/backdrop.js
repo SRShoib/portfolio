@@ -53,8 +53,11 @@ const SPEED_FOR_FULL_ENERGY = 900; // cursor speed (CSS px/s) that fades the clu
 const NUM_ORBS = 3; // circles in the trailing chain -- fewer, bigger orbs read as one mass more
 // easily than a longer chain of smaller ones, which starts looking like a caterpillar of bubbles
 // however smoothly each join is bridged.
-const ORB_RADIUS = 95; // CSS px, constant -- comfortably more than half the chain's typical
-// spacing at ORB_LAMBDA above, so consecutive orbs keep a wide, generous geometric overlap.
+const ORB_RADIUS = 95; // CSS px, base value before the per-frame breathing noise in
+// drawCursorBubble() -- comfortably more than half the chain's typical spacing at ORB_LAMBDA
+// above, so consecutive orbs keep a wide, generous geometric overlap even while jittered.
+const ORB_JITTER = 20; // CSS px of perpendicular drift, at most -- organic curvature, kept well
+// inside the overlap margin above so the jitter can't accidentally pull the shape apart.
 const GOO_BUFFER_SIZE = 420; // CSS px square offscreen buffer the cluster is composited from
 const GOO_BLUR_STD_DEV = 20; // feGaussianBlur std deviation, px: only needs to soften an already-
 // (generously) overlapping union into a smooth bridge now, not stretch to reach across a gap.
@@ -274,18 +277,36 @@ export function initBackdrop() {
     gooSvg.innerHTML = `<filter id="backdrop-goo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="${GOO_BLUR_STD_DEV}" result="blur" /><feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4" /></filter>`;
     document.body.append(gooSvg);
 
-    /** A soft, rounded bubble cluster centred near (cx, cy): each orb is a plain filled circle at a
-     *  constant radius (only the final tint's opacity fades with energy, not this), drawn into the
-     *  small offscreen buffer under the goo filter above, so touching orbs melt into one smooth
-     *  silhouette instead of reading as separate translucent discs. */
+    /** A soft, liquid-looking bubble cluster centred near (cx, cy): each orb is a filled circle,
+     *  drawn into the small offscreen buffer under the goo filter above so touching orbs melt into
+     *  one smooth silhouette. Perfect, identically-sized circles merged in a straight line reads as
+     *  a clean geometric capsule, not liquid -- reusing the SAME noise field the background uses,
+     *  each orb's radius breathes and its position drifts sideways off the straight cursor-to-tail
+     *  line, both continuously evolving with time, so the merged shape's width and curvature vary
+     *  organically along its length instead of being a uniform-width pill. */
     function drawCursorBubble(cx, cy, amount) {
       const half = GOO_BUFFER_SIZE / 2;
       gooCtx.clearRect(0, 0, GOO_BUFFER_SIZE, GOO_BUFFER_SIZE);
       gooCtx.filter = 'url(#backdrop-goo)';
       gooCtx.fillStyle = '#fff'; // opaque white: only the alpha channel survives compositing below
+      const z = time * TIME_SPEED;
       for (let i = 0; i < NUM_ORBS; i++) {
+        // Perpendicular to the chain's local direction (its neighbours' positions), not the orb's
+        // own direction of travel -- so the wobble reads as the SHAPE twisting, not the cursor
+        // trail jittering side to side.
+        const a = i > 0 ? i - 1 : i;
+        const b = i < NUM_ORBS - 1 ? i + 1 : i;
+        const dx = orbX[b] - orbX[a];
+        const dy = orbY[b] - orbY[a];
+        const segLen = Math.hypot(dx, dy) || 1;
+        const perpX = -dy / segLen;
+        const perpY = dx / segLen;
+        const wobble = fbm(i * 0.9, 0, z * 3) * 2 - 1; // roughly -1..1, drifts continuously
+        const jx = orbX[i] + perpX * wobble * ORB_JITTER;
+        const jy = orbY[i] + perpY * wobble * ORB_JITTER;
+        const radiusNoise = 0.75 + 0.5 * fbm(i * 1.3 + 10, 0, z * 2); // roughly 0.75..1.25
         gooCtx.beginPath();
-        gooCtx.arc(orbX[i] - cx + half, orbY[i] - cy + half, ORB_RADIUS, 0, Math.PI * 2);
+        gooCtx.arc(jx - cx + half, jy - cy + half, ORB_RADIUS * radiusNoise, 0, Math.PI * 2);
         gooCtx.fill();
       }
       gooCtx.filter = 'none';
