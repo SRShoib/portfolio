@@ -31,6 +31,14 @@ const MAX_PIXEL_RATIO = 1.5; // thin strokes don't need full retina crispness; c
 const FRAME_INTERVAL = 1 / 24; // redraw at ~24fps: smooth enough for a slow background, cheap
 const PERM_SIZE = 256; // permutation table length, must be a power of two (see noise3D's mask)
 
+// ---- Cursor-follow blob (fine pointers only; see initBackdrop) -----------------------------
+const CURSOR_LAMBDA = 5; // position lag: lower = the blob trails further behind the real cursor
+const ENERGY_LAMBDA = 6; // how fast the blob's visibility rises/falls toward its target
+const SPEED_FOR_FULL_ENERGY = 900; // cursor speed (CSS px/s) that fades the blob fully in
+const MAX_BLOB_RADIUS = 190; // CSS px at full energy
+const BLOB_POINTS = 20; // wobble samples around the blob's circumference
+const BLOB_WOBBLE = 0.28; // how far the noise pushes each point in/out, as a fraction of radius
+
 /** A tiny seeded PRNG (mulberry32), just to fill the noise permutation grid deterministically. */
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -104,6 +112,19 @@ function makeFbm(noise3D, octaves = 3) {
 
 const lerp = (a, b, t) => a + (b - a) * t;
 
+/** Frame-rate-independent damping: moves `current` a fraction of the way to `target` no matter the
+ *  frame's duration `dt` (seconds) -- the same idea lib/cursor.js uses for its own lagging ring. */
+function damp(current, target, lambda, dt) {
+  return current + (target - current) * (1 - Math.exp(-lambda * dt));
+}
+
+/** Parses a "#rrggbb" token straight from CSS into [r, g, b], so the blob's soft radial fill can
+ *  vary its own alpha per frame (a canvas gradient needs actual rgba() stops, not a CSS variable). */
+function hexToRgb(hex) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
 /** The interpolated point where the contour crosses one edge of a cell, given that edge's two
  *  corner values. Falls back to the edge's midpoint on a degenerate (equal-value) edge rather than
  *  dividing by zero. */
@@ -163,9 +184,11 @@ export function initBackdrop() {
 
   // Both conditions, not just `motion` (the about.js portrait reveal uses the same pattern, for
   // the same reason): reduced-motion visitors still get the canvas and its first static frame --
-  // only the per-frame animation loop below is what actually needs to be skipped for them.
-  mm.add({ motion: conditions.motion, reduce: conditions.reduce }, (context) => {
-    const { reduce } = context.conditions;
+  // only the per-frame animation loop below is what actually needs to be skipped for them. `fine`
+  // gates the cursor-follow blob specifically (a touchscreen has no hovering pointer to follow),
+  // the same condition lib/cursor.js already uses for its own pointer-only enhancement.
+  mm.add({ motion: conditions.motion, reduce: conditions.reduce, fine: conditions.fine }, (context) => {
+    const { reduce, fine } = context.conditions;
     const canvas = document.createElement('canvas');
     canvas.className = 'backdrop';
     canvas.setAttribute('aria-hidden', 'true'); // decorative, carries no content of its own
@@ -184,6 +207,74 @@ export function initBackdrop() {
     // Reads the accent colour's own RGB straight from the page rather than hard-coding it a
     // second time here, so tokens.css stays the one place the palette is actually defined.
     const lineColor = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
+    // `--text`, not `--raised`: on this dark background a subtle NEAR-BLACK tint (like the thin
+    // contour lines already use) is mathematically present but visually indistinguishable at a low
+    // alpha -- checked directly by computing the blended RGB, not assumed. A soft light glow reads
+    // as a highlight the way the reference's dark blob does on ITS light background: the same
+    // "spotlight" idea, inverted for a dark theme.
+    const [blobR, blobG, blobB] = hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--text').trim());
+
+    // Cursor-follow blob state: an organic shape that trails the real pointer, growing while it
+    // moves and fading to nothing once it stops -- see LEARNING.md for why this needs its own
+    // lagged position and an "energy" value rather than just drawing at the raw pointer position.
+    const cursorEnabled = !reduce && fine;
+    let hasPointer = false;
+    let pointerTargetX = 0;
+    let pointerTargetY = 0;
+    let prevTargetX = 0;
+    let prevTargetY = 0;
+    let cursorX = 0;
+    let cursorY = 0;
+    let energy = 0;
+
+    function onPointerMove(event) {
+      pointerTargetX = event.clientX;
+      pointerTargetY = event.clientY;
+      if (!hasPointer) {
+        hasPointer = true; // first real position: start every trailing value exactly there
+        prevTargetX = cursorX = pointerTargetX;
+        prevTargetY = cursorY = pointerTargetY;
+      }
+    }
+
+    /** One closed, organic (noise-wobbled) blob outline around (cx, cy), smoothed with quadratic
+     *  curves through the midpoint of each pair of sampled points -- the standard way to turn a
+     *  polygon into a smooth closed curve, the same "curvy, not cornered" preference the contour
+     *  lines above were tuned for. Filled with a radial gradient (not a flat colour) so the edge
+     *  reads as soft/glowing rather than a hard-edged shape, without needing a canvas blur filter. */
+    function drawCursorBlob(cx, cy, amount) {
+      const radius = MAX_BLOB_RADIUS * amount;
+      const points = [];
+      for (let i = 0; i < BLOB_POINTS; i++) {
+        const angle = (i / BLOB_POINTS) * Math.PI * 2;
+        // Sampling the SAME noise field the background uses, around a small circle offset by the
+        // blob's own position and the shared clock, so the wobble is organic and keeps drifting
+        // even while the blob sits still, rather than being a fixed, frozen shape.
+        const n = fbm(Math.cos(angle) * 1.5 + cx * 0.003, Math.sin(angle) * 1.5 + cy * 0.003, time * TIME_SPEED * 2);
+        const r = radius * (1 - BLOB_WOBBLE + BLOB_WOBBLE * 2 * n);
+        points.push([cx + Math.cos(angle) * r, cy + Math.sin(angle) * r]);
+      }
+
+      ctx.save();
+      ctx.beginPath();
+      const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      let m = mid(points[BLOB_POINTS - 1], points[0]);
+      ctx.moveTo(m[0], m[1]);
+      for (let i = 0; i < BLOB_POINTS; i++) {
+        const next = points[(i + 1) % BLOB_POINTS];
+        m = mid(points[i], next);
+        ctx.quadraticCurveTo(points[i][0], points[i][1], m[0], m[1]);
+      }
+      ctx.closePath();
+      ctx.clip();
+
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      gradient.addColorStop(0, `rgba(${blobR}, ${blobG}, ${blobB}, ${0.16 * amount})`);
+      gradient.addColorStop(1, `rgba(${blobR}, ${blobG}, ${blobB}, 0)`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+      ctx.restore();
+    }
 
     function resize() {
       const width = window.innerWidth;
@@ -196,7 +287,7 @@ export function initBackdrop() {
       rows = Math.ceil(height / CELL_SIZE) + 1;
     }
 
-    function drawFrame() {
+    function drawFrame(dt) {
       const valueCols = cols + 1;
       const values = new Float32Array(valueCols * (rows + 1));
       const z = time * TIME_SPEED; // the noise volume's 3rd axis: real time, not a spatial offset
@@ -207,6 +298,22 @@ export function initBackdrop() {
       }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (cursorEnabled && hasPointer) {
+        // Speed drives a TARGET energy, which is itself damped toward -- rising and falling
+        // smoothly instead of snapping -- so a single quick flick doesn't pop the blob instantly to
+        // full size, and stopping doesn't cut it off either; both ease, matching the reference
+        // recording's fade in/out rather than a hard on/off.
+        const speed = dt > 0 ? Math.hypot(pointerTargetX - prevTargetX, pointerTargetY - prevTargetY) / dt : 0;
+        prevTargetX = pointerTargetX;
+        prevTargetY = pointerTargetY;
+        const targetEnergy = Math.min(speed / SPEED_FOR_FULL_ENERGY, 1);
+        energy = damp(energy, targetEnergy, ENERGY_LAMBDA, dt);
+        cursorX = damp(cursorX, pointerTargetX, CURSOR_LAMBDA, dt);
+        cursorY = damp(cursorY, pointerTargetY, CURSOR_LAMBDA, dt);
+        if (energy > 0.01) drawCursorBlob(cursorX, cursorY, energy);
+      }
+
       ctx.strokeStyle = lineColor;
       ctx.lineWidth = 1;
       ctx.globalAlpha = 0.6;
@@ -252,13 +359,14 @@ export function initBackdrop() {
       const dt = Math.min((deltaMs || 16.67) / 1000, 0.1);
       lastFrameTime += dt;
       if (lastFrameTime < FRAME_INTERVAL) return;
-      time += lastFrameTime;
+      const frameDt = lastFrameTime;
+      time += frameDt;
       lastFrameTime = 0;
-      drawFrame();
+      drawFrame(frameDt);
     }
 
     resize();
-    drawFrame(); // one frame immediately, so reduced motion (which never starts the loop) isn't blank
+    drawFrame(0); // one frame immediately, so reduced motion (which never starts the loop) isn't blank
 
     let onVisibilityChange = null;
     if (!reduce) {
@@ -271,6 +379,7 @@ export function initBackdrop() {
       };
       document.addEventListener('visibilitychange', onVisibilityChange);
     }
+    if (cursorEnabled) document.addEventListener('pointermove', onPointerMove);
 
     window.addEventListener('resize', resize);
 
@@ -278,6 +387,7 @@ export function initBackdrop() {
       gsap.ticker.remove(tick);
       window.removeEventListener('resize', resize);
       if (onVisibilityChange) document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (cursorEnabled) document.removeEventListener('pointermove', onPointerMove);
       canvas.remove();
     };
   });
