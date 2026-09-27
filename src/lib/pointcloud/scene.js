@@ -69,6 +69,18 @@ export const DEVICE_PRESETS = {
 };
 
 /**
+ * Give the browser one turn before continuing: lets a pending scroll/input event actually get
+ * processed instead of queueing up behind whatever synchronous work runs next. `scheduler.yield()`
+ * (Chrome 129+) is built for exactly this and is genuinely higher priority than a plain callback;
+ * `setTimeout(0)` is the fallback everywhere else, still enough of a break for the browser to slot
+ * pending input in ahead of it.
+ */
+function yieldToMain() {
+  if (typeof scheduler !== 'undefined' && scheduler.yield) return scheduler.yield();
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+/**
  * The face's positions, or the leaf's as a last-resort fallback if the face's own source is
  * unusable (should only happen if every pixel's weight collapses to 0 — see face.js). Never
  * throws, so a rebuild can never crash the scene over a slider dragged to a strange combination.
@@ -108,6 +120,14 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   // Both loaders resolve null on failure rather than rejecting (see face.js / tooth.js), so one
   // missing asset can never stop the other from loading, and Promise.all is safe to use here.
   const [faceSource, toothMesh] = await Promise.all([loadFaceSource(), loadToothSource()]);
+  // Everything from here down, up to the first render, is synchronous CPU work (sampling the tooth
+  // mesh and the face image, building the leaf and graph, assembling four attribute buffers, then
+  // compiling the shader on the first render) with nothing left to `await` on naturally -- measured
+  // directly, it was long enough (two ~50ms chunks, back to back) to visibly drop frames if it lands
+  // while a visitor is mid-scroll, which a visitor who opens the page and starts scrolling right away
+  // guarantees it does. `yieldToMain()` calls below split it at its two heaviest joins so the browser
+  // gets a turn to process scroll/input between them, rather than one long uninterrupted task.
+  await yieldToMain();
   // CLAUDE.md's documented fallback: "If the cutout is missing, skip the face stage: the sequence
   // starts at the tooth (uProgress 1 -> 3)". Tooth itself can't be "missing" in the same sense:
   // sampleTooth always produces something, real mesh or procedural molar.
@@ -195,6 +215,11 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     geo.setAttribute('aRandom', new BufferAttribute(randoms, 1));
     return geo;
   };
+  // Split here on purpose (see the comment above the first yieldToMain()): tooth/leaf/graph above
+  // this line, the face above (sampleFace's per-particle binary search) and the buffer assembly
+  // below it are the two heaviest remaining chunks, so this is where the second yield goes.
+  ensureSharedShapes(state.count);
+  await yieldToMain();
   let geometry = buildGeometry(state.count);
 
   // Points = "draw this geometry as one dot per vertex". (Mesh would draw triangles, Line lines.)
@@ -349,6 +374,7 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   document.addEventListener('visibilitychange', onVisibilityChange);
 
   resize();
+  await yieldToMain(); // one more turn before the first render, which compiles the shader on the GPU
   tick(0); // draw one frame BEFORE revealing the canvas, so it never fades in empty
   gsap.ticker.add(tick);
 
