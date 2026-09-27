@@ -38,23 +38,26 @@ const PERM_SIZE = 256; // permutation table length, must be a power of two (see 
 // its neighbours, then the alpha-boosting matrix snaps every pixel back toward fully opaque or
 // fully transparent, so only the smoothly-merged silhouette survives.
 const CURSOR_LAMBDA = 9; // how tightly the lead orb tracks the real pointer
-const ORB_LAMBDA = 11; // how tightly each trailing orb tracks the orb ahead of it in the chain --
+const ORB_LAMBDA = 16; // how tightly each trailing orb tracks the orb ahead of it in the chain --
 // tight on purpose: consecutive orbs must stay close enough that their TRUE (unfiltered) circles
-// overlap at any real movement speed. Measured directly (getImageData at each orb's centre and at
-// the midpoint between consecutive pairs) that ctx.filter runs once PER fill() call, not once over
-// the accumulated canvas -- so the goo filter can only smooth an overlap that already exists
-// geometrically, never bridge a genuine gap, no matter how large the blur. That ruled out the
-// original plan of shrinking each orb's radius by energy (radius and spacing were shrinking and
-// growing on different schedules, so overlap vanished exactly when the cluster moved fastest);
-// radius below is now constant, and energy only ever controls final opacity.
+// overlap GENEROUSLY at any real movement speed, not just barely touch. Measured directly
+// (getImageData at each orb's centre and at the midpoint between consecutive pairs) that ctx.filter
+// runs once PER fill() call, not once over the accumulated canvas -- so the goo filter can only
+// smooth an overlap that already exists geometrically, never bridge a genuine gap, no matter how
+// large the blur. A first pass got the merge technically connected (alpha 255 at every midpoint)
+// but with just barely enough overlap for that -- which reads as separate round "bubbles" pinched
+// together at a narrow neck, not one continuous "blob": a wide, confident overlap is what actually
+// produces the reference's broad, gentle undulations instead of a visible waist at each join.
 const ENERGY_LAMBDA = 6; // how fast the cluster's visibility rises/falls toward its target
 const SPEED_FOR_FULL_ENERGY = 900; // cursor speed (CSS px/s) that fades the cluster fully in
-const NUM_ORBS = 4; // circles in the trailing chain
-const ORB_RADIUS = 68; // CSS px, constant -- comfortably more than half the chain's typical
-// spacing at ORB_LAMBDA above, so consecutive orbs keep a true geometric overlap at any speed.
+const NUM_ORBS = 3; // circles in the trailing chain -- fewer, bigger orbs read as one mass more
+// easily than a longer chain of smaller ones, which starts looking like a caterpillar of bubbles
+// however smoothly each join is bridged.
+const ORB_RADIUS = 95; // CSS px, constant -- comfortably more than half the chain's typical
+// spacing at ORB_LAMBDA above, so consecutive orbs keep a wide, generous geometric overlap.
 const GOO_BUFFER_SIZE = 420; // CSS px square offscreen buffer the cluster is composited from
-const GOO_BLUR_STD_DEV = 14; // feGaussianBlur std deviation, px: only needs to soften an already-
-// overlapping union into a smooth bridge now, not stretch to reach across a gap.
+const GOO_BLUR_STD_DEV = 20; // feGaussianBlur std deviation, px: only needs to soften an already-
+// (generously) overlapping union into a smooth bridge now, not stretch to reach across a gap.
 
 /** A tiny seeded PRNG (mulberry32), just to fill the noise permutation grid deterministically. */
 function mulberry32(seed) {
