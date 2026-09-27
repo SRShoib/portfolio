@@ -426,8 +426,7 @@ main {
 .ext,
 .pub-card__doi,
 .site-footer__links a,
-.site-footer__bottom a,
-.site-footer__email a {
+.site-footer__bottom a {
   text-decoration: none;
   line-height: 1.15;
   background-image: linear-gradient(currentColor, currentColor);

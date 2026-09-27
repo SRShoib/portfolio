@@ -30,6 +30,8 @@
 }
 .site-footer__email a {
   color: var(--text);
+  text-decoration: none; /* no underline here: the big mono address plus its own hover colour
+    change and hover-roll are affordance enough, unlike the smaller plain-text links elsewhere */
 }
 .site-footer__email a:hover {
   color: var(--accent);
@@ -58,6 +60,7 @@
 .site-footer__links a {
   display: inline-block;
   padding-block: 0.6rem;
+  line-height: 1; /* tighter than base.css's shared 1.15: still visible gap at this text's size */
 }
 
 .site-footer__bottom {
