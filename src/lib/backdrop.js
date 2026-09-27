@@ -21,9 +21,10 @@ const CELL_SIZE = 22; // CSS px per noise-sampling cell: keeps blob scale simila
 // Finer than a first pass would need purely for blob size -- the marching-squares grid resolution
 // is also what makes the drawn lines read as smoothly curved rather than faceted, since each cell
 // only ever contributes a straight segment; more, smaller segments approximate a curve better.
-const FREQUENCY = 0.037; // how "zoomed in" the noise is, in cells; smaller = larger, softer blobs.
-// Tuned together with CELL_SIZE: one noise cycle spans roughly CELL_SIZE / FREQUENCY CSS px, so
-// halving CELL_SIZE for resolution alone would have halved the blobs too without also lowering this.
+const FREQUENCY = 0.055; // how "zoomed in" the noise is, in cells; smaller = larger, softer blobs.
+// Tuned together with CELL_SIZE: one noise cycle spans roughly CELL_SIZE / FREQUENCY CSS px (~400px
+// at these values), so halving CELL_SIZE for resolution alone would have halved the blobs too
+// without also lowering this.
 const LEVELS = [0.36, 0.5, 0.64]; // contour thresholds drawn every frame: three nested bands
 const TIME_SPEED = 0.05; // how fast time moves through the noise volume's 3rd axis (units/second)
 const MAX_PIXEL_RATIO = 1.5; // thin strokes don't need full retina crispness; caps GPU/CPU cost
