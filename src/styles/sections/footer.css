@@ -61,6 +61,11 @@
   display: inline-block;
   padding-block: 0.6rem;
   line-height: 1; /* tighter than base.css's shared 1.15: still visible gap at this text's size */
+  /* Even at line-height: 1, the mono font's own internal leading (space baked into the font's
+     glyphs below the baseline, not something line-height controls) still left a gap below the
+     underline. These labels are all UPPERCASE (CLAUDE.md's uppercase mono label convention) with
+     no descenders to protect, so the line can safely sit closer than 100% of the line box. */
+  background-position: 0 calc(100% - 0.5em);
 }
 
 .site-footer__bottom {
