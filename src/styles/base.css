@@ -429,7 +429,7 @@ main {
 .site-footer__bottom a,
 .site-footer__email a {
   text-decoration: none;
-  line-height: 1.3;
+  line-height: 1.15;
   background-image: linear-gradient(currentColor, currentColor);
   background-repeat: no-repeat;
   background-position: 0 100%;
