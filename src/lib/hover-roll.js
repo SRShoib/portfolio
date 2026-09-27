@@ -16,7 +16,7 @@
 // label, so with JS off -- or with reduced motion, checked below -- nothing here runs and every
 // link/button stays exactly its plain self, still with its own :hover colour change.
 import { gsap } from 'gsap';
-import { ease, duration, prefersReducedMotion, stagger } from './motion.js';
+import { afterFirstPaint, ease, duration, prefersReducedMotion, stagger } from './motion.js';
 
 // Every selector matches a label that is either the interactive element itself (a link/button) or
 // a plain decorative span inside one (the monogram's "MHS", the menu toggle's "Menu", a pager
@@ -183,12 +183,22 @@ function enhance(labelEl) {
   interactive.addEventListener('blur', leave);
 }
 
-/** Enhance every matching label on the current page. Call once, after the DOM is parsed. */
+/** Enhance every matching label on the current page. Call once, after the DOM is parsed.
+ *
+ *  Deferred with `afterFirstPaint()`, the same helper hero.js uses to push its own heavy setup off
+ *  the critical path: measured directly, splitting every target's text into characters (roughly
+ *  750 of them on the home page) blocked the main thread for ~40ms when it ran synchronously here,
+ *  ahead of the header, preloader and hero. Purely decorative and purely additive (every target is
+ *  already its plain, fully readable, fully accessible self without it), so a visitor can hover a
+ *  link in the brief window before this resolves and simply gets that component's existing
+ *  `:hover` colour change with no roll yet -- not broken, just not yet enhanced. */
 export function initHoverRoll() {
   if (prefersReducedMotion()) return;
-  for (const selector of TARGETS) {
-    document.querySelectorAll(selector).forEach(enhance);
-  }
+  afterFirstPaint().then(() => {
+    for (const selector of TARGETS) {
+      document.querySelectorAll(selector).forEach(enhance);
+    }
+  });
 }
 
 /** Enhance one label built after `initHoverRoll()` already ran (the footer's mailto: link,

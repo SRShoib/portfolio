@@ -12,7 +12,7 @@
 
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { conditions } from '../lib/motion.js';
+import { afterFirstPaint, conditions } from '../lib/motion.js';
 import { scrollToTarget } from '../lib/scroll.js';
 import { preloaderDone } from './preloader.js';
 
@@ -41,21 +41,6 @@ const CAPTION_PROGRESS = { tooth: 1, leaf: 2, graph: 3 };
 const CAPTION_DIM = 0.5;
 
 let mm = null;
-
-/**
- * Resolve once the browser has painted the page's first frame AND has a moment to spare.
- * requestAnimationFrame callbacks run just BEFORE a frame is painted, so from inside one we ask
- * for an idle moment: that arrives after the paint. Safari has no requestIdleCallback, hence the
- * setTimeout fallback.
- */
-function afterFirstPaint() {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      if ('requestIdleCallback' in window) requestIdleCallback(() => resolve(), { timeout: 1000 });
-      else setTimeout(resolve, 100);
-    });
-  });
-}
 
 /**
  * Cheap, synchronous capability check: can this browser get a WebGL context at all? Used to skip

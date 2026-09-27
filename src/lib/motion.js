@@ -63,6 +63,24 @@ export const prefersReducedMotion = () => window.matchMedia(conditions.reduce).m
 /** A duration by name, capped at `xs` (0.2s) for reduced motion. Use for one-off JS tweens. */
 export const motionDuration = (name) => (prefersReducedMotion() ? duration.xs : duration[name]);
 
+/**
+ * Resolve once the browser has painted the page's first frame AND has a moment to spare. Used to
+ * push non-critical setup work (the hero's WebGL scene, hover-roll.js's DOM-splitting) off the
+ * critical path: measured directly, hover-roll.js's initial pass alone blocked the main thread for
+ * ~40ms, running synchronously before the header, preloader or hero even started.
+ * requestAnimationFrame callbacks run just BEFORE a frame is painted, so from inside one we ask
+ * for an idle moment: that arrives after the paint. Safari has no requestIdleCallback, hence the
+ * setTimeout fallback.
+ */
+export function afterFirstPaint() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      if ('requestIdleCallback' in window) requestIdleCallback(() => resolve(), { timeout: 1000 });
+      else setTimeout(resolve, 100);
+    });
+  });
+}
+
 // ---- Point-cloud tints (used by the hero shaders in M3) ---------------------------------
 // Mixed inside the shader, so JS needs them as well as CSS. Keep in sync with tokens.css.
 export const tints = {
