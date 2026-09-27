@@ -31,13 +31,30 @@ const MAX_PIXEL_RATIO = 1.5; // thin strokes don't need full retina crispness; c
 const FRAME_INTERVAL = 1 / 24; // redraw at ~24fps: smooth enough for a slow background, cheap
 const PERM_SIZE = 256; // permutation table length, must be a power of two (see noise3D's mask)
 
-// ---- Cursor-follow blob (fine pointers only; see initBackdrop) -----------------------------
-const CURSOR_LAMBDA = 5; // position lag: lower = the blob trails further behind the real cursor
-const ENERGY_LAMBDA = 6; // how fast the blob's visibility rises/falls toward its target
-const SPEED_FOR_FULL_ENERGY = 900; // cursor speed (CSS px/s) that fades the blob fully in
-const MAX_BLOB_RADIUS = 190; // CSS px at full energy
-const BLOB_POINTS = 20; // wobble samples around the blob's circumference
-const BLOB_WOBBLE = 0.28; // how far the noise pushes each point in/out, as a fraction of radius
+// ---- Cursor-follow bubble cluster (fine pointers only; see initBackdrop) -------------------
+// A chain of soft circles, each lagging the one before it, rendered with a "gooey" SVG filter
+// (feGaussianBlur into feColorMatrix's alpha row) so overlapping circles melt into one smooth,
+// rounded shape instead of stacking as separate discs: the blur spreads each circle's alpha into
+// its neighbours, then the alpha-boosting matrix snaps every pixel back toward fully opaque or
+// fully transparent, so only the smoothly-merged silhouette survives.
+const CURSOR_LAMBDA = 9; // how tightly the lead orb tracks the real pointer
+const ORB_LAMBDA = 11; // how tightly each trailing orb tracks the orb ahead of it in the chain --
+// tight on purpose: consecutive orbs must stay close enough that their TRUE (unfiltered) circles
+// overlap at any real movement speed. Measured directly (getImageData at each orb's centre and at
+// the midpoint between consecutive pairs) that ctx.filter runs once PER fill() call, not once over
+// the accumulated canvas -- so the goo filter can only smooth an overlap that already exists
+// geometrically, never bridge a genuine gap, no matter how large the blur. That ruled out the
+// original plan of shrinking each orb's radius by energy (radius and spacing were shrinking and
+// growing on different schedules, so overlap vanished exactly when the cluster moved fastest);
+// radius below is now constant, and energy only ever controls final opacity.
+const ENERGY_LAMBDA = 6; // how fast the cluster's visibility rises/falls toward its target
+const SPEED_FOR_FULL_ENERGY = 900; // cursor speed (CSS px/s) that fades the cluster fully in
+const NUM_ORBS = 4; // circles in the trailing chain
+const ORB_RADIUS = 68; // CSS px, constant -- comfortably more than half the chain's typical
+// spacing at ORB_LAMBDA above, so consecutive orbs keep a true geometric overlap at any speed.
+const GOO_BUFFER_SIZE = 420; // CSS px square offscreen buffer the cluster is composited from
+const GOO_BLUR_STD_DEV = 14; // feGaussianBlur std deviation, px: only needs to soften an already-
+// overlapping union into a smooth bridge now, not stretch to reach across a gap.
 
 /** A tiny seeded PRNG (mulberry32), just to fill the noise permutation grid deterministically. */
 function mulberry32(seed) {
@@ -118,13 +135,6 @@ function damp(current, target, lambda, dt) {
   return current + (target - current) * (1 - Math.exp(-lambda * dt));
 }
 
-/** Parses a "#rrggbb" token straight from CSS into [r, g, b], so the blob's soft radial fill can
- *  vary its own alpha per frame (a canvas gradient needs actual rgba() stops, not a CSS variable). */
-function hexToRgb(hex) {
-  const n = parseInt(hex.replace('#', ''), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-
 /** The interpolated point where the contour crosses one edge of a cell, given that edge's two
  *  corner values. Falls back to the edge's midpoint on a degenerate (equal-value) edge rather than
  *  dividing by zero. */
@@ -185,7 +195,7 @@ export function initBackdrop() {
   // Both conditions, not just `motion` (the about.js portrait reveal uses the same pattern, for
   // the same reason): reduced-motion visitors still get the canvas and its first static frame --
   // only the per-frame animation loop below is what actually needs to be skipped for them. `fine`
-  // gates the cursor-follow blob specifically (a touchscreen has no hovering pointer to follow),
+  // gates the cursor-follow bubble specifically (a touchscreen has no hovering pointer to follow),
   // the same condition lib/cursor.js already uses for its own pointer-only enhancement.
   mm.add({ motion: conditions.motion, reduce: conditions.reduce, fine: conditions.fine }, (context) => {
     const { reduce, fine } = context.conditions;
@@ -207,72 +217,85 @@ export function initBackdrop() {
     // Reads the accent colour's own RGB straight from the page rather than hard-coding it a
     // second time here, so tokens.css stays the one place the palette is actually defined.
     const lineColor = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
-    // `--text`, not `--raised`: on this dark background a subtle NEAR-BLACK tint (like the thin
-    // contour lines already use) is mathematically present but visually indistinguishable at a low
-    // alpha -- checked directly by computing the blended RGB, not assumed. A soft light glow reads
-    // as a highlight the way the reference's dark blob does on ITS light background: the same
-    // "spotlight" idea, inverted for a dark theme.
-    const [blobR, blobG, blobB] = hexToRgb(getComputedStyle(document.documentElement).getPropertyValue('--text').trim());
 
-    // Cursor-follow blob state: an organic shape that trails the real pointer, growing while it
-    // moves and fading to nothing once it stops -- see LEARNING.md for why this needs its own
-    // lagged position and an "energy" value rather than just drawing at the raw pointer position.
+    // Cursor-follow bubble state: a chain of orbs that trails the real pointer, spreading out
+    // while it moves and collapsing back to nothing once it stops -- see LEARNING.md for why this
+    // needs its own lagged positions and an "energy" value rather than just drawing at the raw
+    // pointer position.
     const cursorEnabled = !reduce && fine;
     let hasPointer = false;
     let pointerTargetX = 0;
     let pointerTargetY = 0;
     let prevTargetX = 0;
     let prevTargetY = 0;
-    let cursorX = 0;
-    let cursorY = 0;
     let energy = 0;
+    const orbX = new Array(NUM_ORBS).fill(0);
+    const orbY = new Array(NUM_ORBS).fill(0);
 
     function onPointerMove(event) {
       pointerTargetX = event.clientX;
       pointerTargetY = event.clientY;
       if (!hasPointer) {
-        hasPointer = true; // first real position: start every trailing value exactly there
-        prevTargetX = cursorX = pointerTargetX;
-        prevTargetY = cursorY = pointerTargetY;
+        hasPointer = true; // first real position: start every trailing orb exactly there
+        prevTargetX = pointerTargetX;
+        prevTargetY = pointerTargetY;
+        orbX.fill(pointerTargetX);
+        orbY.fill(pointerTargetY);
       }
     }
 
-    /** One closed, organic (noise-wobbled) blob outline around (cx, cy), smoothed with quadratic
-     *  curves through the midpoint of each pair of sampled points -- the standard way to turn a
-     *  polygon into a smooth closed curve, the same "curvy, not cornered" preference the contour
-     *  lines above were tuned for. Filled with a radial gradient (not a flat colour) so the edge
-     *  reads as soft/glowing rather than a hard-edged shape, without needing a canvas blur filter. */
-    function drawCursorBlob(cx, cy, amount) {
-      const radius = MAX_BLOB_RADIUS * amount;
-      const points = [];
-      for (let i = 0; i < BLOB_POINTS; i++) {
-        const angle = (i / BLOB_POINTS) * Math.PI * 2;
-        // Sampling the SAME noise field the background uses, around a small circle offset by the
-        // blob's own position and the shared clock, so the wobble is organic and keeps drifting
-        // even while the blob sits still, rather than being a fixed, frozen shape.
-        const n = fbm(Math.cos(angle) * 1.5 + cx * 0.003, Math.sin(angle) * 1.5 + cy * 0.003, time * TIME_SPEED * 2);
-        const r = radius * (1 - BLOB_WOBBLE + BLOB_WOBBLE * 2 * n);
-        points.push([cx + Math.cos(angle) * r, cy + Math.sin(angle) * r]);
-      }
+    // A small, reused offscreen buffer: the blur filter's cost scales with the AREA it runs over,
+    // so the goo effect is composited from a buffer just big enough for the cluster, not the
+    // whole page canvas -- independent of viewport size.
+    const gooCanvas = document.createElement('canvas');
+    gooCanvas.width = GOO_BUFFER_SIZE;
+    gooCanvas.height = GOO_BUFFER_SIZE;
+    const gooCtx = gooCanvas.getContext('2d');
 
+    // The classic "gooey" SVG filter (feGaussianBlur into feColorMatrix's ALPHA row): a canvas
+    // `blur() contrast()` filter string was tried first and measured directly -- it left separately
+    // blurred circles with no merging at all, because CSS contrast() only touches colour, not alpha
+    // (confirmed by screenshotting the raw buffer, not assumed from a recipe). feColorMatrix's alpha
+    // row genuinely rewrites alpha (newAlpha = 12*oldAlpha - 4), which is what pushes each blurred
+    // pixel back to fully opaque or fully transparent. Also directly measured: ctx.filter runs once
+    // per fill() call, not once over the whole accumulated buffer, so this can only smooth an
+    // overlap that's already there geometrically (ORB_RADIUS/ORB_LAMBDA above guarantee that), never
+    // bridge a true gap between orbs.
+    const gooSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    gooSvg.setAttribute('width', '0');
+    gooSvg.setAttribute('height', '0');
+    gooSvg.style.position = 'absolute';
+    // An explicit, generous filter region: SVG filters default to a 120%-padded box around
+    // whatever's drawn, which can clip a wide blur -- found by testing wider std-deviations in
+    // isolation and seeing the effect disappear entirely once the blur exceeded that default box.
+    gooSvg.innerHTML = `<filter id="backdrop-goo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="${GOO_BLUR_STD_DEV}" result="blur" /><feColorMatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4" /></filter>`;
+    document.body.append(gooSvg);
+
+    /** A soft, rounded bubble cluster centred near (cx, cy): each orb is a plain filled circle at a
+     *  constant radius (only the final tint's opacity fades with energy, not this), drawn into the
+     *  small offscreen buffer under the goo filter above, so touching orbs melt into one smooth
+     *  silhouette instead of reading as separate translucent discs. */
+    function drawCursorBubble(cx, cy, amount) {
+      const half = GOO_BUFFER_SIZE / 2;
+      gooCtx.clearRect(0, 0, GOO_BUFFER_SIZE, GOO_BUFFER_SIZE);
+      gooCtx.filter = 'url(#backdrop-goo)';
+      gooCtx.fillStyle = '#fff'; // opaque white: only the alpha channel survives compositing below
+      for (let i = 0; i < NUM_ORBS; i++) {
+        gooCtx.beginPath();
+        gooCtx.arc(orbX[i] - cx + half, orbY[i] - cy + half, ORB_RADIUS, 0, Math.PI * 2);
+        gooCtx.fill();
+      }
+      gooCtx.filter = 'none';
+
+      // A `fillRect` tinted with `--text` then masked in via `destination-in` was tried first, but
+      // measured directly (sampling the main canvas's own pixels): the result came back wrong on
+      // both colour and alpha, not just "a bit off" -- rather than chase why a two-step composite
+      // wasn't behaving as the spec suggests, simplified to the one thing actually needed. `--text`
+      // is already very close to white, so the plain white goo shape IS the tint; only the overall
+      // opacity (energy) still needs applying, which a single globalAlpha draw does directly.
       ctx.save();
-      ctx.beginPath();
-      const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-      let m = mid(points[BLOB_POINTS - 1], points[0]);
-      ctx.moveTo(m[0], m[1]);
-      for (let i = 0; i < BLOB_POINTS; i++) {
-        const next = points[(i + 1) % BLOB_POINTS];
-        m = mid(points[i], next);
-        ctx.quadraticCurveTo(points[i][0], points[i][1], m[0], m[1]);
-      }
-      ctx.closePath();
-      ctx.clip();
-
-      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      gradient.addColorStop(0, `rgba(${blobR}, ${blobG}, ${blobB}, ${0.16 * amount})`);
-      gradient.addColorStop(1, `rgba(${blobR}, ${blobG}, ${blobB}, 0)`);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+      ctx.globalAlpha = 0.16 * amount;
+      ctx.drawImage(gooCanvas, cx - half, cy - half);
       ctx.restore();
     }
 
@@ -301,17 +324,26 @@ export function initBackdrop() {
 
       if (cursorEnabled && hasPointer) {
         // Speed drives a TARGET energy, which is itself damped toward -- rising and falling
-        // smoothly instead of snapping -- so a single quick flick doesn't pop the blob instantly to
-        // full size, and stopping doesn't cut it off either; both ease, matching the reference
+        // smoothly instead of snapping -- so a single quick flick doesn't pop the cluster instantly
+        // to full size, and stopping doesn't cut it off either; both ease, matching the reference
         // recording's fade in/out rather than a hard on/off.
         const speed = dt > 0 ? Math.hypot(pointerTargetX - prevTargetX, pointerTargetY - prevTargetY) / dt : 0;
         prevTargetX = pointerTargetX;
         prevTargetY = pointerTargetY;
         const targetEnergy = Math.min(speed / SPEED_FOR_FULL_ENERGY, 1);
         energy = damp(energy, targetEnergy, ENERGY_LAMBDA, dt);
-        cursorX = damp(cursorX, pointerTargetX, CURSOR_LAMBDA, dt);
-        cursorY = damp(cursorY, pointerTargetY, CURSOR_LAMBDA, dt);
-        if (energy > 0.01) drawCursorBlob(cursorX, cursorY, energy);
+
+        // Orb 0 chases the real pointer; every orb after it chases the ONE BEFORE IT -- a lag of a
+        // lag, so the chain naturally spreads out along the recent path while moving fast, and
+        // collapses back onto a single point once it stops, all from one repeated damp() call.
+        orbX[0] = damp(orbX[0], pointerTargetX, CURSOR_LAMBDA, dt);
+        orbY[0] = damp(orbY[0], pointerTargetY, CURSOR_LAMBDA, dt);
+        for (let i = 1; i < NUM_ORBS; i++) {
+          orbX[i] = damp(orbX[i], orbX[i - 1], ORB_LAMBDA, dt);
+          orbY[i] = damp(orbY[i], orbY[i - 1], ORB_LAMBDA, dt);
+        }
+
+        if (energy > 0.01) drawCursorBubble(orbX[0], orbY[0], energy);
       }
 
       ctx.strokeStyle = lineColor;
@@ -388,6 +420,7 @@ export function initBackdrop() {
       window.removeEventListener('resize', resize);
       if (onVisibilityChange) document.removeEventListener('visibilitychange', onVisibilityChange);
       if (cursorEnabled) document.removeEventListener('pointermove', onPointerMove);
+      gooSvg.remove();
       canvas.remove();
     };
   });
