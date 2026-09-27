@@ -342,14 +342,31 @@ export function initBackdrop() {
       }
       gooCtx.filter = 'none';
 
-      // A `fillRect` tinted with `--text` then masked in via `destination-in` was tried first, but
-      // measured directly (sampling the main canvas's own pixels): the result came back wrong on
-      // both colour and alpha, not just "a bit off" -- rather than chase why a two-step composite
-      // wasn't behaving as the spec suggests, simplified to the one thing actually needed. `--text`
-      // is already very close to white, so the plain white goo shape IS the tint; only the overall
-      // opacity (energy) still needs applying, which a single globalAlpha draw does directly.
+      // A directional shade, masked to the shape's own silhouette via `source-atop`: a flat single
+      // colour reads as a paper cutout, not a rounded volume. `source-atop` draws the new fill only
+      // where the existing canvas content already has alpha, keeping that alpha -- so a gradient
+      // painted this way lands exactly inside the wavy shape above, with no separate clip path
+      // needed. (An earlier `destination-in` composite elsewhere in this function's history measured
+      // wrong on both colour and alpha; verified THIS operation in isolation first, sampling actual
+      // pixel values rather than assuming the spec-correct behaviour, before relying on it here.)
+      // Sampled the MAIN canvas's own pixels afterward (not just this buffer) to catch what a
+      // screenshot alone wouldn't show: the shape's true visible extent is well inside the
+      // gradient's original outer radius, so only the near-white end of it was ever actually
+      // reached -- and what little range survived was then crushed further by the low overall
+      // alpha below (0.16, composited against a near-black page). Fixed both at once: a tighter
+      // outer radius so the true shadow colour is reached within the shape's real bounds, and a
+      // much wider raw colour range so enough of it survives the alpha multiply to stay visible.
+      gooCtx.globalCompositeOperation = 'source-atop';
+      const shade = gooCtx.createRadialGradient(half - 45, half - 55, 0, half, half, ORB_RADIUS * 1.7);
+      shade.addColorStop(0, '#ffffff'); // highlight, as if lit from the upper-left
+      shade.addColorStop(0.55, '#a0a0a0');
+      shade.addColorStop(1, '#323232'); // shadowed edge, away from the light
+      gooCtx.fillStyle = shade;
+      gooCtx.fillRect(0, 0, GOO_BUFFER_SIZE, GOO_BUFFER_SIZE);
+      gooCtx.globalCompositeOperation = 'source-over'; // reset before next frame's clearRect + fills
+
       ctx.save();
-      ctx.globalAlpha = 0.16 * amount;
+      ctx.globalAlpha = 0.22 * amount;
       ctx.drawImage(gooCanvas, cx - half, cy - half);
       ctx.restore();
     }
