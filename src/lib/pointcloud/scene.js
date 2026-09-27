@@ -297,12 +297,12 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     );
 
     // Everything below only matters for what actually gets DRAWN, which is exactly the part that
-    // pauses while the hero is offscreen (see the IntersectionObserver set up below): the cursor
-    // raycast (whose only purpose is feeding the next render) and the render call itself, by far the
-    // most expensive line in this function. gsap.ticker still calls tick() every frame regardless —
-    // pausing OUR work here is what saves the GPU time, not stopping the ticker, which other things
-    // (Lenis, ScrollTrigger) still need running.
-    if (!isVisible) return;
+    // pauses while the hero is offscreen OR the tab itself is backgrounded (see isPaused() below):
+    // the cursor raycast (whose only purpose is feeding the next render) and the render call itself,
+    // by far the most expensive line in this function. gsap.ticker still calls tick() every frame
+    // regardless — pausing OUR work here is what saves the GPU time, not stopping the ticker, which
+    // other things (Lenis, ScrollTrigger) still need running.
+    if (isPaused()) return;
 
     // The repel shader code (see points.vert.glsl) needs uMouse in THIS object's own, currently
     // rotating, local space, so the rotation set above must land in matrixWorld before the raycast
@@ -329,11 +329,24 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   // but gsap.ticker would otherwise keep calling tick() 60 times a second for nothing, burning battery
   // and GPU time on frames nobody sees. `entry.isIntersecting` starts true here (the hero is normally
   // the first thing on the page); the observer corrects that shortly after if it is ever wrong.
-  let isVisible = true;
+  //
+  // Scroll position is only HALF of "not actually on screen": the IntersectionObserver above never
+  // fires for tab-backgrounding (the page never scrolls, so the hero stays "intersecting" the whole
+  // time), yet a backgrounded tab is exactly when a GPU-heavy canvas most benefits from being told to
+  // stop. Tracked as a second, independent flag rather than folding into `isVisible` directly, so
+  // resize()/the intersection observer's own state never has to know this reason exists — isPaused()
+  // below is simply "either reason says stop".
+  let isIntersecting = true;
+  let isPageVisible = !document.hidden;
+  const isPaused = () => !isIntersecting || !isPageVisible;
   const visibilityObserver = new IntersectionObserver(([entry]) => {
-    isVisible = entry.isIntersecting;
+    isIntersecting = entry.isIntersecting;
   });
   visibilityObserver.observe(container);
+  const onVisibilityChange = () => {
+    isPageVisible = !document.hidden;
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
 
   resize();
   tick(0); // draw one frame BEFORE revealing the canvas, so it never fades in empty
@@ -412,6 +425,7 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
       gsap.ticker.remove(tick);
       observer.disconnect();
       visibilityObserver.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       container.classList.remove('is-webgl'); // the portrait photo comes back
       geometry.dispose();
       material.dispose();
