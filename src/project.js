@@ -3,12 +3,14 @@
 import { initScroll } from './lib/scroll.js';
 import { checkTokenSync } from './lib/motion.js';
 import { initCursor } from './lib/cursor.js';
+import { initHoverRoll } from './lib/hover-roll.js';
 import { initHeader } from './sections/header.js';
 import { initCaseStudy } from './sections/case-study.js';
 import { initContact } from './sections/contact.js';
 
 initScroll();
 initCursor();
+initHoverRoll();
 initHeader();
 initCaseStudy();
 initContact();

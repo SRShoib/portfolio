@@ -386,6 +386,37 @@ main {
   text-align: center;
 }
 
+/* ---- Hover text roll (src/lib/hover-roll.js) --------------------------------------------------
+   Two stacked, identical copies of a short label inside a one-line clipped box. The ancestor's
+   hover/focus state (rule below) slides both up by exactly one line -- `1lh` is the CSS unit for
+   "this box's own computed line-height as a length", so the shift is exactly right whatever the
+   surrounding font-size or line-height turns out to be, with no per-component tuning needed. The
+   visible copy exits the top edge as its aria-hidden twin arrives from the bottom, landing exactly
+   in its place. This markup only exists where hover-roll.js has built it: with JS off, or with
+   reduced motion, a target is untouched plain text and its own :hover colour change (set per
+   component elsewhere in this file and in sections/*.css) is all that happens. */
+.roll {
+  display: inline-block;
+  max-width: 100%;
+  height: 1lh;
+  overflow: hidden;
+}
+.roll__inner {
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--dur-s) var(--ease-in-out);
+}
+.roll__line {
+  white-space: nowrap;
+}
+a:hover .roll__inner,
+a:focus-visible .roll__inner,
+button:hover .roll__inner,
+button:focus-visible .roll__inner,
+.project-card:hover .roll__inner {
+  transform: translateY(-1lh);
+}
+
 /* ---- Custom cursor (lib/cursor.js: fine pointers + motion only) -------------------------------
    .has-cursor is only ever added once cursor.js has actually built the replacement, so the real
    cursor never disappears for anyone else (no JS, reduced motion, touch). The universal `*` is
