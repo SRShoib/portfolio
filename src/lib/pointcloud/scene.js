@@ -374,7 +374,14 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   document.addEventListener('visibilitychange', onVisibilityChange);
 
   resize();
-  await yieldToMain(); // one more turn before the first render, which compiles the shader on the GPU
+  // Compile the shader program BEFORE the first real render, with the `KHR_parallel_shader_compile`
+  // extension where the driver supports it (three.js's own compileAsync, not a hand-rolled version:
+  // it already does exactly this, polling each material's program for isReady()). A plain first
+  // render() compiles synchronously as a side effect instead -- on a driver without parallel
+  // compilation this Promise still just resolves once compilation finishes, so it costs nothing
+  // extra there, but on one that supports it, compilation happens on a separate thread instead of
+  // blocking this one.
+  await renderer.compileAsync(scene, camera);
   tick(0); // draw one frame BEFORE revealing the canvas, so it never fades in empty
   gsap.ticker.add(tick);
 
