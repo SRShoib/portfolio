@@ -387,14 +387,16 @@ main {
 }
 
 /* ---- Hover text roll (src/lib/hover-roll.js) --------------------------------------------------
-   Two stacked, identical copies of a short label inside a one-line clipped box. The ancestor's
-   hover/focus state (rule below) slides both up by exactly one line -- `1lh` is the CSS unit for
-   "this box's own computed line-height as a length", so the shift is exactly right whatever the
-   surrounding font-size or line-height turns out to be, with no per-component tuning needed. The
-   visible copy exits the top edge as its aria-hidden twin arrives from the bottom, landing exactly
-   in its place. This markup only exists where hover-roll.js has built it: with JS off, or with
-   reduced motion, a target is untouched plain text and its own :hover colour change (set per
-   component elsewhere in this file and in sections/*.css) is all that happens. */
+   One clipped, one-line box per CHARACTER, each holding two identical stacked copies. `1lh` is the
+   CSS unit for "this box's own computed line-height as a length", so a character's roll is always
+   exactly one line, whatever the surrounding font-size or line-height turns out to be -- no
+   per-component tuning needed. hover-roll.js staggers the translate per character (GSAP, not a CSS
+   transition: a transition cannot stagger its own children) on pointer hover or focus of the
+   nearest link/button, so the visible copy of each letter exits the top edge as its aria-hidden
+   twin arrives from the bottom, one letter after the next. This markup only exists where
+   hover-roll.js has built it: with JS off, or with reduced motion, a target is untouched plain text
+   and its own :hover colour change (set per component elsewhere in this file and in
+   sections/*.css) is all that happens. */
 .roll {
   display: inline-block;
   max-width: 100%;
@@ -404,17 +406,30 @@ main {
 .roll__inner {
   display: flex;
   flex-direction: column;
-  transition: transform var(--dur-s) var(--ease-in-out);
 }
 .roll__line {
   white-space: nowrap;
 }
-a:hover .roll__inner,
-a:focus-visible .roll__inner,
-button:hover .roll__inner,
-button:focus-visible .roll__inner,
-.project-card:hover .roll__inner {
-  transform: translateY(-1lh);
+
+/* A handful of plain inline links (CLAUDE.md gives every nav/button/heading-style link its own
+   `text-decoration: none` elsewhere; these are the ones that don't, and so keep the browser's
+   default underline as their only non-colour affordance) also happen to be hover-roll targets.
+   `text-decoration` is drawn separately per ATOMIC inline-level box, and hover-roll.js's
+   `.roll` is exactly that (one `display: inline-block` per character) -- so the native
+   underline came out broken into short dashes, one per character, with a gap at every
+   boundary, instead of one continuous line. A background-image line instead of
+   `text-decoration` draws across the whole link as a single box, unaffected by whatever
+   elements sit inside it. */
+.ext,
+.pub-card__doi,
+.site-footer__links a,
+.site-footer__bottom a,
+.site-footer__email a {
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 1px;
 }
 
 /* ---- Custom cursor (lib/cursor.js: fine pointers + motion only) -------------------------------

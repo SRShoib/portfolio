@@ -7,6 +7,7 @@
 
 import { gsap } from 'gsap';
 import { ease, motionDuration } from '../lib/motion.js';
+import { enhanceRollLink } from '../lib/hover-roll.js';
 import { getEmail } from '../data/content.js';
 
 let teardown = null;
@@ -48,6 +49,7 @@ export function initContact() {
   link.href = `mailto:${email}`;
   link.textContent = email;
   address.replaceChildren(link);
+  enhanceRollLink(link); // built after initHoverRoll() already ran, so it needs its own call
 
   if (!button) return;
   button.hidden = false; // the button is JS-only: hidden in the HTML until now
