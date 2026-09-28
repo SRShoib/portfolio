@@ -152,6 +152,16 @@
   font-size: var(--step-n1);
 }
 
+/* Justified rows: each wrapped line of chips spreads edge-to-edge instead of sitting ragged-right
+   like base.css's plain left-aligned .chips (used elsewhere for short, few-item rows -- a stack
+   list or a metric row -- where spreading them out would look sparse, not "justified"). Scoped to
+   .skills specifically: this group can run to a dozen-plus chips per row, long enough that the
+   effect reads as intentional text-like justification rather than a couple of chips stretched
+   awkwardly apart. */
+.skills .chips {
+  justify-content: space-between;
+}
+
 @media (min-width: 64em) {
   .about__grid {
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
