@@ -88,6 +88,50 @@
         </div>
       </section>
 
+      <section class="marquee section" aria-labelledby="stack-title">
+        <div class="container">
+          <div class="marquee__head">
+            <h2 id="stack-title" class="marquee__title label">Tech stack</h2>
+            <!-- Hidden by default: only the motion-on branch of marquee.js reveals it, so a
+                 no-JS or reduced-motion visitor (whose rows never move) never sees a dead
+                 control. WCAG 2.2.2 requires a way to pause a >5s auto-scrolling loop that
+                 doesn't depend on a mouse hover. -->
+            <button class="marquee__toggle label" type="button" data-marquee-toggle hidden>
+              <span data-marquee-toggle-label>Pause</span><span class="sr-only"> tech stack scrolling</span>
+            </button>
+          </div>
+          <div class="marquee__rows">
+            <ul class="marquee__row" role="list">
+              <li>LangGraph</li>
+              <li>LangChain</li>
+              <li>LangSmith</li>
+              <li>LangServe</li>
+              <li>OpenAI</li>
+              <li>Hugging Face</li>
+              <li>Pinecone</li>
+              <li>Chroma</li>
+              <li>FAISS</li>
+              <li>LoRA / QLoRA</li>
+              <li>BERTopic</li>
+              <li>n8n</li>
+            </ul>
+            <ul class="marquee__row" role="list">
+              <li>PyTorch</li>
+              <li>TensorFlow</li>
+              <li>FastAPI</li>
+              <li>Pydantic</li>
+              <li>PostgreSQL</li>
+              <li>Docker</li>
+              <li>GitHub Actions</li>
+              <li>Next.js</li>
+              <li>TypeScript</li>
+              <li>Python</li>
+              <li>C++</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="work" class="work section" aria-labelledby="work-title">
         <div class="container">
           <header class="section__head">
@@ -307,6 +351,175 @@
         </div>
       </section>
 
+      <section id="about" class="about section" aria-labelledby="about-title">
+        <div class="container about__grid">
+          <div class="about__portrait-col">
+            <div class="about__portrait">
+              <!--picture src="/images/profile/portrait.png" alt="Portrait of Md. Mehedi Hasan Shoib" sizes="(min-width: 64em) 36vw, min(92vw, 26rem)"-->
+            </div>
+          </div>
+
+          <div class="about__content">
+            <h2 id="about-title" class="section__title">About</h2>
+            <p class="about__meta label"><span>Dhaka, Bangladesh</span></p>
+            <p class="about__availability"><span class="status-dot" aria-hidden="true"></span>Open to full-time roles, on-site Dhaka or remote.</p>
+
+            <section class="about__block" aria-labelledby="about-experience">
+              <h3 id="about-experience" class="about__block-title">Experience</h3>
+              <p class="about__entry-title">Research Assistant <span>— Health Informatics Research Lab (HIRL), Daffodil International University</span></p>
+              <p class="about__entry-meta label">Jan 2025 – Present · On-site · Savar, Dhaka</p>
+              <ul class="about__list" role="list">
+                <li>Research on medical imaging in healthcare and agricultural image data in agriculture</li>
+                <li>Build custom ML and deep learning models for computer vision and write research papers</li>
+                <li>Co-authored five publications: three conference papers and two dataset articles</li>
+              </ul>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-skills">
+              <h3 id="about-skills" class="about__block-title">Skills</h3>
+              <div class="skills">
+                <div>
+                  <h4 class="skills__title">Generative &amp; Agentic AI</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">LLMs</li>
+                    <li class="chip">fine-tuning (LoRA, QLoRA)</li>
+                    <li class="chip">RAG</li>
+                    <li class="chip">multi-agent orchestration</li>
+                    <li class="chip">LangChain</li>
+                    <li class="chip">LangGraph</li>
+                    <li class="chip">LangServe</li>
+                    <li class="chip">LangSmith</li>
+                    <li class="chip">n8n</li>
+                    <li class="chip">prompt engineering</li>
+                    <li class="chip">tool calling</li>
+                    <li class="chip">structured output</li>
+                    <li class="chip">human-in-the-loop</li>
+                    <li class="chip">embedding models</li>
+                    <li class="chip">semantic and hybrid search</li>
+                    <li class="chip">chunking strategies</li>
+                    <li class="chip">reranking</li>
+                    <li class="chip">metadata filtering</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">NLP</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">tokenization</li>
+                    <li class="chip">text classification</li>
+                    <li class="chip">NER</li>
+                    <li class="chip">sentiment analysis</li>
+                    <li class="chip">summarization</li>
+                    <li class="chip">topic modeling</li>
+                    <li class="chip">semantic similarity</li>
+                    <li class="chip">Hugging Face Transformers</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">ML &amp; Deep Learning</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">computer vision</li>
+                    <li class="chip">MLOps</li>
+                    <li class="chip">PyTorch</li>
+                    <li class="chip">TensorFlow</li>
+                    <li class="chip">supervised and unsupervised learning</li>
+                    <li class="chip">ANN</li>
+                    <li class="chip">CNN</li>
+                    <li class="chip">LSTM</li>
+                    <li class="chip">Transformers</li>
+                    <li class="chip">graph neural networks</li>
+                    <li class="chip">attention</li>
+                    <li class="chip">fusion models</li>
+                    <li class="chip">explainable AI (Grad-CAM, Grad-CAM++, SHAP, LIME, TCAV)</li>
+                    <li class="chip">federated and split learning</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Backend &amp; APIs</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">FastAPI</li>
+                    <li class="chip">REST API design</li>
+                    <li class="chip">Pydantic</li>
+                    <li class="chip">authentication</li>
+                    <li class="chip">async request handling</li>
+                    <li class="chip">model-serving endpoints</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Databases</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">PostgreSQL</li>
+                    <li class="chip">MySQL</li>
+                    <li class="chip">FAISS</li>
+                    <li class="chip">Chroma</li>
+                    <li class="chip">Pinecone</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Frontend</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">Next.js</li>
+                    <li class="chip">React</li>
+                    <li class="chip">TypeScript</li>
+                    <li class="chip">Tailwind CSS</li>
+                    <li class="chip">HTML/CSS</li>
+                    <li class="chip">Streamlit</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">DevOps</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">Docker</li>
+                    <li class="chip">Git</li>
+                    <li class="chip">GitHub Actions</li>
+                    <li class="chip">CI/CD</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="skills__title">Languages</h4>
+                  <ul class="chips" role="list">
+                    <li class="chip">Python</li>
+                    <li class="chip">C</li>
+                    <li class="chip">C++</li>
+                    <li class="chip">Java</li>
+                    <li class="chip">JavaScript</li>
+                    <li class="chip">SQL</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-education">
+              <h3 id="about-education" class="about__block-title">Education</h3>
+              <p class="about__entry-title">B.Sc. in Computer Science &amp; Engineering <span>— Daffodil International University</span></p>
+              <p class="about__entry-meta label">Jan 2022 – Jan 2026 · Completed · CGPA 3.80 / 4.00</p>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-problem-solving">
+              <h3 id="about-problem-solving" class="about__block-title">Problem solving</h3>
+              <p>700+ problems solved across judges · 60+ contests including onsite</p>
+              <p class="about__highlight">Beecrowd: top 1%, 210+ solved</p>
+              <ul class="about__links" role="list" aria-label="Problem-solving profiles">
+                <li><a class="ext" href="https://judge.beecrowd.com/en/profile/645784" target="_blank" rel="noopener">Beecrowd&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+                <li><a class="ext" href="https://codeforces.com/profile/shoib15-5511" target="_blank" rel="noopener">Codeforces&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+                <li><a class="ext" href="https://leetcode.com/u/srshoib/" target="_blank" rel="noopener">LeetCode&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+                <li><a class="ext" href="https://vjudge.net/user/SRShoib" target="_blank" rel="noopener">VJudge&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
+              </ul>
+            </section>
+
+            <section class="about__block" aria-labelledby="about-competitions">
+              <h3 id="about-competitions" class="about__block-title">Competitions</h3>
+              <ul class="about__contests" role="list">
+                <li><span class="about__contest-result label">18th</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-final/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Final&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">26th</span><a class="ext" href="https://toph.co/c/unlock-the-algorithm-fall-23-preliminary-a-slot/standings" target="_blank" rel="noopener">Unlock the Algorithm Fall 2023, Preliminary (Slot A)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">45th</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-slot-b/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Slot B&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">42nd</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-mock/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Mock&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+                <li><span class="about__contest-result label">Certificate</span><a class="ext" href="https://drive.google.com/file/d/15eTkWevgZ4iHAgL4m5nLO3TvoPG-fP_y/view?usp=sharing" target="_blank" rel="noopener">Take-Off Programming Contest Final, Fall 2022&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </section>
+
       <section id="publications" class="publications section" aria-labelledby="pubs-title">
         <div class="container">
           <header class="section__head">
@@ -501,218 +714,6 @@
         </div>
       </section>
 
-      <section id="about" class="about section" aria-labelledby="about-title">
-        <div class="container about__grid">
-          <div class="about__portrait-col">
-            <div class="about__portrait">
-              <!--picture src="/images/profile/portrait.png" alt="Portrait of Md. Mehedi Hasan Shoib" sizes="(min-width: 64em) 36vw, min(92vw, 26rem)"-->
-            </div>
-          </div>
-
-          <div class="about__content">
-            <h2 id="about-title" class="section__title">About</h2>
-            <p class="about__meta label"><span>Dhaka, Bangladesh</span></p>
-            <p class="about__availability"><span class="status-dot" aria-hidden="true"></span>Open to full-time roles, on-site Dhaka or remote.</p>
-
-            <section class="about__block" aria-labelledby="about-experience">
-              <h3 id="about-experience" class="about__block-title">Experience</h3>
-              <p class="about__entry-title">Research Assistant <span>— Health Informatics Research Lab (HIRL), Daffodil International University</span></p>
-              <p class="about__entry-meta label">Jan 2025 – Present · On-site · Savar, Dhaka</p>
-              <ul class="about__list" role="list">
-                <li>Research on medical imaging in healthcare and agricultural image data in agriculture</li>
-                <li>Build custom ML and deep learning models for computer vision and write research papers</li>
-                <li>Co-authored five publications: three conference papers and two dataset articles</li>
-              </ul>
-            </section>
-
-            <section class="about__block" aria-labelledby="about-education">
-              <h3 id="about-education" class="about__block-title">Education</h3>
-              <p class="about__entry-title">B.Sc. in Computer Science &amp; Engineering <span>— Daffodil International University</span></p>
-              <p class="about__entry-meta label">Jan 2022 – Jan 2026 · Completed · CGPA 3.80 / 4.00</p>
-            </section>
-
-            <section class="about__block" aria-labelledby="about-problem-solving">
-              <h3 id="about-problem-solving" class="about__block-title">Problem solving</h3>
-              <p>700+ problems solved across judges · 60+ contests including onsite</p>
-              <p class="about__highlight">Beecrowd: top 1%, 210+ solved</p>
-              <ul class="about__links" role="list" aria-label="Problem-solving profiles">
-                <li><a class="ext" href="https://judge.beecrowd.com/en/profile/645784" target="_blank" rel="noopener">Beecrowd&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
-                <li><a class="ext" href="https://codeforces.com/profile/shoib15-5511" target="_blank" rel="noopener">Codeforces&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
-                <li><a class="ext" href="https://leetcode.com/u/srshoib/" target="_blank" rel="noopener">LeetCode&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
-                <li><a class="ext" href="https://vjudge.net/user/SRShoib" target="_blank" rel="noopener">VJudge&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — profile (opens in a new tab)</span></a></li>
-              </ul>
-            </section>
-
-            <section class="about__block" aria-labelledby="about-competitions">
-              <h3 id="about-competitions" class="about__block-title">Competitions</h3>
-              <ul class="about__contests" role="list">
-                <li><span class="about__contest-result label">18th</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-final/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Final&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
-                <li><span class="about__contest-result label">26th</span><a class="ext" href="https://toph.co/c/unlock-the-algorithm-fall-23-preliminary-a-slot/standings" target="_blank" rel="noopener">Unlock the Algorithm Fall 2023, Preliminary (Slot A)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
-                <li><span class="about__contest-result label">45th</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-slot-b/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Slot B&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
-                <li><span class="about__contest-result label">42nd</span><a class="ext" href="https://toph.co/c/diu-take-off-fall-2022-mock/standings" target="_blank" rel="noopener">DIU Take-Off Programming Contest Fall 2022, Mock&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
-                <li><span class="about__contest-result label">Certificate</span><a class="ext" href="https://drive.google.com/file/d/15eTkWevgZ4iHAgL4m5nLO3TvoPG-fP_y/view?usp=sharing" target="_blank" rel="noopener">Take-Off Programming Contest Final, Fall 2022&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
-              </ul>
-            </section>
-
-            <section class="about__block" aria-labelledby="about-skills">
-              <h3 id="about-skills" class="about__block-title">Skills</h3>
-              <div class="skills">
-                <div>
-                  <h4 class="skills__title">Generative &amp; Agentic AI</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">LLMs</li>
-                    <li class="chip">fine-tuning (LoRA, QLoRA)</li>
-                    <li class="chip">RAG</li>
-                    <li class="chip">multi-agent orchestration</li>
-                    <li class="chip">LangChain</li>
-                    <li class="chip">LangGraph</li>
-                    <li class="chip">LangServe</li>
-                    <li class="chip">LangSmith</li>
-                    <li class="chip">n8n</li>
-                    <li class="chip">prompt engineering</li>
-                    <li class="chip">tool calling</li>
-                    <li class="chip">structured output</li>
-                    <li class="chip">human-in-the-loop</li>
-                    <li class="chip">embedding models</li>
-                    <li class="chip">semantic and hybrid search</li>
-                    <li class="chip">chunking strategies</li>
-                    <li class="chip">reranking</li>
-                    <li class="chip">metadata filtering</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="skills__title">NLP</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">tokenization</li>
-                    <li class="chip">text classification</li>
-                    <li class="chip">NER</li>
-                    <li class="chip">sentiment analysis</li>
-                    <li class="chip">summarization</li>
-                    <li class="chip">topic modeling</li>
-                    <li class="chip">semantic similarity</li>
-                    <li class="chip">Hugging Face Transformers</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="skills__title">ML &amp; Deep Learning</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">computer vision</li>
-                    <li class="chip">MLOps</li>
-                    <li class="chip">PyTorch</li>
-                    <li class="chip">TensorFlow</li>
-                    <li class="chip">supervised and unsupervised learning</li>
-                    <li class="chip">ANN</li>
-                    <li class="chip">CNN</li>
-                    <li class="chip">LSTM</li>
-                    <li class="chip">Transformers</li>
-                    <li class="chip">graph neural networks</li>
-                    <li class="chip">attention</li>
-                    <li class="chip">fusion models</li>
-                    <li class="chip">explainable AI (Grad-CAM, Grad-CAM++, SHAP, LIME, TCAV)</li>
-                    <li class="chip">federated and split learning</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="skills__title">Backend &amp; APIs</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">FastAPI</li>
-                    <li class="chip">REST API design</li>
-                    <li class="chip">Pydantic</li>
-                    <li class="chip">authentication</li>
-                    <li class="chip">async request handling</li>
-                    <li class="chip">model-serving endpoints</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="skills__title">Databases</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">PostgreSQL</li>
-                    <li class="chip">MySQL</li>
-                    <li class="chip">FAISS</li>
-                    <li class="chip">Chroma</li>
-                    <li class="chip">Pinecone</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="skills__title">Frontend</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">Next.js</li>
-                    <li class="chip">React</li>
-                    <li class="chip">TypeScript</li>
-                    <li class="chip">Tailwind CSS</li>
-                    <li class="chip">HTML/CSS</li>
-                    <li class="chip">Streamlit</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="skills__title">DevOps</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">Docker</li>
-                    <li class="chip">Git</li>
-                    <li class="chip">GitHub Actions</li>
-                    <li class="chip">CI/CD</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 class="skills__title">Languages</h4>
-                  <ul class="chips" role="list">
-                    <li class="chip">Python</li>
-                    <li class="chip">C</li>
-                    <li class="chip">C++</li>
-                    <li class="chip">Java</li>
-                    <li class="chip">JavaScript</li>
-                    <li class="chip">SQL</li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-      </section>
-
-      <section class="marquee section" aria-labelledby="stack-title">
-        <div class="container">
-          <div class="marquee__head">
-            <h2 id="stack-title" class="marquee__title label">Tech stack</h2>
-            <!-- Hidden by default: only the motion-on branch of marquee.js reveals it, so a
-                 no-JS or reduced-motion visitor (whose rows never move) never sees a dead
-                 control. WCAG 2.2.2 requires a way to pause a >5s auto-scrolling loop that
-                 doesn't depend on a mouse hover. -->
-            <button class="marquee__toggle label" type="button" data-marquee-toggle hidden>
-              <span data-marquee-toggle-label>Pause</span><span class="sr-only"> tech stack scrolling</span>
-            </button>
-          </div>
-          <div class="marquee__rows">
-            <ul class="marquee__row" role="list">
-              <li>LangGraph</li>
-              <li>LangChain</li>
-              <li>LangSmith</li>
-              <li>LangServe</li>
-              <li>OpenAI</li>
-              <li>Hugging Face</li>
-              <li>Pinecone</li>
-              <li>Chroma</li>
-              <li>FAISS</li>
-              <li>LoRA / QLoRA</li>
-              <li>BERTopic</li>
-              <li>n8n</li>
-            </ul>
-            <ul class="marquee__row" role="list">
-              <li>PyTorch</li>
-              <li>TensorFlow</li>
-              <li>FastAPI</li>
-              <li>Pydantic</li>
-              <li>PostgreSQL</li>
-              <li>Docker</li>
-              <li>GitHub Actions</li>
-              <li>Next.js</li>
-              <li>TypeScript</li>
-              <li>Python</li>
-              <li>C++</li>
-            </ul>
-          </div>
-        </div>
-      </section>
     </main>
 
     <!--include:footer.html-->
