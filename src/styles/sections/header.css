@@ -281,8 +281,18 @@ html.is-menu-open {
   }
 
   /* Only at this width does the sliding pill (above) need room around the text instead of
-     hugging it edge-to-edge; the narrow base row stays as tight as the 360px comment requires. */
+     hugging it edge-to-edge; the narrow base row stays as tight as the 360px comment requires.
+     font-size is bumped here too, for the same reason: .label's default 11px (base.css) was too
+     small to read comfortably -- the narrow base row keeps the smaller size, where five labels
+     must still fit one line at 360px (the .site-nav__list comment above). The narrow fullscreen
+     menu (below) already uses a much bigger, unrelated font-size of its own.
+     padding-inline is deliberately modest (not the roomier value it started as): at exactly this
+     breakpoint's narrow end (768px), five bigger labels plus their padding left no room for the
+     monogram and Resume button on the same row, and the whole nav wrapped clean off the top of
+     the header, invisible, until this was caught by testing 768px specifically rather than only
+     the comfortably wide screens this was designed on. */
   .site-nav__link {
-    padding-inline: 0.7em;
+    padding-inline: 0.3em;
+    font-size: var(--step-n1);
   }
 }
