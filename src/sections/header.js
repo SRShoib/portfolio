@@ -137,19 +137,30 @@ export function initHeader() {
   // section counts as active at a time instead of weighing partial-visibility percentages. Guarded
   // on sectionLinks.length: a case-study page shares this same header markup but has none of these
   // sections, so there is nothing to observe there and the pill only ever responds to hover.
+  //
+  // One nav target (#skills) sits INSIDE another (#about), so both can be "intersecting" the band
+  // at once -- e.g. scrolled to the skills chips, #about still contains that scroll position too.
+  // `intersecting` tracks every target's current state (not just what changed in the latest
+  // callback batch), so `pickActive()` can always see the full picture and prefer whichever active
+  // section is nested INSIDE the others (the more specific match) over an ancestor that merely
+  // happens to also span that scroll position.
   let sectionObserver = null;
   if (indicator && sectionLinks.length) {
+    const intersecting = new Map(sectionLinks.map(({ section }) => [section, false]));
+    const pickActive = () => {
+      const active = sectionLinks.filter(({ section }) => intersecting.get(section));
+      const specific = active.find(({ section }) => !active.some((other) => other.section !== section && section.contains(other.section)));
+      return (specific ?? active[active.length - 1])?.link ?? null;
+    };
     sectionObserver = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const match = sectionLinks.find((s) => s.section === entry.target);
-          if (!match) continue;
-          activeLink?.classList.remove('is-current');
-          activeLink = match.link;
-          activeLink.classList.add('is-current');
-          if (!hovering) place(activeLink);
-        }
+        for (const entry of entries) intersecting.set(entry.target, entry.isIntersecting);
+        const link = pickActive();
+        if (!link || link === activeLink) return;
+        activeLink?.classList.remove('is-current');
+        activeLink = link;
+        activeLink.classList.add('is-current');
+        if (!hovering) place(activeLink);
       },
       { rootMargin: '-45% 0px -50% 0px' },
     );
