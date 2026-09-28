@@ -241,6 +241,14 @@ a {
   border-color: var(--muted);
 }
 
+/* Uppercase button text via CSS, not literal ALL-CAPS content: keeps the accessible name a real
+   word ("Resume") rather than a string some screen readers spell out letter by letter when they
+   mistake a short all-caps run for an acronym. */
+.btn--upper {
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
 /* ---- Sections ------------------------------------------------------------------------ */
 main {
   /* Pages start below the fixed header. */

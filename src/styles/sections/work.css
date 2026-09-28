@@ -100,3 +100,26 @@
     padding: var(--space-l);
   }
 }
+
+/* Hover/focus expand: the same effect split.css uses for the Research/Engineering cards, fine
+   pointer + desktop width only. This runs alongside the cover/diagram clip-path swap above
+   (diagram.css) rather than replacing it -- that swap animates a CHILD element
+   (.project-card__cover), so scaling the card itself here doesn't touch it. See split.css for why
+   the compress rule needs :not() and why :has()'s specificity would otherwise win on the hovered
+   card too. */
+@media (min-width: 64em) and (hover: hover) and (pointer: fine) {
+  .project-card {
+    transition:
+      border-color var(--dur-xs) var(--ease-out),
+      transform var(--dur-s) var(--ease-out);
+  }
+
+  .work__grid:has(.project-card:hover, .project-card:focus-within) .project-card:not(:hover):not(:focus-within) {
+    transform: scale(0.96);
+  }
+  .project-card:hover,
+  .project-card:focus-within {
+    transform: scale(1.03);
+    z-index: 1;
+  }
+}

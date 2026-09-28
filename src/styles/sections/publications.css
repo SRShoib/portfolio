@@ -184,3 +184,25 @@
     margin-top: var(--space-l);
   }
 }
+
+/* Hover/focus expand: the same effect split.css uses for the Research/Engineering cards, fine
+   pointer + desktop width only. Scoped to EACH `.pubs__list` independently (there are two, one
+   per paper type) so hovering a card only compresses cards in its OWN group, not the other list's.
+   This only ever takes visual effect once sections/publications.js has cleared the fan-in
+   scroll tween's own inline transform (see the `settled` flag there) -- before that point an
+   inline style is present and always wins over this rule regardless of specificity, so hovering
+   mid-scroll silently does nothing here rather than fighting the scrub animation. */
+@media (min-width: 64em) and (hover: hover) and (pointer: fine) {
+  .pub-card {
+    transition: transform var(--dur-s) var(--ease-out);
+  }
+
+  .pubs__list:has(.pub-card:hover, .pub-card:focus-within) .pub-card:not(:hover):not(:focus-within) {
+    transform: scale(0.96);
+  }
+  .pub-card:hover,
+  .pub-card:focus-within {
+    transform: scale(1.03);
+    z-index: 1;
+  }
+}
