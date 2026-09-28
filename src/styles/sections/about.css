@@ -143,6 +143,15 @@
   letter-spacing: 0;
 }
 
+/* This list is meant to be skimmed (CLAUDE.md rule 4), not read as fine print -- one size up from
+   the base .chip (base.css), which stays small on purpose everywhere else it's used (stack tags,
+   DOIs, a project card's dense metadata row). Padding grows to match, so the pill doesn't end up
+   with the same tight margins around noticeably bigger text. */
+.skills .chip {
+  padding: 0.32em 0.9em;
+  font-size: var(--step-n1);
+}
+
 @media (min-width: 64em) {
   .about__grid {
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
