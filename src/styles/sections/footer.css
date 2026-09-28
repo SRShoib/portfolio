@@ -62,6 +62,8 @@
   align-items: center;
   gap: 0.45em;
   padding-block: 0.6rem;
+  font-size: var(--step-n1); /* one step up from .label's default 11px (base.css) -- these were
+    too small to read comfortably; the icon (sized in em) grows to match automatically. */
   line-height: 1; /* tighter than base.css's shared 1.15: still visible gap at this text's size */
   /* Even at line-height: 1, the mono font's own internal leading (space baked into the font's
      glyphs below the baseline, not something line-height controls) still left a gap below the
@@ -82,7 +84,8 @@
 }
 .social-icon__label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px; /* grown to match .site-footer__links a's bigger icon (below); a fixed px value,
+    not em, since it sits inside the SVG's own coordinate system rather than the surrounding text */
   font-weight: 700;
 }
 
