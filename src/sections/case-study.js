@@ -13,10 +13,26 @@ import { conditions, duration, ease, reveal, staggerEach } from '../lib/motion.j
 let mm = null;
 
 /** Fade + rise `el` in once it scrolls to `reveal.start`, or immediately if the page already
- *  loaded scrolled past that point (the same onEnter-missed fix documented in stats.js). */
+ *  loaded scrolled past that point (the same onEnter-missed fix documented in stats.js).
+ *
+ *  GSAP animates `y` through an inline `transform`, and never clears it on its own -- left alone,
+ *  that inline `transform: translate(0px, 0px)` (functionally identical to no transform at rest,
+ *  but an INLINE style, which beats any stylesheet rule regardless of specificity) would silently
+ *  block .cs-pager__link's own CSS hover-scale from ever taking effect. Clearing it once the
+ *  one-time reveal finishes is safe here specifically because the cleared state and the animated
+ *  end state are visually identical (opacity 1, no transform, both already CSS defaults) --
+ *  unlike about.js's portrait reveal, which keeps its inline end state because clearing THAT one
+ *  would snap back to a clipped, pre-reveal look. */
 function revealOnce(el) {
   gsap.set(el, { opacity: 0, y: reveal.y });
-  const run = () => gsap.to(el, { opacity: 1, y: 0, duration: reveal.duration, ease: reveal.ease });
+  const run = () =>
+    gsap.to(el, {
+      opacity: 1,
+      y: 0,
+      duration: reveal.duration,
+      ease: reveal.ease,
+      onComplete: () => gsap.set(el, { clearProps: 'opacity,transform' }),
+    });
   const trigger = ScrollTrigger.create({ trigger: el, start: reveal.start, once: true, onEnter: run });
   if (trigger.progress > 0) {
     trigger.kill();
