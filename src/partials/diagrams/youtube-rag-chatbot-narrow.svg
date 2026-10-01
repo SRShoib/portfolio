@@ -1,0 +1,53 @@
+<svg class="diagram diagram--narrow" viewBox="0 0 424 476" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arrow-youtube-rag-chatbot-narrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path class="diagram-arrowhead" d="M0,0 L10,5 L0,10 z"></path>
+    </marker>
+    <marker id="arrow-loop-youtube-rag-chatbot-narrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path class="diagram-arrowhead diagram-arrowhead--loop" d="M0,0 L10,5 L0,10 z"></path>
+    </marker>
+  </defs>
+  <g class="diagram-lines">
+    <path class="diagram-line" d="M192,60 L232,60" marker-end="url(#arrow-youtube-rag-chatbot-narrow)"></path>
+    <path class="diagram-line" d="M320,104 L320,148" marker-end="url(#arrow-youtube-rag-chatbot-narrow)"></path>
+    <path class="diagram-line" d="M232,182 L192,182" marker-end="url(#arrow-youtube-rag-chatbot-narrow)"></path>
+    <path class="diagram-line" d="M104,216 L104,260" marker-end="url(#arrow-youtube-rag-chatbot-narrow)"></path>
+    <path class="diagram-line" d="M192,294 L232,294" marker-end="url(#arrow-youtube-rag-chatbot-narrow)"></path>
+    <path class="diagram-line" d="M320,328 L320,372" marker-end="url(#arrow-youtube-rag-chatbot-narrow)"></path>
+    <path class="diagram-line" d="M232,416 L192,416" marker-end="url(#arrow-youtube-rag-chatbot-narrow)"></path>
+  </g>
+  <g class="diagram-nodes">
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="16" width="176" height="88" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="65.12">YouTube page</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="16" width="176" height="88" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="45.12">Transcript</tspan><tspan x="320" y="65.12">extraction</tspan><tspan x="320" y="85.12">(extension)</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="148" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="187.12">FastAPI backend</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="148" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="177.12">Recursive</tspan><tspan x="104" y="197.12">chunking</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="260" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="289.12">OpenAI</tspan><tspan x="104" y="309.12">embeddings</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="260" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="299.12">FAISS search</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="372" width="176" height="88" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="401.12">Answer / Summary</tspan><tspan x="320" y="421.12">(LangServe</tspan><tspan x="320" y="441.12">routes)</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="372" width="176" height="88" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="421.12">Extension UI</tspan></text>
+    </g>
+  </g>
+</svg>
