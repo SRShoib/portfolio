@@ -24,7 +24,7 @@ import { afterFirstPaint, ease, duration, prefersReducedMotion, stagger } from '
 const TARGETS = [
   '.monogram span[aria-hidden]',
   '.site-nav__link',
-  '.btn:not([data-copy-email])', // Resume, hero buttons, case-study Live/API docs/GitHub, footer Download resume
+  '.btn', // Resume, hero buttons, case-study Live/API docs/GitHub, footer Download resume + Copy email
   '.menu-toggle .label',
   '.project-card__links a', // Live / API docs / GitHub on the home page cards
   '.project-card__case', // "Case study →"
@@ -163,6 +163,12 @@ function play(inners, steps) {
  *  the real interactive element (the label itself, for most targets; its enclosing link/button for
  *  the monogram, the menu toggle, and a pager's small label) -- a plain `<span>` is never
  *  focusable, and tabbing to a stretched link is never spatially ambiguous the way a mouse is. */
+// interactive element -> its current { enter, leave }, so re-enhancing a label whose text changed
+// at runtime (contact.js's "Copy email" -> "Copied" -> "Copy email") can remove the PREVIOUS pair
+// before adding a new one, instead of quietly stacking duplicate focus/blur listeners on the same
+// persistent button every time its label changes.
+const rollListeners = new WeakMap();
+
 function enhance(labelEl) {
   const split = splitIntoChars(labelEl);
   if (!split?.inners.length) return;
@@ -179,8 +185,15 @@ function enhance(labelEl) {
   decorative.addEventListener('pointerleave', (event) => {
     if (event.pointerType !== 'touch') leave();
   });
+
+  const previous = rollListeners.get(interactive);
+  if (previous) {
+    interactive.removeEventListener('focus', previous.enter);
+    interactive.removeEventListener('blur', previous.leave);
+  }
   interactive.addEventListener('focus', enter);
   interactive.addEventListener('blur', leave);
+  rollListeners.set(interactive, { enter, leave });
 }
 
 /** Enhance every matching label on the current page. Call once, after the DOM is parsed.

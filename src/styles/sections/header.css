@@ -131,7 +131,8 @@
   align-items: center;
   gap: 0.65rem;
   min-height: 2.75rem;
-  padding: 0 1rem;
+  padding: 0.75rem; /* equal on all four sides, not just left/right, so the pill's rounded ends
+    don't crowd the label and icon any closer than the top/bottom gap min-height leaves them */
   border: 1px solid var(--line);
   border-radius: var(--r-pill);
   background: transparent;
@@ -286,13 +287,14 @@ html.is-menu-open {
      small to read comfortably -- the narrow base row keeps the smaller size, where five labels
      must still fit one line at 360px (the .site-nav__list comment above). The narrow fullscreen
      menu (below) already uses a much bigger, unrelated font-size of its own.
-     padding-inline is deliberately modest (not the roomier value it started as): at exactly this
-     breakpoint's narrow end (768px), five bigger labels plus their padding left no room for the
-     monogram and Resume button on the same row, and the whole nav wrapped clean off the top of
-     the header, invisible, until this was caught by testing 768px specifically rather than only
-     the comfortably wide screens this was designed on. */
+     `padding` (not the base rule's padding-block/padding-inline split) so the pill sits equally
+     off the text on all four sides, not hugging top/bottom while floating loose on the sides.
+     0.375rem, not the roomier --space-2xs (0.5rem): at this breakpoint's narrow end (768px),
+     0.5rem repeats the exact overflow this file's git history already fixed once -- five links
+     at that padding push Resume onto a second row. Tested at 768px: 0.375rem is the largest value
+     that still fits with a small margin. */
   .site-nav__link {
-    padding-inline: 0.3em;
+    padding: 0.375rem;
     font-size: var(--step-n1);
   }
 }

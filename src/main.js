@@ -4,6 +4,7 @@ import { checkTokenSync } from './lib/motion.js';
 import { initCursor } from './lib/cursor.js';
 import { initHoverRoll } from './lib/hover-roll.js';
 import { initBackdrop } from './lib/backdrop.js';
+import { initBackToTop } from './lib/back-to-top.js';
 import { initHeader } from './sections/header.js';
 import { initPreloader } from './sections/preloader.js';
 import { initHero } from './sections/hero.js';
@@ -19,6 +20,7 @@ initScroll(); // first: everything below may need to stop/start scrolling
 initCursor();
 initHoverRoll();
 initBackdrop();
+initBackToTop();
 initHeader();
 initPreloader();
 initHero(); // after the preloader: it waits for it before loading three.js
