@@ -35,7 +35,6 @@ const TARGETS = [
   '.about__links a', // Codeforces, LeetCode
   '.about__contests a', // contest standings + certificate links
   '.site-footer__links a', // GitHub, LinkedIn, Google Scholar, ResearchGate, ORCID
-  '.site-footer__bottom a', // "Back to top ↑"
   '.split__link', // "See publications" / "See selected work"
 ];
 

@@ -446,8 +446,7 @@ main {
    the actual glyphs, reading as a gap rather than an underline. */
 .ext,
 .pub-card__doi,
-.site-footer__links a,
-.site-footer__bottom a {
+.site-footer__links a {
   text-decoration: none;
   line-height: 1.15;
   background-image: linear-gradient(currentColor, currentColor);
@@ -512,8 +511,8 @@ main {
 
 /* ---- Back to top (src/lib/back-to-top.js) -----------------------------------------------------
    A fixed circular button, built once and reused on every page, so it stays reachable anywhere in
-   the scroll rather than only at the footer's own "Back to top" text link. Hidden by default: JS
-   adds .is-visible once the visitor has scrolled roughly past the first screen. `visibility` is
+   the scroll, the footer included -- it is the page's only back-to-top control. Hidden by default:
+   JS adds .is-visible once the visitor has scrolled roughly past the first screen. `visibility` is
    delayed on the way out (paired with the opacity transition) so it also leaves the tab order once
    it is no longer on screen, the same trick header.css uses for the fullscreen menu. */
 .back-to-top {
