@@ -30,6 +30,8 @@
 }
 .site-footer__email a {
   color: var(--text);
+  text-decoration: none; /* no underline here: the big mono address plus its own hover colour
+    change and hover-roll are affordance enough, unlike the smaller plain-text links elsewhere */
 }
 .site-footer__email a:hover {
   color: var(--accent);
@@ -56,8 +58,35 @@
   list-style: none;
 }
 .site-footer__links a {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
   padding-block: 0.6rem;
+  font-size: var(--step-n1); /* one step up from .label's default 11px (base.css) -- these were
+    too small to read comfortably; the icon (sized in em) grows to match automatically. */
+  line-height: 1; /* tighter than base.css's shared 1.15: still visible gap at this text's size */
+  /* Even at line-height: 1, the mono font's own internal leading (space baked into the font's
+     glyphs below the baseline, not something line-height controls) still left a gap below the
+     underline. These labels are all UPPERCASE (CLAUDE.md's uppercase mono label convention) with
+     no descenders to protect, so the line can safely sit closer than 100% of the line box. */
+  background-position: 0 calc(100% - 0.5em);
+}
+
+/* One small monochrome mark per platform (GitHub, LinkedIn, Google Scholar as silhouette paths;
+   ResearchGate and ORCID as a ring around a short mono label, since their real marks are a
+   two-tone "RG" square and a green "iD" badge that don't reduce cleanly to one flat silhouette).
+   `currentColor` ties every icon to the link's own text colour, so the existing hover/focus
+   colour change (base.css) recolours the icon for free -- no separate icon colour to maintain. */
+.social-icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+.social-icon__label {
+  font-family: var(--font-mono);
+  font-size: 11px; /* grown to match .site-footer__links a's bigger icon (below); a fixed px value,
+    not em, since it sits inside the SVG's own coordinate system rather than the surrounding text */
+  font-weight: 700;
 }
 
 .site-footer__bottom {

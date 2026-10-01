@@ -1,12 +1,16 @@
 // Publications: on tablet+ with motion, the five cards start fanned like a hand of stacked
-// papers and spread out into their normal grid position as the section scrolls into view.
+// papers and spread out into their normal grid position as the section scrolls into view. Once
+// settled, publications.css's own hover-expand rule (the same effect split.css uses for the
+// Research/Engineering cards) takes over -- see the `settled` flag below for how control hands
+// off from this scroll-driven tween to that plain CSS rule.
 //
 // CLAUDE.md rule 4 is explicit that this section stays UNPINNED, scrubbed during normal scroll
 // -- unlike the hero, statement and journey timeline, it does not reserve any of the page's
 // 300vh pinned-scroll budget. Below 48em (the breakpoint in publications.css where the grid
 // itself becomes a single column -- CLAUDE.md's "a plain list on mobile") and with reduced
 // motion, this module returns without touching the DOM and the cards simply sit in their plain,
-// fully-readable position from the very first frame.
+// fully-readable position from the very first frame (with no inline transform ever set, the
+// hover-expand rule already applies immediately, nothing to hand off).
 
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -76,12 +80,29 @@ export function initPublications() {
     // `top 20%` instead makes the whole transition a fixed, modest slice of scroll (about 55% of
     // one viewport height) right as the section arrives, so it is fully settled while the first
     // row is still on screen, however many rows follow underneath.
+    //
+    // `settled` gates a one-off `clearProps` rather than calling it on every update at progress 1:
+    // the scrub tween keeps setting an inline `transform` (x/y/rotation/scale) all the way through,
+    // and an inline style always wins over publications.css's own hover-expand rule below no matter
+    // its specificity -- so once the fan has fully settled, the inline transform is cleared to hand
+    // control to that CSS rule. Scrolling back up past `end` (progress < 1 again) just flips the
+    // flag back; the scrub tween itself resumes writing the inline transform on its own very next
+    // update, since clearing a prop doesn't detach the tween, only removes what's currently applied.
+    let settled = false;
     const trigger = ScrollTrigger.create({
       trigger: wrap,
       start: 'top 75%',
       end: 'top 20%',
       scrub: true,
       animation: tl,
+      onUpdate(self) {
+        if (self.progress >= 1 && !settled) {
+          settled = true;
+          gsap.set(cards, { clearProps: 'transform' });
+        } else if (self.progress < 1 && settled) {
+          settled = false;
+        }
+      },
     });
 
     return () => {

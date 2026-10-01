@@ -69,6 +69,18 @@ export const DEVICE_PRESETS = {
 };
 
 /**
+ * Give the browser one turn before continuing: lets a pending scroll/input event actually get
+ * processed instead of queueing up behind whatever synchronous work runs next. `scheduler.yield()`
+ * (Chrome 129+) is built for exactly this and is genuinely higher priority than a plain callback;
+ * `setTimeout(0)` is the fallback everywhere else, still enough of a break for the browser to slot
+ * pending input in ahead of it.
+ */
+function yieldToMain() {
+  if (typeof scheduler !== 'undefined' && scheduler.yield) return scheduler.yield();
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+/**
  * The face's positions, or the leaf's as a last-resort fallback if the face's own source is
  * unusable (should only happen if every pixel's weight collapses to 0 — see face.js). Never
  * throws, so a rebuild can never crash the scene over a slider dragged to a strange combination.
@@ -108,6 +120,14 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   // Both loaders resolve null on failure rather than rejecting (see face.js / tooth.js), so one
   // missing asset can never stop the other from loading, and Promise.all is safe to use here.
   const [faceSource, toothMesh] = await Promise.all([loadFaceSource(), loadToothSource()]);
+  // Everything from here down, up to the first render, is synchronous CPU work (sampling the tooth
+  // mesh and the face image, building the leaf and graph, assembling four attribute buffers, then
+  // compiling the shader on the first render) with nothing left to `await` on naturally -- measured
+  // directly, it was long enough (two ~50ms chunks, back to back) to visibly drop frames if it lands
+  // while a visitor is mid-scroll, which a visitor who opens the page and starts scrolling right away
+  // guarantees it does. `yieldToMain()` calls below split it at its two heaviest joins so the browser
+  // gets a turn to process scroll/input between them, rather than one long uninterrupted task.
+  await yieldToMain();
   // CLAUDE.md's documented fallback: "If the cutout is missing, skip the face stage: the sequence
   // starts at the tooth (uProgress 1 -> 3)". Tooth itself can't be "missing" in the same sense:
   // sampleTooth always produces something, real mesh or procedural molar.
@@ -195,6 +215,11 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     geo.setAttribute('aRandom', new BufferAttribute(randoms, 1));
     return geo;
   };
+  // Split here on purpose (see the comment above the first yieldToMain()): tooth/leaf/graph above
+  // this line, the face above (sampleFace's per-particle binary search) and the buffer assembly
+  // below it are the two heaviest remaining chunks, so this is where the second yield goes.
+  ensureSharedShapes(state.count);
+  await yieldToMain();
   let geometry = buildGeometry(state.count);
 
   // Points = "draw this geometry as one dot per vertex". (Mesh would draw triangles, Line lines.)
@@ -260,7 +285,13 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   const tick = (time, deltaMs) => {
     // A fresh page's first tick has no previous frame to measure from; treat it as one 60fps frame
     // rather than a huge or zero delta (either would make the very first damp() step misbehave).
-    const dt = (deltaMs || 16.67) / 1000;
+    // Also capped at 100ms: a backgrounded tab throttles requestAnimationFrame, so the tick that
+    // finally runs when the tab regains focus can report a multi-second deltaMs (gsap.ticker's
+    // lagSmoothing is off, see lib/scroll.js) -- left uncapped, currentTilt and uRepelStrength
+    // (both damp()'d below) would jump straight to their targets in one frame instead of easing.
+    // `time` itself needs no such cap: it already reflects true elapsed wall time on its own (see
+    // the comment below on why that is correct, not a bug).
+    const dt = Math.min((deltaMs || 16.67) / 1000, 0.1);
 
     // Kept LIVE even while offscreen — cheap (a couple of trig and damp() calls). `points.rotation.y`
     // itself would be fine either way: it is a PURE function of the absolute `time`, so recomputing it
@@ -291,12 +322,12 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
     );
 
     // Everything below only matters for what actually gets DRAWN, which is exactly the part that
-    // pauses while the hero is offscreen (see the IntersectionObserver set up below): the cursor
-    // raycast (whose only purpose is feeding the next render) and the render call itself, by far the
-    // most expensive line in this function. gsap.ticker still calls tick() every frame regardless —
-    // pausing OUR work here is what saves the GPU time, not stopping the ticker, which other things
-    // (Lenis, ScrollTrigger) still need running.
-    if (!isVisible) return;
+    // pauses while the hero is offscreen OR the tab itself is backgrounded (see isPaused() below):
+    // the cursor raycast (whose only purpose is feeding the next render) and the render call itself,
+    // by far the most expensive line in this function. gsap.ticker still calls tick() every frame
+    // regardless — pausing OUR work here is what saves the GPU time, not stopping the ticker, which
+    // other things (Lenis, ScrollTrigger) still need running.
+    if (isPaused()) return;
 
     // The repel shader code (see points.vert.glsl) needs uMouse in THIS object's own, currently
     // rotating, local space, so the rotation set above must land in matrixWorld before the raycast
@@ -323,13 +354,34 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
   // but gsap.ticker would otherwise keep calling tick() 60 times a second for nothing, burning battery
   // and GPU time on frames nobody sees. `entry.isIntersecting` starts true here (the hero is normally
   // the first thing on the page); the observer corrects that shortly after if it is ever wrong.
-  let isVisible = true;
+  //
+  // Scroll position is only HALF of "not actually on screen": the IntersectionObserver above never
+  // fires for tab-backgrounding (the page never scrolls, so the hero stays "intersecting" the whole
+  // time), yet a backgrounded tab is exactly when a GPU-heavy canvas most benefits from being told to
+  // stop. Tracked as a second, independent flag rather than folding into `isVisible` directly, so
+  // resize()/the intersection observer's own state never has to know this reason exists — isPaused()
+  // below is simply "either reason says stop".
+  let isIntersecting = true;
+  let isPageVisible = !document.hidden;
+  const isPaused = () => !isIntersecting || !isPageVisible;
   const visibilityObserver = new IntersectionObserver(([entry]) => {
-    isVisible = entry.isIntersecting;
+    isIntersecting = entry.isIntersecting;
   });
   visibilityObserver.observe(container);
+  const onVisibilityChange = () => {
+    isPageVisible = !document.hidden;
+  };
+  document.addEventListener('visibilitychange', onVisibilityChange);
 
   resize();
+  // Compile the shader program BEFORE the first real render, with the `KHR_parallel_shader_compile`
+  // extension where the driver supports it (three.js's own compileAsync, not a hand-rolled version:
+  // it already does exactly this, polling each material's program for isReady()). A plain first
+  // render() compiles synchronously as a side effect instead -- on a driver without parallel
+  // compilation this Promise still just resolves once compilation finishes, so it costs nothing
+  // extra there, but on one that supports it, compilation happens on a separate thread instead of
+  // blocking this one.
+  await renderer.compileAsync(scene, camera);
   tick(0); // draw one frame BEFORE revealing the canvas, so it never fades in empty
   gsap.ticker.add(tick);
 
@@ -406,6 +458,7 @@ export async function createPointCloud(container, { shape = 'leaf', count, size,
       gsap.ticker.remove(tick);
       observer.disconnect();
       visibilityObserver.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       container.classList.remove('is-webgl'); // the portrait photo comes back
       geometry.dispose();
       material.dispose();

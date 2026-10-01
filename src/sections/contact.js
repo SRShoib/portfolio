@@ -7,6 +7,7 @@
 
 import { gsap } from 'gsap';
 import { ease, motionDuration } from '../lib/motion.js';
+import { enhanceRollLink } from '../lib/hover-roll.js';
 import { getEmail } from '../data/content.js';
 
 let teardown = null;
@@ -48,6 +49,7 @@ export function initContact() {
   link.href = `mailto:${email}`;
   link.textContent = email;
   address.replaceChildren(link);
+  enhanceRollLink(link); // built after initHoverRoll() already ran, so it needs its own call
 
   if (!button) return;
   button.hidden = false; // the button is JS-only: hidden in the HTML until now
@@ -55,12 +57,22 @@ export function initContact() {
   const idleLabel = button.textContent;
   let timer = 0;
 
+  // .btn is one of hover-roll's TARGETS, so the button is already enhanced with the rolling-letter
+  // hover by the time this ever runs -- but `enhance()` works by replacing its target's own text
+  // node with the roll markup, so a later plain `button.textContent = ...` (below) silently wipes
+  // that markup back to plain text. Re-enhancing after every label change keeps the roll working
+  // through "Copy email" -> "Copied ✓" -> "Copy email" instead of it surviving only the first hover.
+  const setLabel = (text) => {
+    button.textContent = text;
+    enhanceRollLink(button);
+  };
+
   const onClick = async () => {
     const ok = await copyText(email);
     // Visible confirmation (the button text + a transform-only pulse) and audible confirmation
     // (the live region). motionDuration('s') is a one-off JS tween, exactly what it exists for
     // (motion.js): a snappy pop under full motion, capped to 200ms under reduced motion.
-    button.textContent = ok ? 'Copied ✓' : 'Copy failed';
+    setLabel(ok ? 'Copied ✓' : 'Copy failed');
     if (status) status.textContent = ok ? 'Email address copied to the clipboard.' : 'Could not copy. The address is shown above.';
     if (ok) {
       gsap.killTweensOf(button);
@@ -68,7 +80,7 @@ export function initContact() {
     }
     clearTimeout(timer);
     timer = setTimeout(() => {
-      button.textContent = idleLabel;
+      setLabel(idleLabel);
       if (status) status.textContent = '';
     }, 2000);
   };

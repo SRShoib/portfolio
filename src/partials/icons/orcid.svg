@@ -1,0 +1,4 @@
+<svg class="social-icon" viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.7"></circle>
+  <text class="social-icon__label" x="12" y="15.8" text-anchor="middle" fill="currentColor">iD</text>
+</svg>

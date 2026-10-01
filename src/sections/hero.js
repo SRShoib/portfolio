@@ -12,7 +12,7 @@
 
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { conditions } from '../lib/motion.js';
+import { afterFirstPaint, conditions } from '../lib/motion.js';
 import { scrollToTarget } from '../lib/scroll.js';
 import { preloaderDone } from './preloader.js';
 
@@ -41,21 +41,6 @@ const CAPTION_PROGRESS = { tooth: 1, leaf: 2, graph: 3 };
 const CAPTION_DIM = 0.5;
 
 let mm = null;
-
-/**
- * Resolve once the browser has painted the page's first frame AND has a moment to spare.
- * requestAnimationFrame callbacks run just BEFORE a frame is painted, so from inside one we ask
- * for an idle moment: that arrives after the paint. Safari has no requestIdleCallback, hence the
- * setTimeout fallback.
- */
-function afterFirstPaint() {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      if ('requestIdleCallback' in window) requestIdleCallback(() => resolve(), { timeout: 1000 });
-      else setTimeout(resolve, 100);
-    });
-  });
-}
 
 /**
  * Cheap, synchronous capability check: can this browser get a WebGL context at all? Used to skip
@@ -179,6 +164,25 @@ export function initHero() {
 
     (async () => {
       try {
+        // The tooth GLB (~460 KB) and the face cutout are only ever fetched from INSIDE scene.js
+        // (loadToothSource()/loadFaceSource()), which does not even exist until the dynamic import()
+        // below has finished downloading and executing -- so today, those two network requests only
+        // start after the preloader wait, the idle wait, AND the whole three.js chunk's transfer,
+        // one waterfall stacked behind another. A <link rel="preload"> hint asks the browser to fetch
+        // the bytes immediately regardless of what our JS is doing, so by the time createPointCloud()
+        // actually asks for them, the response is already in the HTTP cache (or most of the way
+        // there) instead of only starting then. Only added here, inside the branch that has already
+        // confirmed motion is allowed and WebGL exists, so a visitor who will never need these bytes
+        // never fetches them.
+        for (const href of ['/models/tooth.glb', '/images/profile/portrait-cutout-480.webp']) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = href.endsWith('.glb') ? 'fetch' : 'image';
+          if (link.as === 'fetch') link.crossOrigin = 'anonymous'; // required for "fetch"-destination preloads to be reused
+          link.href = href;
+          document.head.append(link);
+        }
+
         await preloaderDone; // don't compete with the preloader animation for the main thread
         await afterFirstPaint(); // text and portrait are on screen before we fetch anything heavy
         if (cancelled) return;

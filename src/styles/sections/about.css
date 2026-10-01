@@ -120,6 +120,11 @@
   gap: var(--space-s);
   align-items: baseline;
 }
+.about__contests a {
+  justify-self: start; /* a grid item's inline axis defaults to stretch: without this the link
+    fills the whole 1fr column, and its underline (base.css, sized to the box) runs on past the
+    text -- the same bug .pub-card__doi had, a grid item this time instead of a flex item */
+}
 .about__contest-result {
   color: var(--accent);
 }
@@ -136,6 +141,15 @@
   font-weight: 600;
   font-stretch: 100%;
   letter-spacing: 0;
+}
+
+/* This list is meant to be skimmed (CLAUDE.md rule 4), not read as fine print -- one size up from
+   the base .chip (base.css), which stays small on purpose everywhere else it's used (stack tags,
+   DOIs, a project card's dense metadata row). Padding grows to match, so the pill doesn't end up
+   with the same tight margins around noticeably bigger text. */
+.skills .chip {
+  padding: 0.32em 0.9em;
+  font-size: var(--step-n1);
 }
 
 @media (min-width: 64em) {

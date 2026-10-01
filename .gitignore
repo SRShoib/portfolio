@@ -21,3 +21,6 @@ public/images/profile/portrait-square.jpg
 *.log
 .DS_Store
 Thumbs.db
+
+# local screen recordings (reference only, ~50 MB)
+/video/

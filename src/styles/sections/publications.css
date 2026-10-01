@@ -147,9 +147,14 @@
 }
 
 .pub-card__doi {
+  align-self: flex-start; /* .pub-card is column-flex: without this it stretches full width, and
+    the underline (base.css, a background-image line the width of the box) would run on far past
+    where the DOI text actually ends */
   padding-top: var(--space-2xs);
   font-family: var(--font-mono);
   font-size: var(--step-n2);
+  line-height: 1.3; /* tighter than the inherited body line-height, so the underline (base.css)
+    sits close under the text instead of at the bottom of a much taller line box */
   overflow-wrap: anywhere; /* DOIs are long unbroken strings; never let one widen the page */
 }
 
@@ -177,5 +182,27 @@
   }
   .pubs__list + .pubs__list {
     margin-top: var(--space-l);
+  }
+}
+
+/* Hover/focus expand: the same effect split.css uses for the Research/Engineering cards, fine
+   pointer + desktop width only. Scoped to EACH `.pubs__list` independently (there are two, one
+   per paper type) so hovering a card only compresses cards in its OWN group, not the other list's.
+   This only ever takes visual effect once sections/publications.js has cleared the fan-in
+   scroll tween's own inline transform (see the `settled` flag there) -- before that point an
+   inline style is present and always wins over this rule regardless of specificity, so hovering
+   mid-scroll silently does nothing here rather than fighting the scrub animation. */
+@media (min-width: 64em) and (hover: hover) and (pointer: fine) {
+  .pub-card {
+    transition: transform var(--dur-s) var(--ease-out);
+  }
+
+  .pubs__list:has(.pub-card:hover, .pub-card:focus-within) .pub-card:not(:hover):not(:focus-within) {
+    transform: scale(0.96);
+  }
+  .pub-card:hover,
+  .pub-card:focus-within {
+    transform: scale(1.03);
+    z-index: 1;
   }
 }

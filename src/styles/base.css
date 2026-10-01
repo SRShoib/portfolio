@@ -10,6 +10,19 @@
   margin: 0;
 }
 
+/* Whole-page flowing contour-line background (src/lib/backdrop.js): a single fixed canvas,
+   always behind every section regardless of scroll. `pointer-events: none` so it never intercepts
+   a click or hover meant for real content; `prepend()` in the JS plus this z-index means it always
+   paints behind everything else on the page without needing any other element to opt in. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-backdrop);
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 html {
   background: var(--bg); /* also covers overscroll areas */
   color: var(--text);
@@ -228,6 +241,14 @@ a {
   border-color: var(--muted);
 }
 
+/* Uppercase button text via CSS, not literal ALL-CAPS content: keeps the accessible name a real
+   word ("Resume") rather than a string some screen readers spell out letter by letter when they
+   mistake a short all-caps run for an acronym. */
+.btn--upper {
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
 /* ---- Sections ------------------------------------------------------------------------ */
 main {
   /* Pages start below the fixed header. */
@@ -386,6 +407,55 @@ main {
   text-align: center;
 }
 
+/* ---- Hover text roll (src/lib/hover-roll.js) --------------------------------------------------
+   One clipped, one-line box per CHARACTER, each holding two identical stacked copies. `1lh` is the
+   CSS unit for "this box's own computed line-height as a length", so a character's roll is always
+   exactly one line, whatever the surrounding font-size or line-height turns out to be -- no
+   per-component tuning needed. hover-roll.js staggers the translate per character (GSAP, not a CSS
+   transition: a transition cannot stagger its own children) on pointer hover or focus of the
+   nearest link/button, so the visible copy of each letter exits the top edge as its aria-hidden
+   twin arrives from the bottom, one letter after the next. This markup only exists where
+   hover-roll.js has built it: with JS off, or with reduced motion, a target is untouched plain text
+   and its own :hover colour change (set per component elsewhere in this file and in
+   sections/*.css) is all that happens. */
+.roll {
+  display: inline-block;
+  max-width: 100%;
+  height: 1lh;
+  overflow: hidden;
+}
+.roll__inner {
+  display: flex;
+  flex-direction: column;
+}
+.roll__line {
+  white-space: nowrap;
+}
+
+/* A handful of plain inline links (CLAUDE.md gives every nav/button/heading-style link its own
+   `text-decoration: none` elsewhere; these are the ones that don't, and so keep the browser's
+   default underline as their only non-colour affordance) also happen to be hover-roll targets.
+   `text-decoration` is drawn separately per ATOMIC inline-level box, and hover-roll.js's
+   `.roll` is exactly that (one `display: inline-block` per character) -- so the native
+   underline came out broken into short dashes, one per character, with a gap at every
+   boundary, instead of one continuous line. A background-image line instead of
+   `text-decoration` draws across the whole link as a single box, unaffected by whatever
+   elements sit inside it. The tighter `line-height` is what keeps that line close under the
+   text: a background is painted across an inline element's full line-height box, so the
+   inherited body line-height (1.6) put the default `background-position: 0 100%` well below
+   the actual glyphs, reading as a gap rather than an underline. */
+.ext,
+.pub-card__doi,
+.site-footer__links a,
+.site-footer__bottom a {
+  text-decoration: none;
+  line-height: 1.15;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 1px;
+}
+
 /* ---- Custom cursor (lib/cursor.js: fine pointers + motion only) -------------------------------
    .has-cursor is only ever added once cursor.js has actually built the replacement, so the real
    cursor never disappears for anyone else (no JS, reduced motion, touch). The universal `*` is
@@ -438,4 +508,49 @@ main {
   transform: scale(1.4);
   border-color: var(--accent);
   background: var(--accent-12);
+}
+
+/* ---- Back to top (src/lib/back-to-top.js) -----------------------------------------------------
+   A fixed circular button, built once and reused on every page, so it stays reachable anywhere in
+   the scroll rather than only at the footer's own "Back to top" text link. Hidden by default: JS
+   adds .is-visible once the visitor has scrolled roughly past the first screen. `visibility` is
+   delayed on the way out (paired with the opacity transition) so it also leaves the tab order once
+   it is no longer on screen, the same trick header.css uses for the fullscreen menu. */
+.back-to-top {
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  z-index: var(--z-header);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent); /* the arrow (currentColor stroke) reads as accent-yellow at rest, not
+    just on hover -- it needs to stay visible against --surface without an interaction cue */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition:
+    opacity var(--dur-s) var(--ease-out),
+    transform var(--dur-s) var(--ease-out),
+    border-color var(--dur-xs) var(--ease-out),
+    visibility 0s linear var(--dur-s);
+}
+.back-to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+.back-to-top:hover,
+.back-to-top:focus-visible {
+  border-color: var(--accent);
+}
+.back-to-top__icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }

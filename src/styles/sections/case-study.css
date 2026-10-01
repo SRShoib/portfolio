@@ -349,6 +349,29 @@
   border-color: var(--muted);
   background: var(--raised);
 }
+
+/* Hover/focus expand, same technique as the home page's Research/Engineering split (split.css):
+   fine pointer + desktop width only, `:has()` on the grid so the untouched card can be targeted
+   with one rule instead of one per card, and the compress rule excludes the active card with
+   :not() so its own :hover rule (higher specificity via :has()) doesn't shrink the very card the
+   visitor is pointing at. Transform only (scale), per CLAUDE.md's motion principles. */
+@media (min-width: 64em) and (hover: hover) and (pointer: fine) {
+  .cs-pager__link {
+    transition:
+      background-color var(--dur-xs) var(--ease-out),
+      border-color var(--dur-xs) var(--ease-out),
+      transform var(--dur-s) var(--ease-out);
+  }
+
+  .cs-pager:has(.cs-pager__link:hover, .cs-pager__link:focus-within) .cs-pager__link:not(:hover):not(:focus-within) {
+    transform: scale(0.96);
+  }
+  .cs-pager__link:hover,
+  .cs-pager__link:focus-within {
+    transform: scale(1.03);
+    z-index: 1; /* sit above the compressed neighbour while enlarged */
+  }
+}
 .cs-pager__label {
   color: var(--muted);
 }

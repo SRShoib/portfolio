@@ -2,7 +2,7 @@
 // reveal, the preview-image crossfade on hover/focus, and its focus trap.
 
 import { gsap } from 'gsap';
-import { duration, ease, prefersReducedMotion, reveal, staggerEach } from '../lib/motion.js';
+import { duration, ease, motionDuration, prefersReducedMotion, reveal, staggerEach } from '../lib/motion.js';
 import { startScroll, stopScroll } from '../lib/scroll.js';
 
 let teardown = null;
@@ -69,6 +69,110 @@ export function initHeader() {
       link.removeEventListener('blur', onBlur);
     };
   });
+
+  // ---- Sliding indicator + scroll-spy ---------------------------------------------------------
+  // A pill that follows whichever link is hovered/focused, resting under the link for whichever
+  // section is currently scrolled into view otherwise. It only ever shows in the wide inline nav:
+  // header.css hides it in the narrow fullscreen menu, where its geometry assumptions (one shared
+  // row height, an x-offset measured along that row) don't hold for a stacked column of links.
+  const indicator = nav.querySelector('[data-nav-indicator]');
+  const sectionLinks = links
+    .map((link) => {
+      const id = link.getAttribute('href')?.split('#')[1];
+      const section = id && document.getElementById(id);
+      return section ? { link, section } : null;
+    })
+    .filter(Boolean);
+
+  let activeLink = null;
+  let shownLink = null; // whichever link the pill is currently on, so a resize can re-measure it
+  let hovering = false;
+
+  function place(link, { animate = true } = {}) {
+    if (!indicator) return;
+    shownLink = link;
+    const dur = animate ? motionDuration('s') : 0;
+    if (!link) {
+      gsap.to(indicator, { opacity: 0, duration: dur, ease: ease.out });
+      return;
+    }
+    const navRect = nav.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    gsap.to(indicator, { x: linkRect.left - navRect.left, width: linkRect.width, opacity: 1, duration: dur, ease: ease.out });
+  }
+
+  const onLinkPointerEnter = (event) => {
+    if (event.pointerType === 'touch') return;
+    hovering = true;
+    place(event.currentTarget);
+  };
+  const onLinkFocus = (event) => {
+    hovering = true;
+    place(event.currentTarget);
+  };
+  links.forEach((link) => {
+    link.addEventListener('pointerenter', onLinkPointerEnter);
+    link.addEventListener('focus', onLinkFocus);
+  });
+
+  // Listening on `nav` itself (not per link) means moving the pointer between two adjacent links
+  // never fires a leave/restore in between -- pointerleave only fires once the pointer is outside
+  // the whole nav, not between its children.
+  const onNavPointerLeave = () => {
+    hovering = false;
+    place(activeLink);
+  };
+  // `focusout` bubbles (plain `blur` does not), so one listener on `nav` covers every link; the
+  // `relatedTarget` check is the focus equivalent of the pointerleave reasoning above -- tabbing
+  // from one link to the next is still "inside nav" and should not flicker back to `activeLink`.
+  const onNavFocusOut = (event) => {
+    if (nav.contains(event.relatedTarget)) return;
+    hovering = false;
+    place(activeLink);
+  };
+  nav.addEventListener('pointerleave', onNavPointerLeave);
+  nav.addEventListener('focusout', onNavFocusOut);
+
+  // "Currently in view" = has crossed a thin band near the middle of the viewport, so exactly one
+  // section counts as active at a time instead of weighing partial-visibility percentages. Guarded
+  // on sectionLinks.length: a case-study page shares this same header markup but has none of these
+  // sections, so there is nothing to observe there and the pill only ever responds to hover.
+  //
+  // One nav target (#skills) sits INSIDE another (#about), so both can be "intersecting" the band
+  // at once -- e.g. scrolled to the skills chips, #about still contains that scroll position too.
+  // `intersecting` tracks every target's current state (not just what changed in the latest
+  // callback batch), so `pickActive()` can always see the full picture and prefer whichever active
+  // section is nested INSIDE the others (the more specific match) over an ancestor that merely
+  // happens to also span that scroll position.
+  let sectionObserver = null;
+  if (indicator && sectionLinks.length) {
+    const intersecting = new Map(sectionLinks.map(({ section }) => [section, false]));
+    const pickActive = () => {
+      const active = sectionLinks.filter(({ section }) => intersecting.get(section));
+      const specific = active.find(({ section }) => !active.some((other) => other.section !== section && section.contains(other.section)));
+      return (specific ?? active[active.length - 1])?.link ?? null;
+    };
+    sectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) intersecting.set(entry.target, entry.isIntersecting);
+        const link = pickActive();
+        if (!link || link === activeLink) return;
+        activeLink?.classList.remove('is-current');
+        activeLink = link;
+        activeLink.classList.add('is-current');
+        if (!hovering) place(activeLink);
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    sectionLinks.forEach(({ section }) => sectionObserver.observe(section));
+  }
+
+  // Link positions/widths shift on resize (fluid type, breakpoint changes); re-measure whatever
+  // the pill is currently showing instead of leaving it stale until the next hover.
+  const onResize = () => {
+    if (shownLink) place(shownLink, { animate: false });
+  };
+  window.addEventListener('resize', onResize);
 
   // ---- Open / close -------------------------------------------------------------------------
   function setOpen(open) {
@@ -159,6 +263,16 @@ export function initHeader() {
     wide.removeEventListener('change', onBreakpoint);
     previewListeners.forEach((remove) => remove());
     linksTween?.kill();
+
+    links.forEach((link) => {
+      link.removeEventListener('pointerenter', onLinkPointerEnter);
+      link.removeEventListener('focus', onLinkFocus);
+    });
+    nav.removeEventListener('pointerleave', onNavPointerLeave);
+    nav.removeEventListener('focusout', onNavFocusOut);
+    sectionObserver?.disconnect();
+    window.removeEventListener('resize', onResize);
+    if (indicator) gsap.killTweensOf(indicator);
   };
 }
 

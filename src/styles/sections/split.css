@@ -44,15 +44,25 @@
   color: var(--muted);
 }
 
+/* Underline as a background line, not `text-decoration`, for the same reason base.css's shared
+   .ext/.pub-card__doi rule uses one: hover-roll.js splits this link's text into one
+   `display: inline-block` per character, and a native underline is drawn separately per atomic
+   inline-level box -- it would come out broken into a dash under each letter once revealed. */
 .split__link {
   align-self: flex-start;
   color: var(--accent);
   font-weight: 600;
+  line-height: 1.3;
   text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size var(--dur-s) var(--ease-out);
 }
-.split__card:hover .split__link {
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
+.split__card:hover .split__link,
+.split__card:focus-within .split__link {
+  background-size: 100% 1px;
 }
 
 @media (min-width: 48em) {
