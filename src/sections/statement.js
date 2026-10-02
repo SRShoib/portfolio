@@ -44,6 +44,7 @@ export function initStatement() {
       start: 'center center',
       end: () => `+=${window.innerHeight * PIN_VH}`,
       pin: true,
+      refreshPriority: 9, // right after the hero's pin (10), before everything it pushes down; see hero.js
     });
 
     // A second, separate trigger drives the word brightening, scrubbed over a slightly LONGER

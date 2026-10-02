@@ -6,6 +6,15 @@
   </head>
   <body id="top">
     <!--include:preloader.html-->
+    <!-- Scroll cue for the pinned hero sequence. Decorative (aria-hidden) and hidden by default: sections/hero.js
+         switches it on only when the pin actually exists (motion allowed + WebGL), so reduced-motion, no-WebGL and
+         no-JS visitors never see a hint for a scroll sequence they do not have. A body child on purpose: a fixed
+         element inside the pinned hero could be moved by the pin's own positioning. -->
+    <div class="scroll-cue" aria-hidden="true" data-hero-cue>
+      <span class="scroll-cue__mouse"><span class="scroll-cue__dot"></span></span>
+      <span class="scroll-cue__label label">Scroll to explore</span>
+      <span class="scroll-cue__steps"><span class="scroll-cue__step"></span><span class="scroll-cue__step"></span><span class="scroll-cue__step"></span><span class="scroll-cue__step"></span></span>
+    </div>
     <!--include:header.html-->
 
     <main id="main" tabindex="-1">
@@ -55,7 +64,7 @@
           <h2 id="stats-title" class="sr-only">In numbers</h2>
           <ul class="stats__list" role="list">
             <li class="stat">
-              <p class="stat__number"><span data-count="5">5</span></p>
+              <p class="stat__number"><span data-count="8">8</span></p>
               <p class="stat__label">publications</p>
             </li>
             <li class="stat">
@@ -203,7 +212,7 @@
                   </div>
                   <ul class="project-card__links" role="list" aria-label="Links">
                     <li><a class="ext above-stretched" href="https://multi-document-financial-contradict.vercel.app/" target="_blank" rel="noopener">Live&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
-                    <li><a class="ext above-stretched" href="https://multidocumentfinancialcontradictionanalyst-production.up.railway.app/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
+                    <li><a class="ext above-stretched" href="https://multi-documentfinancialcontradictionanalyst-production.up.railway.app/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
                     <li><a class="ext above-stretched" href="https://github.com/SRShoib/multi-document_financial_contradiction_analyst" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — Filing Reconciler (opens in a new tab)</span></a></li>
                   </ul>
                   <a class="project-card__case stretched" href="/projects/filing-reconciler.html">Case study <span aria-hidden="true">→</span><span class="sr-only">: Filing Reconciler</span></a>
@@ -305,7 +314,6 @@
                   <ul class="project-card__links" role="list" aria-label="Links">
                     <li><a class="ext above-stretched" href="https://youtube-chatbot-tzq1.onrender.com/docs" target="_blank" rel="noopener">API docs&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — YouTube Transcript RAG Chatbot (opens in a new tab)</span></a></li>
                     <li><a class="ext above-stretched" href="https://github.com/SRShoib/YouTube-ChatBot" target="_blank" rel="noopener">GitHub&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> — YouTube Transcript RAG Chatbot (opens in a new tab)</span></a></li>
-                    <!--todo--><li class="todo">TODO: Chrome Web Store or demo video (optional)</li><!--/todo-->
                   </ul>
                   <a class="project-card__case stretched" href="/projects/youtube-rag-chatbot.html">Case study <span aria-hidden="true">→</span><span class="sr-only">: YouTube Transcript RAG Chatbot</span></a>
                 </div>
@@ -379,7 +387,7 @@
               <ul class="about__list" role="list">
                 <li>Research on medical imaging in healthcare and agricultural image data in agriculture</li>
                 <li>Build custom ML and deep learning models for computer vision and write research papers</li>
-                <li>Co-authored five publications: three conference papers and two dataset articles</li>
+                <li>Co-authored eight publications: three conference papers and five datasets</li>
               </ul>
             </section>
 
@@ -678,6 +686,142 @@
                 <a class="pub-card__doi" href="https://doi.org/10.1016/j.dib.2025.111347" target="_blank" rel="noopener">DOI 10.1016/j.dib.2025.111347 <span aria-hidden="true">↗</span><span class="sr-only"> — IDBGL: A Unique Image Dataset of Black Gram (Vigna mungo) Leaves for Disease Detection and Classification (opens in a new tab)</span></a>
               </article>
             </li>
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Dataset article</span><span>2025</span></p>
+                  <h3 class="pub-card__title">RoseLeafInsight: A high-resolution image dataset for rose leaf disease recognition</h3>
+                </div>
+                <p class="pub-card__venue">Data in Brief (Elsevier)</p>
+                <!--if-image srcs="/images/publications/RoseLeafInsight/Black Spot.jpg,/images/publications/RoseLeafInsight/Healthy Leaf.jpg,/images/publications/RoseLeafInsight/Insect Hole.jpg,/images/publications/RoseLeafInsight/Yellow Mosaic Virus.jpg" todo="add sample images"-->
+                <figure class="pub-card__samples" style="--sample-aspect: 1 / 1; --sample-cols-wide: 2">
+                  <div class="pub-card__sample-grid">
+                    <!--if-image srcs="/images/publications/RoseLeafInsight/Black Spot.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/RoseLeafInsight/Black Spot.jpg" alt="Sample rose leaf: Black Spot" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Black Spot</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/RoseLeafInsight/Healthy Leaf.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/RoseLeafInsight/Healthy Leaf.jpg" alt="Sample rose leaf: Healthy Leaf" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Healthy Leaf</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/RoseLeafInsight/Insect Hole.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/RoseLeafInsight/Insect Hole.jpg" alt="Sample rose leaf: Insect Hole" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Insect Hole</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/RoseLeafInsight/Yellow Mosaic Virus.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/RoseLeafInsight/Yellow Mosaic Virus.jpg" alt="Sample rose leaf: Yellow Mosaic Virus" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Yellow Mosaic Virus</span>
+                    </div>
+                    <!--/if-image-->
+                  </div>
+                  <figcaption class="pub-card__credit">Sample images: <a class="ext" href="https://data.mendeley.com/datasets/8chrjdxn79/2" target="_blank" rel="noopener">RoseLeafInsight dataset (Mendeley Data)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></figcaption>
+                </figure>
+                <!--/if-image-->
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Agricultural vision</li>
+                  <li class="chip">Open dataset</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span>Arnob Das Shacha, Sabbir Hossain Durjoy, Md. Emon Shikder, Md Mostafa Kamal, <strong>Md Mehedi Hasan Shoib</strong>, Md Hasan Imam Bijoy</p>
+                <a class="pub-card__doi" href="https://doi.org/10.1016/j.dib.2025.111968" target="_blank" rel="noopener">DOI 10.1016/j.dib.2025.111968 <span aria-hidden="true">↗</span><span class="sr-only"> — RoseLeafInsight: A high-resolution image dataset for rose leaf disease recognition (opens in a new tab)</span></a>
+              </article>
+            </li>
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Dataset</span><span>2026</span></p>
+                  <h3 class="pub-card__title">DentIRO: A High-Quality Multi-Class Single-Tooth Intraoral Radiograph Dataset for Automated Dental Diagnosis</h3>
+                </div>
+                <p class="pub-card__venue">Figshare</p>
+                <p class="pub-card__note">5,300 single-tooth intraoral radiographs from 3,243 patients at two dental clinics in Bangladesh, in four classes: Healthy, Caries, Crowned and Root Canal</p>
+                <!--if-image srcs="/images/publications/DentIRO/Healthy.png,/images/publications/DentIRO/Caries.png,/images/publications/DentIRO/Crowned.png,/images/publications/DentIRO/RTC.png" todo="add sample images"-->
+                <figure class="pub-card__samples" style="--sample-aspect: 4 / 5; --sample-cols-wide: 2">
+                  <div class="pub-card__sample-grid">
+                    <!--if-image srcs="/images/publications/DentIRO/Healthy.png" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/DentIRO/Healthy.png" alt="Sample intraoral radiograph: Healthy" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Healthy</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/DentIRO/Caries.png" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/DentIRO/Caries.png" alt="Sample intraoral radiograph: Caries" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Caries</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/DentIRO/Crowned.png" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/DentIRO/Crowned.png" alt="Sample intraoral radiograph: Crowned" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Crowned</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/DentIRO/RTC.png" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/DentIRO/RTC.png" alt="Sample intraoral radiograph: Root Canal" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Root Canal</span>
+                    </div>
+                    <!--/if-image-->
+                  </div>
+                  <figcaption class="pub-card__credit">Sample images: <a class="ext" href="https://figshare.com/articles/dataset/_b_DentIRO_b_A_High-Quality_Multi-Class_Single-Tooth_Intraoral_Radiograph_Dataset_for_Automated_Dental_Diagnosis/32086377?file=64174315" target="_blank" rel="noopener">DentIRO dataset (Figshare)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></figcaption>
+                </figure>
+                <!--/if-image-->
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Medical imaging</li>
+                  <li class="chip">Intraoral radiographs</li>
+                  <li class="chip">Open dataset</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span><strong>Md. Mehedi Hasan Shoib</strong>, Ashiqur Rahman, Md. Hasan Imam Bijoy, Sabbir Hossain Durjoy, Md. Emon Shikder, Md. Zahid Hasan, Rony Chandra Mazumder, Bazlur Rashid</p>
+                <a class="pub-card__doi" href="https://doi.org/10.6084/m9.figshare.32086377" target="_blank" rel="noopener">DOI 10.6084/m9.figshare.32086377 <span aria-hidden="true">↗</span><span class="sr-only"> — DentIRO: A High-Quality Multi-Class Single-Tooth Intraoral Radiograph Dataset for Automated Dental Diagnosis (opens in a new tab)</span></a>
+              </article>
+            </li>
+            <li>
+              <article class="pub-card">
+                <div class="pub-card__head">
+                  <p class="pub-card__meta label"><span>Dataset</span><span>2026</span></p>
+                  <h3 class="pub-card__title">BDCXR-3257: A Comprehensive Chest Radiography Dataset with Multi-Etiological Pneumonia Labels from a Clinical Setting</h3>
+                </div>
+                <p class="pub-card__venue">Figshare</p>
+                <p class="pub-card__note">3,257 clinically verified chest X-ray images from Dr. M.R. Khan Shishu Hospital &amp; Institute of Child Health, Dhaka, Bangladesh, in three classes: Normal, Bacterial Pneumonia and Viral Pneumonia</p>
+                <!--if-image srcs="/images/publications/BDCXR-3257/normal.jpg,/images/publications/BDCXR-3257/Pneumonia-Bacterial.jpg,/images/publications/BDCXR-3257/pneumonia-viral.jpg" todo="add sample images"-->
+                <figure class="pub-card__samples" style="--sample-aspect: 1 / 1; --sample-cols-wide: 2">
+                  <div class="pub-card__sample-grid">
+                    <!--if-image srcs="/images/publications/BDCXR-3257/normal.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/BDCXR-3257/normal.jpg" alt="Sample chest X-ray: Normal" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Normal</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/BDCXR-3257/Pneumonia-Bacterial.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/BDCXR-3257/Pneumonia-Bacterial.jpg" alt="Sample chest X-ray: Bacterial Pneumonia" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Bacterial Pneumonia</span>
+                    </div>
+                    <!--/if-image-->
+                    <!--if-image srcs="/images/publications/BDCXR-3257/pneumonia-viral.jpg" todo="add sample image"-->
+                    <div class="pub-card__sample">
+                      <!--picture src="/images/publications/BDCXR-3257/pneumonia-viral.jpg" alt="Sample chest X-ray: Viral Pneumonia" sizes="(min-width: 64em) 200px, (min-width: 48em) 34vw, 28vw" todo="add sample image"-->
+                      <span class="pub-card__sample-label" aria-hidden="true">Viral Pneumonia</span>
+                    </div>
+                    <!--/if-image-->
+                  </div>
+                  <figcaption class="pub-card__credit">Sample images: <a class="ext" href="https://figshare.com/articles/dataset/_b_BDCXR-3257_b_A_Comprehensive_Chest_Radiography_Dataset_with_Multi-Etiological_Pneumonia_Labels_from_a_Clinical_Setting/32086362?file=64149946" target="_blank" rel="noopener">BDCXR-3257 dataset (Figshare)&nbsp;<span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></figcaption>
+                </figure>
+                <!--/if-image-->
+                <ul class="chips" role="list" aria-label="Topics">
+                  <li class="chip">Medical imaging</li>
+                  <li class="chip">Chest X-ray</li>
+                  <li class="chip">Open dataset</li>
+                </ul>
+                <p class="pub-card__authors"><span class="sr-only">Authors: </span>Sabbir Hossain Durjoy, Md. Emon Shikder, Md. Hasan Imam Bijoy, <strong>Md. Mehedi Hasan Shoib</strong>, Ashiqur Rahman, Md. Zahid Hasan, Sultana Amena Ferdoucy, Shekh Mohammed Moinul Islam</p>
+                <a class="pub-card__doi" href="https://doi.org/10.6084/m9.figshare.32086362" target="_blank" rel="noopener">DOI 10.6084/m9.figshare.32086362 <span aria-hidden="true">↗</span><span class="sr-only"> — BDCXR-3257: A Comprehensive Chest Radiography Dataset with Multi-Etiological Pneumonia Labels from a Clinical Setting (opens in a new tab)</span></a>
+              </article>
+            </li>
           </ol>
           </div>
         </div>
@@ -717,7 +861,22 @@
               <p class="timeline__when label">Apr 2026</p>
               <p class="timeline__text">Three papers published in the BIM 2025 proceedings (Springer)</p>
             </li>
-            <!--todo--><li class="todo">TODO: (optional) month/year for each project launch</li><!--/todo-->
+            <li class="timeline__item">
+              <p class="timeline__when label">Apr 21 – Aug 12, 2026</p>
+              <p class="timeline__text">Built YouTube Transcript RAG Chatbot</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Apr 22 – Aug 13, 2026</p>
+              <p class="timeline__text">Built Enterprise Knowledge Assistant</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Jun 22 – Sep 4, 2026</p>
+              <p class="timeline__text">Built Filing Reconciler</p>
+            </li>
+            <li class="timeline__item">
+              <p class="timeline__when label">Aug 10 – Sep 8, 2026</p>
+              <p class="timeline__text">Built SupportLens</p>
+            </li>
           </ol>
         </div>
       </section>

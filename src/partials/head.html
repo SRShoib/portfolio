@@ -41,10 +41,11 @@
       ) {
         root.classList.add('is-preloading');
         // Failsafe: if the module script is blocked or never arrives, don't trap the visitor
-        // behind the panel.
+        // behind the panel. 6s = a slow script download plus the intro's own 2s
+        // (sections/preloader.js), so it can never cut a normal intro short.
         setTimeout(function () {
           root.classList.remove('is-preloading');
-        }, 4000);
+        }, 6000);
       }
     } catch (e) {}
   })();

@@ -14,7 +14,7 @@ export function initBackToTop() {
   button.setAttribute('aria-label', 'Back to top');
   button.innerHTML =
     '<svg class="back-to-top__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
-    '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 19V6M6 12l6-6 6 6"/>' +
+    '<path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M12 19V6M6 12l6-6 6 6"/>' +
     '</svg>';
   document.body.append(button);
 
@@ -31,7 +31,14 @@ export function initBackToTop() {
   // and the button vanished before the footer came into view. Comparing the live scroll position
   // needs no measured end at all. `scroll` fires under Lenis too, since Lenis moves the page with
   // window.scrollTo.
-  const update = () => button.classList.toggle('is-visible', window.scrollY > window.innerHeight);
+  //
+  // On the home page the hero is pinned for 1.5 screens, and its scroll cue (sections/hero.js) sits at the
+  // bottom centre the whole time; on a phone the cue and this button would overlap. So the button waits
+  // until the cue has gone, which also keeps the two attention-grabbers from competing.
+  const update = () => {
+    const cueShowing = document.querySelector('[data-hero-cue].is-on:not(.is-hidden)');
+    button.classList.toggle('is-visible', window.scrollY > window.innerHeight && !cueShowing);
+  };
   window.addEventListener('scroll', update, { passive: true });
   update(); // a reload can restore a scroll position part-way down the page
 }

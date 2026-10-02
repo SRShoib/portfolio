@@ -104,6 +104,12 @@
   height: 100%;
 }
 .project-card__cover {
+  /* An opaque backing, so the diagram underneath can never show through the cover at rest. It
+     matters whenever the screenshot does not fill the frame: a narrow source such as the Chrome
+     extension popup is shown whole (object-fit: contain, see base.css), which leaves bare strips either
+     side of it, and a lazy-loaded image has no pixels at all until it arrives. Same colour as the
+     diagram's own backing, so the hover wipe changes what is drawn, not the card's tone. */
+  background: var(--raised);
   clip-path: circle(150% at 80% 20%);
   transition: clip-path var(--dur-m) var(--ease-in-out);
 }

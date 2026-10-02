@@ -4,7 +4,7 @@
 
 .site-footer {
   /* The bottom padding follows the fixed back-to-top button (base.css: `bottom: var(--gutter)`,
-     2.75rem tall). With this much room under the divider, the button at the very end of the page
+     3.25rem tall). With this much room under the divider, the button at the very end of the page
      sits in the bottom row, level with its line of text, instead of straddling the divider. At
      phone widths the gutter is ~1rem, so this is the same 2rem the footer always had. */
   padding-block: var(--section-space) calc(var(--gutter) + 1rem);
@@ -76,6 +76,13 @@
   background-position: 0 calc(100% - 0.5em);
 }
 
+/* Touch: a taller hit area for the platform links (see "Touch targets" in base.css). */
+@media (pointer: coarse) {
+  .site-footer__links a {
+    padding-block: 0.85rem;
+  }
+}
+
 /* One small monochrome mark per platform (GitHub, LinkedIn, Google Scholar as silhouette paths;
    ResearchGate and ORCID as a ring around a short mono label, since their real marks are a
    two-tone "RG" square and a green "iD" badge that don't reduce cleanly to one flat silhouette).
@@ -101,9 +108,9 @@
   gap: var(--space-s);
   margin-top: var(--space-2xl);
   padding-top: var(--space-m);
-  /* Room for the back-to-top button (2.75rem) plus a gap, so on a phone this line wraps before it
+  /* Room for the back-to-top button (3.25rem) plus a gap, so on a phone this line wraps before it
      can run underneath the button, which sits in this row's right-hand corner at the page end. */
-  padding-right: calc(2.75rem + var(--space-xs));
+  padding-right: calc(3.25rem + var(--space-xs));
   border-top: 1px solid var(--line);
   color: var(--muted);
 }
