@@ -42,10 +42,18 @@ export function initTimeline() {
     });
 
     const scrub = gsap.to(track, {
-      // How far the track has to travel is content width minus viewport width, not a fixed
-      // number -- a function so `invalidateOnRefresh` below can recompute it once fonts (which
-      // can reflow the track's width) are actually loaded.
-      x: () => -Math.max(0, track.scrollWidth - section.clientWidth),
+      // How far the track has to travel: its width, plus the gap it starts from the section's left
+      // edge, minus the section's width, plus the SAME gap again so the last item ends with the
+      // same margin the first one starts with. Without the two gaps (the old formula was just
+      // width minus viewport) the last item stayed about one gap past the right edge when the pin
+      // released: on a screen wider than the 90rem content column the track starts ~90px in, so
+      // "Built SupportLens" was still cut off as the page moved on. A function, so
+      // `invalidateOnRefresh` below re-measures it once fonts (which reflow the track) have loaded;
+      // the refresh resets the tween to x: 0 first, so the left gap is measured at rest.
+      x: () => {
+        const gap = Math.max(0, track.getBoundingClientRect().left - section.getBoundingClientRect().left);
+        return -Math.max(0, track.scrollWidth + 2 * gap - section.clientWidth);
+      },
       ease: 'none', // scrubbed by scroll: Lenis already smooths the input (see motion.js)
       scrollTrigger: {
         trigger: section,
