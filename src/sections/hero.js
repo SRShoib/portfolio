@@ -40,6 +40,10 @@ const CAPTION_PROGRESS = { tooth: 1, leaf: 2, graph: 3 };
 // to actually dim anything (verified with WCAG's relative-luminance formula, not eyeballed).
 const CAPTION_DIM = 0.5;
 
+// The cue's label: the first three shapes invite the scroll, the last one says the page continues.
+const CUE_FIRST = 'Scroll to explore';
+const CUE_LAST = 'Keep scrolling';
+
 let mm = null;
 
 /**
@@ -81,6 +85,9 @@ export function initHero() {
 
   const captions = [...document.querySelectorAll('.hero__captions li[data-shape]')];
   const skipButton = document.querySelector('.hero a[href="#work"]');
+  const cue = document.querySelector('[data-hero-cue]');
+  const cueSteps = cue ? [...cue.querySelectorAll('.scroll-cue__step')] : [];
+  const cueLabel = cue?.querySelector('.scroll-cue__label');
 
   mm = gsap.matchMedia();
 
@@ -121,6 +128,13 @@ export function initHero() {
       // already calls that after fonts and images load), so a resize never leaves a stale pin length.
       end: () => `+=${window.innerHeight * PIN_VH}`,
       pin: true,
+      // Measure this pin BEFORE every other trigger on every refresh. The pin adds 150vh of spacing
+      // that all the sections below sit on top of, so their start positions are only right if it was
+      // measured first. Normally creation order guarantees that, but this trigger is destroyed and
+      // re-created whenever matchMedia re-runs (crossing 1024px, e.g. Maximize on a small window),
+      // which makes it the NEWEST trigger: the statement section was then measured without the spacing
+      // and pinned itself on top of the hero. Higher refreshPriority refreshes earlier.
+      refreshPriority: 10,
       // `scrub: true` (not a number): Lenis already smooths the raw scroll input before ScrollTrigger
       // ever sees it, so uProgress tracks the CURRENT (already-eased) scroll position exactly. Adding
       // a numeric scrub on top would smooth an already-smoothed value, which reads as extra lag/mush
@@ -130,9 +144,25 @@ export function initHero() {
         scrollProgress = self.progress * 3; // 0..1 across the pin -> 0..3 across the four shapes
         cloud?.setProgress(scrollProgress);
         updateCaptions(captions, scrollProgress);
+        updateCue(self.progress);
       },
     });
     updateCaptions(captions, scrollProgress); // dim every caption immediately: resting on the face, progress 0
+
+    // The scroll cue. While the hero is pinned the page does not move, only the shape changes, so a
+    // visitor can think scrolling is broken. The cue tells them to keep going: four dots show which of
+    // the four shapes they are on (face, tooth, leaf, network), and on the last one the label says the
+    // page will continue. It is shown only here, where the pin really exists (this branch already ruled
+    // out reduced motion and no-WebGL), and fades out the moment the pin lets go and the page moves.
+    function updateCue(progress) {
+      if (!cue) return;
+      const step = Math.round(progress * 3); // nearest shape, 0..3
+      cueSteps.forEach((dot, i) => dot.classList.toggle('is-done', i <= step));
+      if (cueLabel) cueLabel.textContent = step === 3 ? CUE_LAST : CUE_FIRST;
+      cue.classList.toggle('is-hidden', progress >= 0.999);
+    }
+    cue?.classList.add('is-on');
+    updateCue(0);
 
     // "View projects" needs to jump straight to #work, not animate through 150vh of morphing to get
     // there. scrollToTarget's default (used by every other link on the page, via onAnchorClick in
@@ -242,6 +272,7 @@ export function initHero() {
 
     return () => {
       cancelled = true;
+      cue?.classList.remove('is-on');
       trigger.kill();
       skipButton?.removeEventListener('click', onSkipClick);
       removeCursor?.();

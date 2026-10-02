@@ -217,7 +217,7 @@ export function initHeader() {
   const onToggle = () => setOpen(!isOpen());
 
   // Focus trap, part 2: Tab/Shift+Tab cycles among the header's own focusable controls (the
-  // monogram, the links, Resume, the toggle itself -- all of which stay visually on top of the
+  // logo, the links, Resume, the toggle itself -- all of which stay visually on top of the
   // menu's own background; see header.css's stacking comment) instead of leaving the header
   // range once every other body child has gone `inert` above.
   function onKeydown(event) {

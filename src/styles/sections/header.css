@@ -1,11 +1,11 @@
-/* Header: monogram, anchor nav, always-visible Resume button.
+/* Header: logo, anchor nav, always-visible Resume button.
 
    Layout is built mobile-first and JS-optional:
    - Base (also what a no-JS visitor gets): a flex bar; the nav wraps onto a second row.
    - `.js` + narrow screens: the nav becomes a fullscreen menu opened by the Menu button
      (sections/header.js toggles [data-menu-open]). The link stagger, preview-image crossfade
      and focus trap (main.inert + a Tab wrap) all live in sections/header.js.
-   - >= 48em (768px): monogram | centred nav | Resume, no Menu button.
+   - >= 48em (768px): logo | centred nav | Resume, no Menu button.
    48em is written out in the media queries because CSS custom properties can't be used there. */
 
 .site-header {
@@ -41,23 +41,81 @@
   margin-inline: auto;
 }
 
-/* ---- Monogram ----------------------------------------------------------------------- */
-.monogram {
+/* ---- Hover-roll boxes inside the header ---------------------------------------------------
+   lib/hover-roll.js wraps every header label (nav links, Resume, Menu) in one
+   inline-block `.roll` box per character (base.css). An inline-block with `overflow: hidden`
+   sits on the line's baseline by its BOTTOM edge, so each box hangs a full line-height above the
+   baseline while the line's own strut still reserves its descent below it. The line box grows by
+   that descent and the glyphs end up that far too high inside whatever surrounds them, which is
+   exactly what showed up as "more space under the text than over it" in the nav pill: measured
+   ~11px above vs ~15px below the capitals, and the Menu label sat ~2.5px above the
+   header's centre line. Aligning the boxes to the line's TOP instead keeps the line exactly `1lh`
+   tall, the same as the plain text it replaces, so with or without the roll the label is centred
+   by its own font metrics. Scoped to the header on purpose: the other roll targets (the footer
+   links' hand-tuned underline offset, for one) were set against the old geometry and are left
+   as they were rather than re-tuned in the same change. */
+.site-header .roll {
+  vertical-align: top;
+}
+
+/* ---- Logo ----------------------------------------------------------------------------
+   An S drawn as one path through three nodes: the shape of a pipeline (input, model, output) and
+   of the hero's network graph. The markup is src/partials/icons/logo.svg, inlined so its colours
+   come from the same tokens as everything else; public/favicon.svg and public/logo.svg are the same
+   mark in a saffron tile, because a browser tab needs the most contrast it can get.
+   The link is 44px square (a touch target) around the 40px mark. */
+.site-logo {
   order: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
   min-height: 2.75rem;
-  color: var(--text);
-  font-size: 1.625rem;
-  font-weight: 800;
-  font-stretch: 75%;
-  letter-spacing: 0.02em;
-  line-height: 1;
   text-decoration: none;
-  transition: color var(--dur-xs) var(--ease-out);
 }
-.monogram:hover {
-  color: var(--accent);
+.logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  overflow: visible; /* the hover tilt below must not be clipped by the svg's own box */
+}
+.logo__tile {
+  fill: var(--raised);
+  stroke: var(--line);
+  transition: stroke var(--dur-xs) var(--ease-out);
+}
+.logo__s {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transition: stroke var(--dur-xs) var(--ease-out);
+}
+.logo__node {
+  fill: var(--accent);
+  transition: fill var(--dur-xs) var(--ease-out);
+}
+/* Hover or keyboard focus: the colours swap (S and border go saffron, nodes go cream)... */
+.site-logo:hover .logo__tile,
+.site-logo:focus-visible .logo__tile {
+  stroke: var(--accent);
+}
+.site-logo:hover .logo__s,
+.site-logo:focus-visible .logo__s {
+  stroke: var(--accent);
+}
+.site-logo:hover .logo__node,
+.site-logo:focus-visible .logo__node {
+  fill: var(--text);
+}
+/* ...and, only for visitors who haven't asked for less motion, the mark tilts a little. */
+@media (prefers-reduced-motion: no-preference) {
+  .logo {
+    transition: transform var(--dur-s) var(--ease-out);
+  }
+  .site-logo:hover .logo,
+  .site-logo:focus-visible .logo {
+    transform: rotate(-8deg) scale(1.06);
+  }
 }
 
 /* ---- Nav (base: a row of mono labels) ------------------------------------------------ */
@@ -98,7 +156,10 @@
    of inventing a second one. `left`/`top` stay 0; header.js animates `transform`/`width` only
    (cheaper than animating layout properties), with `left: 0` as the fixed origin they're measured
    from. Hidden by default (opacity 0) so a no-JS visitor -- who never gets the script that would
-   ever move or show it -- simply never sees an inert pill sitting at the origin. */
+   ever move or show it -- simply never sees an inert pill sitting at the origin.
+
+   A soft rounded rectangle (--r-s), not a full capsule: with --r-pill the ends were half-circles
+   and a short label like "About" sat inside what read as an oval. */
 .site-nav__indicator {
   position: absolute;
   top: 0;
@@ -106,7 +167,7 @@
   z-index: 0;
   height: 100%;
   border: 1px solid var(--accent-50);
-  border-radius: var(--r-pill);
+  border-radius: 16px; /* --r-s, not --r-pill */
   background: var(--accent-12);
   opacity: 0;
   pointer-events: none;
@@ -196,8 +257,15 @@
     z-index: -1; /* above the ::before backdrop (earlier in DOM), below the bar's own controls */
     display: flex;
     flex-direction: column;
-    justify-content: center;
     padding: calc(var(--header-h) + var(--space-l)) var(--gutter) var(--space-xl);
+    /* A phone on its side is only ~320-430px tall, which five big links do not fit in. Scroll
+       instead of clipping, and keep the scroll inside the menu (not the page behind it). The list is
+       centred with `margin-block: auto` below, NOT `justify-content: center`: centring an overflowing
+       flex column pushes its top out of reach, above the scrollable area, so "Works" could never be
+       scrolled to. Auto margins centre it when there is room and fall back to the top when there is
+       not. */
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background: var(--bg);
     visibility: hidden; /* removes closed-menu links from the tab order */
     opacity: 0;
@@ -243,13 +311,16 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     gap: var(--space-2xs);
+    margin-block: auto; /* centred when there is room, top-aligned (and scrollable) when there is not */
   }
 
   .js .site-nav__link {
     padding-block: 0.15em;
     color: var(--text);
     font-family: var(--font-display);
-    font-size: var(--step-5);
+    /* Capped by height as well as width: on a short screen (a landscape phone) the five links shrink
+       so they fit without scrolling. 8svh x 5 links x 1.5 line = 60svh, plus the gaps. */
+    font-size: min(var(--step-5), 8svh);
     font-weight: 700;
     font-stretch: 85%;
     letter-spacing: var(--track-tight);
@@ -261,12 +332,55 @@
   }
 }
 
+/* A short screen (a phone on its side): less air above and below the links, no gaps between them. */
+@media (max-width: 47.99em) and (max-height: 34em) {
+  .js .site-nav {
+    padding-top: calc(var(--header-h) + var(--space-xs));
+    padding-bottom: var(--space-m);
+  }
+  .js .site-nav__list {
+    gap: 0;
+  }
+}
+
+/* Very narrow phones (a folded foldable is 280px; some are narrower). The bar is the logo plus the
+   Resume and Menu buttons and they only just fit in the 248px a 280px screen leaves: with the old
+   text monogram the row wrapped, and Resume and Menu dropped out of the header. Tighter gaps and
+   button padding give it real room down to 240px; below 256px the Menu label goes too and the
+   button is just its icon. */
+@media (max-width: 22.5em) {
+  .site-header__bar {
+    column-gap: var(--space-xs);
+  }
+  .site-header .btn {
+    padding-inline: 0.9em;
+  }
+  .menu-toggle {
+    gap: 0.5rem;
+    padding-inline: 0.65rem;
+  }
+}
+@media (max-width: 16em) {
+  .menu-toggle__label {
+    /* the same visually-hidden recipe as .sr-only: the label stays in the accessible name */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .menu-toggle {
+    padding-inline: 0.8rem;
+  }
+}
+
 /* While the menu is open the page behind it must not scroll (scroll.js also stops Lenis). */
 html.is-menu-open {
   overflow: hidden;
 }
 
-/* ---- Wide: monogram | centred nav | Resume ------------------------------------------- */
+/* ---- Wide: logo | centred nav | Resume ------------------------------------------------ */
 @media (min-width: 48em) {
   .site-nav {
     order: 2;
@@ -296,5 +410,10 @@ html.is-menu-open {
   .site-nav__link {
     padding: 0.375rem;
     font-size: var(--step-n1);
+  }
+}
+@media (min-width: 56em) {
+  .site-nav__link {
+    padding-inline: 0.75rem;   /* px = 12px each side, was 6px */
   }
 }

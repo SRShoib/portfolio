@@ -18,6 +18,12 @@
 .cs-back:hover {
   color: var(--text);
 }
+/* Touch: a taller hit area (see "Touch targets" in base.css). */
+@media (pointer: coarse) {
+  .cs-back {
+    padding-block: 0.85rem;
+  }
+}
 
 .cs-meta {
   display: flex;
@@ -26,6 +32,10 @@
   gap: var(--space-3xs) var(--space-s);
   margin-top: var(--space-m);
   color: var(--muted);
+}
+/* When the project was built: the accent colour makes it the one date-like thing in the line. */
+.cs-meta__dates {
+  color: var(--accent);
 }
 .cs-meta__status {
   display: inline-flex;
@@ -37,8 +47,13 @@
 .cs-title {
   max-width: 14em;
   margin-top: var(--space-s);
-  font-size: var(--step-7);
+  /* The second term keeps the longest single word ("SupportLens" is 5.34em wide) inside the column
+     on phones narrower than ~360px, where the full step-7 size is wider than the screen:
+     (screen width - both gutters) / 5.5 leaves a few pixels to spare. From ~360px up, step-7 is
+     the smaller of the two and nothing changes. */
+  font-size: min(var(--step-7), calc((100vw - 2 * var(--gutter)) / 5.5));
   line-height: 1;
+  overflow-wrap: break-word; /* a safety net for a longer word in a future title */
 }
 
 .cs-lead {
@@ -75,6 +90,47 @@
   border: 1px solid var(--line);
   border-radius: var(--r-l);
   background: var(--raised);
+}
+
+/* The screenshot is a link to the project's live site (every project that has one). The anchor
+   fills the frame, so the whole picture is the click target, and the pill in the corner says where it
+   goes. The pill is there at rest, not only on hover, because a phone has no hover; on hover or
+   keyboard focus it fills with the accent colour. The page itself opens a new tab, like every other
+   outside link on the site. */
+.cs-cover__link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  color: var(--text);
+  text-decoration: none;
+}
+.cs-cover__link:focus-visible {
+  outline-offset: -4px; /* inside the frame: it is overflow: hidden, so a ring outside would be cut off */
+}
+.cs-cover__hint {
+  position: absolute;
+  right: var(--space-s);
+  bottom: var(--space-s);
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55em 1em;
+  border: 1px solid var(--accent-50);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--text);
+  transition:
+    background-color var(--dur-xs) var(--ease-out),
+    border-color var(--dur-xs) var(--ease-out),
+    color var(--dur-xs) var(--ease-out);
+}
+.cs-cover__link:hover .cs-cover__hint,
+.cs-cover__link:focus-visible .cs-cover__hint {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
 }
 
 /* ---- Sections ---------------------------------------------------------------------------- */

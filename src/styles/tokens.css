@@ -113,10 +113,29 @@
   }
 }
 
+/* Short screens (a phone on its side, a small window, a phone with its browser toolbars showing):
+   a slimmer header gives the content that height back. Its tallest controls are 44px, so 3.75rem
+   (60px) still leaves them a margin. Everything that depends on the header (the page's top padding,
+   anchor scroll offset, the fullscreen menu's top padding) reads this one variable. */
+@media (max-height: 40em) {
+  :root {
+    --header-h: 3.75rem;
+  }
+}
+
 /* Small screens with JS off: the nav has no menu button, so it wraps to a second header
-   row (see sections/header.css). Reserve that extra height so it never covers content. */
+   row (see sections/header.css). Reserve that extra height so it never covers content. This comes
+   after the rule above and `html:not(.js)` is the more specific selector, so it wins on a short,
+   narrow screen too. */
 @media (max-width: 47.99em) {
   html:not(.js) {
     --header-h: 6rem;
+  }
+}
+/* ...and at 324px and below (measured) the five labels no longer fit on one row, so the nav takes two
+   rows under the logo and Resume and needs about 114px, more than 6rem (96px). 7.5rem leaves a margin. */
+@media (max-width: 20.5em) {
+  html:not(.js) {
+    --header-h: 7.5rem;
   }
 }

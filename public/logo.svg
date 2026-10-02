@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <title>Shoib</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="512" height="512" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">Shoib logo: an S drawn as a path through three nodes</title>
   <rect width="48" height="48" rx="12" fill="#F0B429"/>
   <path d="M30.96 12.99A8.5 7 0 1 0 24 24A8.5 7 0 1 1 17.04 35.01" fill="none" stroke="#0F0E0C" stroke-width="4.6" stroke-linecap="round"/>
   <g fill="#F3EFE6" stroke="#0F0E0C" stroke-width="1.6">

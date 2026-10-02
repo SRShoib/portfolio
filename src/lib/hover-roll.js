@@ -19,10 +19,9 @@ import { gsap } from 'gsap';
 import { afterFirstPaint, ease, duration, prefersReducedMotion, stagger } from './motion.js';
 
 // Every selector matches a label that is either the interactive element itself (a link/button) or
-// a plain decorative span inside one (the monogram's "MHS", the menu toggle's "Menu", a pager
-// link's small label) -- enhance() below finds the right element to listen on either way.
+// a plain decorative span inside one (the menu toggle's "Menu", a pager link's small label) --
+// enhance() below finds the right element to listen on either way.
 const TARGETS = [
-  '.monogram span[aria-hidden]',
   '.site-nav__link',
   '.btn', // Resume, hero buttons, case-study Live/API docs/GitHub, footer Download resume + Copy email
   '.menu-toggle .label',
@@ -35,7 +34,6 @@ const TARGETS = [
   '.about__links a', // Codeforces, LeetCode
   '.about__contests a', // contest standings + certificate links
   '.site-footer__links a', // GitHub, LinkedIn, Google Scholar, ResearchGate, ORCID
-  '.site-footer__bottom a', // "Back to top ↑"
   '.split__link', // "See publications" / "See selected work"
 ];
 
@@ -48,6 +46,12 @@ const TARGETS = [
 const REST = -1; // the middle copy, in units of "one character's own line height"
 const ENTERED = -2; // one line further up: the BELOW copy has taken its place
 const LEFT = 0; // one line back down: the ABOVE copy has taken its place
+
+// Offsets are PERCENTAGES of the strip's own height, not pixels. The strip holds three identical lines, so
+// one line is a third of it (33.333%). A pixel offset measured when the label was 11px high went stale the
+// moment the label's font-size changed (the header nav becomes the big fullscreen menu below 768px), leaving
+// every letter stuck half-rolled with its twin showing. A percentage follows the strip's size by itself.
+const LINE_PERCENT = 100 / 3;
 
 /** One character's clipped, three-line roll box. All three lines sit inside splitIntoChars()'s
  *  single aria-hidden wrapper, so none of them needs its own aria-hidden here. */
@@ -123,14 +127,6 @@ function splitIntoChars(el) {
   return { decorative, inners };
 }
 
-/** One character's own line height in pixels: `.roll`'s rendered height is exactly `1lh` (its CSS
- *  in base.css), so reading it back gives the true pixel figure with no unit-conversion of its own
- *  -- read fresh on every call (not cached), so a later resize (this site's headings and labels are
- *  all fluid-clamped, not fixed sizes) can never leave a stale distance behind. */
-function lineHeightOf(inner) {
-  return inner.parentElement.getBoundingClientRect().height;
-}
-
 /** Moves every character of `inners` to `steps` line-heights above its resting position (see the
  *  REST/ENTERED/LEFT constants), staggered left to right, then snaps back to REST once the tween
  *  finishes -- invisible, since all three copies are identical text -- so the next hover in either
@@ -140,11 +136,11 @@ function play(inners, steps) {
   gsap.killTweensOf(inners);
   gsap.set(inners, { willChange: 'transform' });
   gsap.to(inners, {
-    y: (_i, target) => steps * lineHeightOf(target),
+    yPercent: steps * LINE_PERCENT,
     duration: duration.s,
     ease: ease.out,
     stagger: charStagger(inners.length),
-    onComplete: () => gsap.set(inners, { y: (_i, target) => REST * lineHeightOf(target), clearProps: 'willChange' }),
+    onComplete: () => gsap.set(inners, { yPercent: REST * LINE_PERCENT, clearProps: 'willChange' }),
   });
 }
 
@@ -161,7 +157,7 @@ function play(inners, steps) {
  *  span's rendered box is only ever the small visible text, wherever it happens to sit, so it
  *  naturally only ever receives pointer events actually over that text. Focus/blur still listen on
  *  the real interactive element (the label itself, for most targets; its enclosing link/button for
- *  the monogram, the menu toggle, and a pager's small label) -- a plain `<span>` is never
+ *  the menu toggle, and a pager's small label) -- a plain `<span>` is never
  *  focusable, and tabbing to a stretched link is never spatially ambiguous the way a mouse is. */
 // interactive element -> its current { enter, leave }, so re-enhancing a label whose text changed
 // at runtime (contact.js's "Copy email" -> "Copied" -> "Copy email") can remove the PREVIOUS pair
@@ -174,7 +170,7 @@ function enhance(labelEl) {
   if (!split?.inners.length) return;
   const { decorative, inners } = split;
 
-  gsap.set(inners, { y: (_i, target) => REST * lineHeightOf(target) });
+  gsap.set(inners, { yPercent: REST * LINE_PERCENT });
 
   const interactive = labelEl.closest('a, button') ?? labelEl;
   const enter = () => play(inners, ENTERED);

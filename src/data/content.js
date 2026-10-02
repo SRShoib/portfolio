@@ -52,7 +52,7 @@ export const statement = {
 
 // ---- 4. Stats (animated counters) --------------------------------------------------------
 export const stats = [
-  { value: 5, suffix: '', label: 'publications' },
+  { value: 8, suffix: '', label: 'publications' },
   { value: 3, suffix: '', label: 'live full-stack AI applications' },
   { value: 700, suffix: '+', label: 'competitive programming problems solved' },
   { value: 60, suffix: '+', label: 'programming contests (including onsite)' },
@@ -87,6 +87,7 @@ export const projects = [
       'Enterprise RAG assistant for internal documents, with role-aware retrieval, cited answers and quality monitoring.',
     tags: ['RAG', 'Full-stack', 'Access control'],
     status: 'Live',
+    period: 'Apr 22 – Aug 13, 2026', // when it was built (owner-provided)
     links: {
       live: 'https://enterprise-knowledge-assistant-blond.vercel.app/',
       apiDocs: 'https://enterprise-knowledge-assistant-production-8283.up.railway.app/docs',
@@ -135,9 +136,6 @@ export const projects = [
         'LangSmith tracing',
         'Admin dashboard showing usage metrics and low-confidence queries',
       ],
-      todo: todo(
-        'add any measured results (answer quality scores, retrieval metrics, latency). Until then, describe the evaluation setup only.',
-      ),
     },
     stack: {
       backend: [
@@ -167,9 +165,10 @@ export const projects = [
       "Agentic analyst that cross-checks a company's 10-K, 10-Q, earnings-call transcript and press release for contradictions, then writes a cited risk memo.",
     tags: ['Agents', 'LangGraph', 'Human-in-the-loop'],
     status: 'Live',
+    period: 'Jun 22 – Sep 4, 2026', // when it was built (owner-provided)
     links: {
       live: 'https://multi-document-financial-contradict.vercel.app/',
-      apiDocs: 'https://multidocumentfinancialcontradictionanalyst-production.up.railway.app/docs',
+      apiDocs: 'https://multi-documentfinancialcontradictionanalyst-production.up.railway.app/docs',
       github: 'https://github.com/SRShoib/multi-document_financial_contradiction_analyst',
     },
     cover: { path: '/images/projects/filing-reconciler/cover.png' },
@@ -282,6 +281,7 @@ export const projects = [
       'End-to-end NLP platform that turns raw support tickets into structured intelligence: classification, entities, sentiment, topics, search and RAG-drafted replies.',
     tags: ['NLP', 'Fine-tuning', 'RAG'],
     status: 'Live',
+    period: 'Aug 10 – Sep 8, 2026', // when it was built (owner-provided)
     links: {
       live: 'https://supportlens-pink.vercel.app/',
       apiDocs: 'https://supportlens-api-7ulp.onrender.com/docs',
@@ -424,10 +424,10 @@ export const projects = [
     oneLiner: 'Chrome extension that answers questions about any YouTube video using only its transcript.',
     tags: ['RAG', 'Chrome extension', 'Backend'],
     status: 'Deployed backend',
+    period: 'Apr 21 – Aug 12, 2026', // when it was built (owner-provided)
     links: {
       github: 'https://github.com/SRShoib/YouTube-ChatBot',
       apiDocs: 'https://youtube-chatbot-tzq1.onrender.com/docs',
-      demo: todo('Chrome Web Store or demo video (optional)'),
     },
     cover: { path: '/images/projects/youtube-rag-chatbot/cover.png' },
     chips: ['Manifest V3', 'Rate-limited shared backend', 'Cold-start resilient'],
@@ -455,10 +455,6 @@ export const projects = [
       'LRU-capped vector store to bound memory',
       'Automatic re-indexing so the service survives free-tier cold starts on Render',
     ],
-    evaluation: {
-      results: [],
-      todo: todo('(optional) evaluation & results'),
-    },
     stack: {
       backend: ['Python', 'FastAPI', 'LangChain', 'LangServe', 'FAISS', 'OpenAI API'],
       frontend: ['JavaScript', 'Chrome Extension (MV3)'],
@@ -607,6 +603,118 @@ export const publications = [
       author('Mayen Uddin Mojumdar'),
     ],
   },
+  {
+    title: 'RoseLeafInsight: A high-resolution image dataset for rose leaf disease recognition',
+    type: 'Dataset article',
+    year: 2025,
+    venue: 'Data in Brief (Elsevier)',
+    doi: 'https://doi.org/10.1016/j.dib.2025.111968',
+    // No abstract was provided, so no `note` line: nothing is described that CONTENT.md does not say.
+    // Four sample leaves, one per class, named by class (spaces in the file names are handled by the
+    // partials plugin). 3000x3000 squares, shown whole, two per row from tablet up, three on a phone.
+    samples: {
+      dir: '/images/publications/RoseLeafInsight',
+      subject: 'rose leaf',
+      columns: 2,
+      aspect: '1 / 1',
+      images: [
+        { file: 'Black Spot.jpg', label: 'Black Spot' },
+        { file: 'Healthy Leaf.jpg', label: 'Healthy Leaf' },
+        { file: 'Insect Hole.jpg', label: 'Insect Hole' },
+        { file: 'Yellow Mosaic Virus.jpg', label: 'Yellow Mosaic Virus' },
+      ],
+      credit: {
+        label: 'RoseLeafInsight dataset (Mendeley Data)',
+        url: 'https://data.mendeley.com/datasets/8chrjdxn79/2',
+      },
+    },
+    tags: ['Agricultural vision', 'Open dataset'],
+    authors: [
+      author('Arnob Das Shacha'),
+      author('Sabbir Hossain Durjoy'),
+      author('Md. Emon Shikder'),
+      author('Md Mostafa Kamal'),
+      author('Md Mehedi Hasan Shoib', true),
+      author('Md Hasan Imam Bijoy'),
+    ],
+  },
+  {
+    title:
+      'DentIRO: A High-Quality Multi-Class Single-Tooth Intraoral Radiograph Dataset for Automated Dental Diagnosis',
+    type: 'Dataset',
+    year: 2026, // posted on Figshare on 2026-05-01
+    venue: 'Figshare',
+    doi: 'https://doi.org/10.6084/m9.figshare.32086377',
+    note: '5,300 single-tooth intraoral radiographs from 3,243 patients at two dental clinics in Bangladesh, in four classes: Healthy, Caries, Crowned and Root Canal',
+    // Four sample radiographs, one per class, in the paper's class order. The files are named
+    // differently from their labels (RTC.png is the Root Canal class). They are not all the same shape
+    // (RTC is very tall), so the thumbnails use a 4:5 window and crop the tallest from the top.
+    samples: {
+      dir: '/images/publications/DentIRO',
+      subject: 'intraoral radiograph',
+      columns: 2,
+      aspect: '4 / 5',
+      images: [
+        { file: 'Healthy.png', label: 'Healthy' },
+        { file: 'Caries.png', label: 'Caries' },
+        { file: 'Crowned.png', label: 'Crowned' },
+        { file: 'RTC.png', label: 'Root Canal' },
+      ],
+      credit: {
+        label: 'DentIRO dataset (Figshare)',
+        url: 'https://figshare.com/articles/dataset/_b_DentIRO_b_A_High-Quality_Multi-Class_Single-Tooth_Intraoral_Radiograph_Dataset_for_Automated_Dental_Diagnosis/32086377?file=64174315',
+      },
+    },
+    tags: ['Medical imaging', 'Intraoral radiographs', 'Open dataset'],
+    authors: [
+      author('Md. Mehedi Hasan Shoib', true),
+      author('Ashiqur Rahman'),
+      author('Md. Hasan Imam Bijoy'),
+      author('Sabbir Hossain Durjoy'),
+      author('Md. Emon Shikder'),
+      author('Md. Zahid Hasan'),
+      author('Rony Chandra Mazumder'),
+      author('Bazlur Rashid'),
+    ],
+  },
+  {
+    title:
+      'BDCXR-3257: A Comprehensive Chest Radiography Dataset with Multi-Etiological Pneumonia Labels from a Clinical Setting',
+    type: 'Dataset',
+    year: 2026, // posted on Figshare on 2026-05-01
+    venue: 'Figshare',
+    doi: 'https://doi.org/10.6084/m9.figshare.32086362',
+    note: '3,257 clinically verified chest X-ray images from Dr. M.R. Khan Shishu Hospital & Institute of Child Health, Dhaka, Bangladesh, in three classes: Normal, Bacterial Pneumonia and Viral Pneumonia',
+    // Three sample chest X-rays in the paper's class order (abstract: Normal, Bacterial, Viral). The
+    // files are named differently from their labels; the label is what is shown. Roughly square, so
+    // square thumbnails, two per row from tablet up (the third centred), three in a row on a phone.
+    samples: {
+      dir: '/images/publications/BDCXR-3257',
+      subject: 'chest X-ray',
+      columns: 2,
+      aspect: '1 / 1',
+      images: [
+        { file: 'normal.jpg', label: 'Normal' },
+        { file: 'Pneumonia-Bacterial.jpg', label: 'Bacterial Pneumonia' },
+        { file: 'pneumonia-viral.jpg', label: 'Viral Pneumonia' },
+      ],
+      credit: {
+        label: 'BDCXR-3257 dataset (Figshare)',
+        url: 'https://figshare.com/articles/dataset/_b_BDCXR-3257_b_A_Comprehensive_Chest_Radiography_Dataset_with_Multi-Etiological_Pneumonia_Labels_from_a_Clinical_Setting/32086362?file=64149946',
+      },
+    },
+    tags: ['Medical imaging', 'Chest X-ray', 'Open dataset'],
+    authors: [
+      author('Sabbir Hossain Durjoy'),
+      author('Md. Emon Shikder'),
+      author('Md. Hasan Imam Bijoy'),
+      author('Md. Mehedi Hasan Shoib', true),
+      author('Ashiqur Rahman'),
+      author('Md. Zahid Hasan'),
+      author('Sultana Amena Ferdoucy'),
+      author('Shekh Mohammed Moinul Islam'),
+    ],
+  },
 ];
 
 // Publication images (CONTENT.md §7). RESOLVED: both leaf datasets allow sample images with credit,
@@ -623,8 +731,11 @@ export const timeline = [
   { when: '2025', text: 'Published two open image datasets in Data in Brief (cauliflower and black gram leaves)' },
   { when: 'Jan 2026', text: 'Completed B.Sc. in CSE, CGPA 3.80 / 4.00' }, // graduation confirmed
   { when: 'Apr 2026', text: 'Three papers published in the BIM 2025 proceedings (Springer)' },
+  { when: 'Apr 21 – Aug 12, 2026', text: 'Built YouTube Transcript RAG Chatbot' },
+  { when: 'Apr 22 – Aug 13, 2026', text: 'Built Enterprise Knowledge Assistant' },
+  { when: 'Jun 22 – Sep 4, 2026', text: 'Built Filing Reconciler' },
+  { when: 'Aug 10 – Sep 8, 2026', text: 'Built SupportLens' },
 ];
-export const timelineProjectDates = todo('(optional) month/year for each project launch');
 
 // ---- 9. About ----------------------------------------------------------------------------
 export const about = {
@@ -637,7 +748,7 @@ export const about = {
     bullets: [
       'Research on medical imaging in healthcare and agricultural image data in agriculture',
       'Build custom ML and deep learning models for computer vision and write research papers',
-      'Co-authored five publications: three conference papers and two dataset articles',
+      'Co-authored eight publications: three conference papers and five datasets',
     ],
   },
   education: {

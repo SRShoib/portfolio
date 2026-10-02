@@ -33,6 +33,20 @@ html {
   scroll-padding-top: var(--header-h);
 }
 
+/* Big monitors (1920px and up): everything is sized in rem, so growing the root size grows the whole
+   page in proportion, text, spacing and the 90rem content column alike. Without this a 2560px screen
+   shows the same 1440px column of 18px text with a third of the screen empty on each side. The
+   growth is gentle (+18% at 2560px, +54% at 3840px) and follows the SMALLER of the width and a 16:9
+   height, so an ultra-wide window is not blown up past what its height can hold. `max(1rem, ...)`
+   means a wide-but-short window never goes below the normal size. In the `rem` units inside this
+   rule, 1rem is the browser's own default size, which is why this does not feed back on itself.
+   Media-query `em` units also ignore this rule, so every other breakpoint stays where it is. */
+@media (min-width: 120em) {
+  html {
+    font-size: max(1rem, calc(1rem + (min(100vw, 177.78vh) - 120rem) * 0.0045));
+  }
+}
+
 /* Native smooth anchor scrolling, only for visitors who haven't asked for less motion.
    When Lenis is running it adds .lenis-smooth, which forces this back to `auto`. */
 @media (prefers-reduced-motion: no-preference) {
@@ -446,8 +460,7 @@ main {
    the actual glyphs, reading as a gap rather than an underline. */
 .ext,
 .pub-card__doi,
-.site-footer__links a,
-.site-footer__bottom a {
+.site-footer__links a {
   text-decoration: none;
   line-height: 1.15;
   background-image: linear-gradient(currentColor, currentColor);
@@ -455,6 +468,21 @@ main {
   background-position: 0 100%;
   background-size: 100% 1px;
 }
+
+/* ---- Touch targets -------------------------------------------------------------------------
+   On a touchscreen (`pointer: coarse`) a link that is only as tall as its line of text is hard to
+   hit: the project cards' Live / API docs / GitHub links measured 38x16px, the problem-solving profile
+   links 19px high (WCAG 2.5.8 asks for at least 24px, and phones are happier with ~44px). Padding makes
+   the hit area taller without changing how the link looks or reads. `background-origin: content-box`
+   keeps the underline (a background line, see the .ext rule above) hugging the text instead of
+   dropping to the bottom of the new padding. Only STANDALONE links get this: a link inside a sentence
+   is exempt and padding would only push its lines apart. Mouse users (`pointer: fine`) keep the tight
+   original sizes.
+
+   The rules live NEXT TO each component, in a `@media (pointer: coarse)` block after its base rule
+   (work.css, about.css, publications.css, footer.css, case-study.css, hero.css), not here: the section
+   stylesheets load after this file, so a rule written here would lose to their own padding at equal
+   specificity. Search for "pointer: coarse" to see them all. */
 
 /* ---- Custom cursor (lib/cursor.js: fine pointers + motion only) -------------------------------
    .has-cursor is only ever added once cursor.js has actually built the replacement, so the real
@@ -512,8 +540,8 @@ main {
 
 /* ---- Back to top (src/lib/back-to-top.js) -----------------------------------------------------
    A fixed circular button, built once and reused on every page, so it stays reachable anywhere in
-   the scroll rather than only at the footer's own "Back to top" text link. Hidden by default: JS
-   adds .is-visible once the visitor has scrolled roughly past the first screen. `visibility` is
+   the scroll, the footer included -- it is the page's only back-to-top control. Hidden by default:
+   JS adds .is-visible once the visitor has scrolled roughly past the first screen. `visibility` is
    delayed on the way out (paired with the opacity transition) so it also leaves the tab order once
    it is no longer on screen, the same trick header.css uses for the fullscreen menu. */
 .back-to-top {
@@ -524,20 +552,23 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: 1px solid var(--line);
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 0;
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--accent); /* the arrow (currentColor stroke) reads as accent-yellow at rest, not
-    just on hover -- it needs to stay visible against --surface without an interaction cue */
+  /* A solid accent disc with a dark arrow. The first versions (a dark disc with a thin yellow arrow,
+     then a yellow arrow on --surface) disappeared into the dark page, so the button is now one of the
+     brightest things on screen, with a shadow to lift it off whatever it floats over. */
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0.35rem 1.1rem color-mix(in srgb, var(--bg) 75%, transparent);
   opacity: 0;
   visibility: hidden;
   transform: translateY(0.5rem);
   transition:
     opacity var(--dur-s) var(--ease-out),
     transform var(--dur-s) var(--ease-out),
-    border-color var(--dur-xs) var(--ease-out),
+    background-color var(--dur-xs) var(--ease-out),
     visibility 0s linear var(--dur-s);
 }
 .back-to-top.is-visible {
@@ -548,9 +579,9 @@ main {
 }
 .back-to-top:hover,
 .back-to-top:focus-visible {
-  border-color: var(--accent);
+  background: var(--accent-hover);
 }
 .back-to-top__icon {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.6rem;
+  height: 1.6rem;
 }

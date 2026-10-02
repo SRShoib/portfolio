@@ -79,6 +79,15 @@
   list-style: none;
 }
 
+/* Touch: taller hit area for Live / API docs / GitHub (see "Touch targets" in base.css). */
+@media (pointer: coarse) {
+  .project-card__links a {
+    display: inline-block;
+    padding-block: 0.9rem;
+    background-origin: content-box;
+  }
+}
+
 .project-card__case {
   align-self: flex-start;
   margin-top: auto; /* pins the link to the bottom, so cards of unequal height line up */

@@ -1,10 +1,10 @@
-// A floating "back to top" button, present on every page regardless of scroll position (unlike
-// the plain text link in the footer, which only exists at the very bottom of the page). Built and
-// appended here, not written into a partial, because it is page chrome rather than page content --
-// the same reasoning src/lib/cursor.js and src/lib/backdrop.js already follow for their own
-// JS-only, every-page elements.
+// A floating "back to top" button, present on every page once the visitor has scrolled past the
+// first screen, all the way down to the bottom of the page -- the footer included. It is the only
+// back-to-top control: the footer's own text link was removed in its favour. Built and appended
+// here, not written into a partial, because it is page chrome rather than page content -- the same
+// reasoning src/lib/cursor.js and src/lib/backdrop.js already follow for their own JS-only,
+// every-page elements.
 
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { scrollToTarget } from './scroll.js';
 
 export function initBackToTop() {
@@ -14,19 +14,31 @@ export function initBackToTop() {
   button.setAttribute('aria-label', 'Back to top');
   button.innerHTML =
     '<svg class="back-to-top__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
-    '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 19V6M6 12l6-6 6 6"/>' +
+    '<path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M12 19V6M6 12l6-6 6 6"/>' +
     '</svg>';
   document.body.append(button);
 
   button.addEventListener('click', () => scrollToTarget('#top'));
 
-  // Visible once the visitor has scrolled roughly past the first screen -- not tied to any one
-  // section, so the same threshold works on the home page and on every case study. `start` is a
-  // function so a resize (e.g. rotating a phone) re-measures it on the next ScrollTrigger.refresh().
-  ScrollTrigger.create({
-    trigger: document.body,
-    start: () => `top -${window.innerHeight}`,
-    end: () => ScrollTrigger.maxScroll(window),
-    toggleClass: { targets: button, className: 'is-visible' },
-  });
+  // Visible once the visitor has scrolled roughly past the first screen, and from then on until the
+  // very bottom -- not tied to any one section, so the same rule works on the home page and on every
+  // case study.
+  //
+  // A plain scroll listener rather than a ScrollTrigger, because a trigger needs an `end` and "the
+  // bottom of the page" is not a number that stays put. The first version used
+  // `end: ScrollTrigger.maxScroll(window)`, which was measured before the pinned sections (hero,
+  // statement, timeline) had added their pin spacing, so it ended ~1,500px short of the real bottom
+  // and the button vanished before the footer came into view. Comparing the live scroll position
+  // needs no measured end at all. `scroll` fires under Lenis too, since Lenis moves the page with
+  // window.scrollTo.
+  //
+  // On the home page the hero is pinned for 1.5 screens, and its scroll cue (sections/hero.js) sits at the
+  // bottom centre the whole time; on a phone the cue and this button would overlap. So the button waits
+  // until the cue has gone, which also keeps the two attention-grabbers from competing.
+  const update = () => {
+    const cueShowing = document.querySelector('[data-hero-cue].is-on:not(.is-hidden)');
+    button.classList.toggle('is-visible', window.scrollY > window.innerHeight && !cueShowing);
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update(); // a reload can restore a scroll position part-way down the page
 }

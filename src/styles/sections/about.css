@@ -129,6 +129,19 @@
   color: var(--accent);
 }
 
+/* Touch: taller hit areas for the profile and contest links (see "Touch targets" in base.css). */
+@media (pointer: coarse) {
+  .about__links a {
+    display: inline-block;
+    padding-block: 0.9rem;
+    background-origin: content-box;
+  }
+  .about__contests a {
+    padding-block: 0.45rem;
+    background-origin: content-box;
+  }
+}
+
 /* Skills: a small mono label per group, then its chips. */
 .skills {
   display: grid;

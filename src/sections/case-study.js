@@ -50,7 +50,16 @@ function prepDiagram(svg) {
   const lines = [...svg.querySelectorAll('.diagram-line')];
   gsap.set(nodes, { opacity: 0, scale: 0.86, transformOrigin: '50% 50%' });
   lines.forEach((line) => {
-    const length = line.getTotalLength();
+    // The page carries both layouts of the diagram and CSS shows one, so this also runs on an SVG that
+    // is `display: none`. Browsers differ on whether a path can be measured while it is not rendered;
+    // one that cannot is left as a plain, fully drawn line rather than risking an invisible one.
+    let length = 0;
+    try {
+      length = line.getTotalLength();
+    } catch {
+      /* not rendered */
+    }
+    if (!length) return;
     if (!line.classList.contains('diagram-line--loop')) line.style.strokeDasharray = String(length);
     line.style.strokeDashoffset = String(length);
   });
@@ -85,19 +94,23 @@ function animateDiagram(mount, { nodes, lines }) {
 export function initCaseStudy() {
   const revealTargets = [...document.querySelectorAll('.cs-cover, .cs-section, .cs-pager__link')];
   const diagramMount = document.querySelector('[data-diagram-mount]');
-  const svg = diagramMount?.querySelector('svg.diagram');
-  if (!revealTargets.length && !svg) return; // not a case-study page (404.html, home)
+  // Both layouts of the diagram (wide and narrow, see diagram.css) sit in the mount; CSS shows one.
+  // Each gets the same draw-on, so whichever is on screen when it scrolls into view animates, and a
+  // rotated phone or resized window never reveals a layout that was left half-prepared.
+  const svgs = [...(diagramMount?.querySelectorAll('svg.diagram') ?? [])];
+  if (!revealTargets.length && !svgs.length) return; // not a case-study page (404.html, home)
 
   mm = gsap.matchMedia();
 
   mm.add({ motion: conditions.motion }, () => {
     const triggers = revealTargets.map(revealOnce);
-    const diagram = svg ? animateDiagram(diagramMount, prepDiagram(svg)) : null;
+    const diagrams = svgs.map((svg) => animateDiagram(diagramMount, prepDiagram(svg)));
 
     return () => {
       triggers.forEach((t) => t.kill());
       gsap.set(revealTargets, { clearProps: 'opacity,transform' });
-      if (diagram) {
+      diagrams.forEach((diagram, i) => {
+        const svg = svgs[i];
         diagram.trigger.kill();
         diagram.tl.kill();
         gsap.set(svg.querySelectorAll('.diagram-node'), { clearProps: 'opacity,transform' });
@@ -105,7 +118,7 @@ export function initCaseStudy() {
           line.style.strokeDasharray = '';
           line.style.strokeDashoffset = '';
         });
-      }
+      });
     };
   });
 }

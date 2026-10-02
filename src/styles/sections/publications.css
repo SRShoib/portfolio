@@ -158,6 +158,14 @@
   overflow-wrap: anywhere; /* DOIs are long unbroken strings; never let one widen the page */
 }
 
+/* Touch: a taller hit area for the DOI link (see "Touch targets" in base.css). */
+@media (pointer: coarse) {
+  .pub-card__doi {
+    padding-block: 0.8rem;
+    background-origin: content-box;
+  }
+}
+
 /* Two or three columns: every row of a group gets the SAME height (`1fr` implicit rows: all rows are
    as tall as the tallest), and cards stretch to fill it. So all the conference cards match, and both
    dataset cards match, whatever the column count (with two columns, the third conference card sits
@@ -175,10 +183,42 @@
     --sample-cols: var(--sample-cols-wide, 3);
   }
 }
+/* Tablet widths (two columns): a group with an odd number of cards (the three conference papers) left
+   its last card alone on the second row with an empty cell beside it, which read as a hole. It is
+   centred under the pair instead, still exactly one column wide (and, because the rows share one height,
+   exactly as tall), so the group reads as a deliberate 2 + 1. A group with an even count (the two
+   dataset articles) never matches `:nth-child(odd)` on its last card, and from 64em the conference
+   group is three across, so this is only for the two-column range. */
+@media (min-width: 48em) and (max-width: 63.99em) {
+  .pubs__list > li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - var(--space-m)) / 2);
+  }
+}
 @media (min-width: 64em) {
   .pubs__list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-l);
+  }
+  /* Three across, done on a six-column track so a LEFTOVER row can be centred: every card spans two
+     columns (two columns plus the gap between them is exactly one third of the row minus its gaps, so
+     the cards are the same width as before). A last row of one card (4 or 7 cards) is pushed to the
+     middle; a last row of two (5 cards, the dataset group) starts one column in, which centres the pair.
+     A full last row (the three conference papers) matches neither rule. */
+  .pubs__list {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .pubs__list > li {
+    grid-column: span 2;
+  }
+  .pubs__list > li:last-child:nth-child(3n + 1) {
+    grid-column: 3 / span 2;
+  }
+  .pubs__list > li:nth-last-child(2):nth-child(3n + 1) {
+    grid-column: 2 / span 2;
+  }
+  .pubs__list > li:last-child:nth-child(3n + 2) {
+    grid-column: 4 / span 2;
   }
   .pubs__list + .pubs__list {
     margin-top: var(--space-l);

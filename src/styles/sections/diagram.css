@@ -7,7 +7,16 @@
 
    Shape grammar, consistent across all four diagrams: a rounded rect is a pipeline stage, a
    diamond is a human/decision gate, a stack of offset rects is a parallel branch, and a dashed
-   accent-2 arrow is a reflection loop back to an earlier stage. */
+   accent-2 arrow is a reflection loop back to an earlier stage.
+
+   Legibility is a ratio, not a font-size: the SVG is scaled to fit its container, so a label's size
+   on screen is `font-size x (container width / viewBox width)`. The first diagrams were 4-5 columns
+   wide (988-1238 units) with 13-unit text, which landed at 4-9px on screen. Each project now ships
+   two layouts of the same flowchart, with 16-unit text in both (same nodes, same order, same
+   arrows; only the number of columns differs):
+     .diagram--wide    3 columns, 736 units wide  -> ~15px in a case study, ~13px in a home card
+     .diagram--narrow  2 columns, 424 units wide  -> ~11.5px on a 390px phone
+   Everything below is in SVG user units, so strokes and dashes scale with the drawing. */
 
 .diagram {
   display: block;
@@ -15,10 +24,16 @@
   height: 100%;
 }
 
+/* The narrow layout only exists for phones, and only inside a case study (see the end of this
+   file); the home cards never include it. */
+.diagram--narrow {
+  display: none;
+}
+
 .diagram-node__shape {
   fill: var(--surface);
   stroke: var(--line);
-  stroke-width: 1.5;
+  stroke-width: 1.75;
 }
 .diagram-node--gate .diagram-node__shape {
   fill: var(--raised);
@@ -27,14 +42,14 @@
 .diagram-node--parallel .diagram-node__shadow {
   fill: var(--surface);
   stroke: var(--line);
-  stroke-width: 1.5;
+  stroke-width: 1.75;
   opacity: 0.55;
 }
 
 .diagram-node__label {
   fill: var(--text);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 16px; /* must match F in the layout generator: the boxes are sized from it (0.6em per mono character) */
   font-weight: 500;
   text-anchor: middle;
 }
@@ -48,12 +63,12 @@
 .diagram-line {
   fill: none;
   stroke: var(--muted);
-  stroke-width: 1.75;
+  stroke-width: 2;
   stroke-linecap: round;
 }
 .diagram-line--loop {
   stroke: var(--accent-2);
-  stroke-dasharray: 5 5;
+  stroke-dasharray: 6 6;
 }
 
 .diagram-arrowhead {
@@ -79,14 +94,22 @@
 .project-card__diagram {
   display: grid;
   place-items: center;
-  padding: var(--space-m);
+  padding: var(--space-s); /* every unit of width counts here: the text size scales with it */
   background: var(--raised);
 }
+/* 100% x 100% with the SVG's default `meet` fit: the drawing grows until it touches the padding
+   box on whichever axis runs out first, and can never overflow the 16:10 frame. */
 .project-card__diagram .diagram {
   width: 100%;
-  height: auto;
+  height: 100%;
 }
 .project-card__cover {
+  /* An opaque backing, so the diagram underneath can never show through the cover at rest. It
+     matters whenever the screenshot does not fill the frame: a narrow source such as the Chrome
+     extension popup is shown whole (object-fit: contain, see base.css), which leaves bare strips either
+     side of it, and a lazy-loaded image has no pixels at all until it arrives. Same colour as the
+     diagram's own backing, so the hover wipe changes what is drawn, not the card's tone. */
+  background: var(--raised);
   clip-path: circle(150% at 80% 20%);
   transition: clip-path var(--dur-m) var(--ease-in-out);
 }
@@ -110,4 +133,18 @@
 }
 .cs-architecture__diagram .diagram {
   max-width: 44rem;
+}
+
+/* Phones: swap to the 2-column layout. The case study includes both SVGs (the page markup, one
+   after the other); this is the only place the narrow one is ever shown. 40em (640px) is where the
+   wide layout drops below ~12px on screen. The cap keeps the narrow drawing from blowing up on a
+   600px-wide screen, where it would otherwise be scaled to fill a panel far wider than it needs. */
+@media (max-width: 39.99em) {
+  .cs-architecture__diagram .diagram--wide {
+    display: none;
+  }
+  .cs-architecture__diagram .diagram--narrow {
+    display: block;
+    max-width: 26rem;
+  }
 }

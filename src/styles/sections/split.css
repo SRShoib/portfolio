@@ -32,10 +32,13 @@
 }
 
 .split__title {
-  font-size: var(--step-6);
+  /* 13.5vw is the cap that keeps "Engineering" (4.65em wide) inside the card on phones narrower than
+     ~360px (card padding included, see the media query below); from there up step-6 is smaller. */
+  font-size: min(var(--step-6), 13.5vw);
   font-stretch: 80%;
   font-weight: 800;
   line-height: 1;
+  overflow-wrap: break-word;
 }
 
 .split__text {
@@ -63,6 +66,13 @@
 .split__card:hover .split__link,
 .split__card:focus-within .split__link {
   background-size: 100% 1px;
+}
+
+/* The very narrowest phones: a little less padding, so the big title keeps its room. */
+@media (max-width: 22.5em) {
+  .split__card {
+    padding: var(--space-m);
+  }
 }
 
 @media (min-width: 48em) {

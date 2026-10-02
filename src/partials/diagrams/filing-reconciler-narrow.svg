@@ -1,0 +1,61 @@
+<svg class="diagram diagram--narrow" viewBox="0 0 424 596" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arrow-filing-reconciler-narrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path class="diagram-arrowhead" d="M0,0 L10,5 L0,10 z"></path>
+    </marker>
+    <marker id="arrow-loop-filing-reconciler-narrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path class="diagram-arrowhead diagram-arrowhead--loop" d="M0,0 L10,5 L0,10 z"></path>
+    </marker>
+  </defs>
+  <g class="diagram-lines">
+    <path class="diagram-line" d="M192,50 L232,50" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line" d="M320,96 L320,128" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line" d="M232,160 L192,160" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line" d="M104,192 L104,236" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line" d="M200,284 L232,284" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line" d="M292,316 L292,392" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line" d="M232,424 L200,424" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line" d="M104,472 L104,516" marker-end="url(#arrow-filing-reconciler-narrow)"></path>
+    <path class="diagram-line diagram-line--loop" d="M348,392 L348,316" marker-end="url(#arrow-loop-filing-reconciler-narrow)"></path>
+  </g>
+  <g class="diagram-nodes">
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="16" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="55.12">Ingest</tspan></text>
+    </g>
+    <g class="diagram-node diagram-node--parallel">
+      <rect class="diagram-node__shadow" x="244" y="28" width="176" height="68" rx="12"></rect>
+      <rect class="diagram-node__shadow" x="238" y="22" width="176" height="68" rx="12"></rect>
+      <rect class="diagram-node__shape" x="232" y="16" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="45.12">Parallel claim</tspan><tspan x="320" y="65.12">extraction</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="128" width="176" height="64" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="165.12">Reconciliation</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="128" width="176" height="64" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="165.12">Risk scoring</tspan></text>
+    </g>
+    <g class="diagram-node diagram-node--gate">
+      <polygon class="diagram-node__shape" points="104,236 200,284 104,332 8,284"></polygon>
+      <text class="diagram-node__label"><tspan x="104" y="269.12">Gate 1</tspan><tspan x="104" y="289.12">Contradiction</tspan><tspan x="104" y="309.12">review</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="252" width="176" height="64" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="289.12">Draft memo</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="392" width="176" height="64" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="429.12">Critique</tspan></text>
+    </g>
+    <g class="diagram-node diagram-node--gate">
+      <polygon class="diagram-node__shape" points="104,376 200,424 104,472 8,424"></polygon>
+      <text class="diagram-node__label"><tspan x="104" y="409.12">Gate 2</tspan><tspan x="104" y="429.12">Memo</tspan><tspan x="104" y="449.12">sign-off</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="516" width="176" height="64" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="553.12">Finalize</tspan></text>
+    </g>
+  </g>
+</svg>

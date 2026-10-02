@@ -1,0 +1,53 @@
+<svg class="diagram diagram--narrow" viewBox="0 0 424 456" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arrow-enterprise-knowledge-assistant-narrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path class="diagram-arrowhead" d="M0,0 L10,5 L0,10 z"></path>
+    </marker>
+    <marker id="arrow-loop-enterprise-knowledge-assistant-narrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path class="diagram-arrowhead diagram-arrowhead--loop" d="M0,0 L10,5 L0,10 z"></path>
+    </marker>
+  </defs>
+  <g class="diagram-lines">
+    <path class="diagram-line" d="M192,50 L232,50" marker-end="url(#arrow-enterprise-knowledge-assistant-narrow)"></path>
+    <path class="diagram-line" d="M320,84 L320,128" marker-end="url(#arrow-enterprise-knowledge-assistant-narrow)"></path>
+    <path class="diagram-line" d="M232,162 L192,162" marker-end="url(#arrow-enterprise-knowledge-assistant-narrow)"></path>
+    <path class="diagram-line" d="M104,196 L104,240" marker-end="url(#arrow-enterprise-knowledge-assistant-narrow)"></path>
+    <path class="diagram-line" d="M192,274 L232,274" marker-end="url(#arrow-enterprise-knowledge-assistant-narrow)"></path>
+    <path class="diagram-line" d="M320,308 L320,352" marker-end="url(#arrow-enterprise-knowledge-assistant-narrow)"></path>
+    <path class="diagram-line" d="M232,396 L192,396" marker-end="url(#arrow-enterprise-knowledge-assistant-narrow)"></path>
+  </g>
+  <g class="diagram-nodes">
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="16" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="45.12">Upload (PDF /</tspan><tspan x="104" y="65.12">DOCX / TXT)</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="16" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="55.12">Parsing</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="128" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="157.12">Recursive</tspan><tspan x="320" y="177.12">chunking</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="128" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="157.12">OpenAI</tspan><tspan x="104" y="177.12">embeddings</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="240" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="279.12">Pinecone index</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="240" width="176" height="68" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="269.12">Role-filtered</tspan><tspan x="320" y="289.12">retrieval</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="232" y="352" width="176" height="88" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="320" y="381.12">LLM answer with</tspan><tspan x="320" y="401.12">citations +</tspan><tspan x="320" y="421.12">confidence</tspan></text>
+    </g>
+    <g class="diagram-node">
+      <rect class="diagram-node__shape" x="16" y="352" width="176" height="88" rx="12"></rect>
+      <text class="diagram-node__label"><tspan x="104" y="401.12">Chat workspace</tspan></text>
+    </g>
+  </g>
+</svg>
